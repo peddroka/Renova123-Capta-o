@@ -28,6 +28,7 @@ const schema = z.object({
   API_PORT: z.coerce.number().int().positive().default(Number(process.env.PORT ?? 3333)),
   LOCAL_API_PORT: z.coerce.number().int().positive().optional(),
   API_HOST: z.string().default(process.env.VERCEL || process.env.PORT ? "0.0.0.0" : "127.0.0.1"),
+  TRUST_PROXY: booleanString(process.env.NODE_ENV === "production"),
   LOCAL_API_URL: z.string().url().default("http://127.0.0.1:3333"),
   APP_URL: z.string().url().default(hostedAppUrl),
   MOCK_MODE: booleanString(true),

@@ -1,6 +1,6 @@
 import type { OutreachAnalytics, OutreachAnalyticsLead, OutreachHourMetric } from "@renova123/shared";
 
-export const OUTREACH_ANALYTICS_TIMEZONE = "America/Maceio";
+export const OUTREACH_ANALYTICS_TIMEZONE = "America/Sao_Paulo";
 export const OUTREACH_ANALYTICS_MIN_SAMPLE = 10;
 
 function localHour(value: string, timezone: string) {

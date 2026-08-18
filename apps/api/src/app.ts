@@ -103,6 +103,8 @@ export async function buildApp(
   overrides: { repository?: Repository; whatsappProvider?: WhatsAppProvider } = {},
 ) {
   const app = Fastify({
+    // Production traffic reaches the API through Nginx.
+    trustProxy: config.TRUST_PROXY,
     rewriteUrl: (request) => {
       const url = request.url ?? "/";
       if (url === "/api") return "/";
@@ -172,7 +174,12 @@ export async function buildApp(
     credentials: true,
     methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   });
-  await app.register(rateLimit, { max: config.MOCK_MODE ? 2_000 : 120, timeWindow: "1 minute" });
+  await app.register(rateLimit, {
+    max: config.MOCK_MODE ? 2_000 : 120,
+    timeWindow: "1 minute",
+    allowList: (request) =>
+      request.method === "OPTIONS" || request.url === "/health" || request.url === "/health/live",
+  });
   await app.register(multipart, { limits: { fileSize: 25 * 1024 * 1024, files: 1 } });
   await app.register(websocket);
   app.decorateRequest("userId", null);
@@ -1099,13 +1106,13 @@ export async function buildApp(
     >();
     for (const event of events.rows) {
       const at = new Date(String(event.occurredAt ?? event.createdAt));
-      const day = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: "America/Maceio" }).format(
+      const day = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: "America/Sao_Paulo" }).format(
         at,
       );
       const hour = new Intl.DateTimeFormat("en-US", {
         hour: "2-digit",
         hour12: false,
-        timeZone: "America/Maceio",
+        timeZone: "America/Sao_Paulo",
       }).format(at);
       const key = `${day}|${hour}`;
       const bucket = buckets.get(key) ?? { attempts: 0, answered: 0, interested: 0, converted: 0 };
@@ -1116,7 +1123,7 @@ export async function buildApp(
       buckets.set(key, bucket);
     }
     return {
-      timezone: "America/Maceio",
+      timezone: "America/Sao_Paulo",
       buckets: [...buckets.entries()].map(([key, value]) => ({
         key,
         ...value,

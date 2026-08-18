@@ -25,8 +25,8 @@ if (!profile.data?.id) throw new Error("Nenhum perfil administrador disponível 
 const owner = profile.data.id;
 
 const outreach = {
-  dailyLimit: 50, dailyProactiveLimit: 50, hourlyLimit: 8, weekdays: [0, 1, 2, 3, 4, 5, 6], startTime: "08:00", endTime: "22:00",
-  minIntervalSeconds: 5, maxIntervalSeconds: 5, timezone: "America/Maceio", campaignStartAt: "2026-08-10T08:00:00-03:00", enabled: false,
+  dailyLimit: 50, dailyProactiveLimit: 50, hourlyLimit: 8, weekdays: [0, 1, 2, 3, 4, 5, 6], startTime: "08:00", endTime: "23:00",
+  minIntervalSeconds: 5, maxIntervalSeconds: 5, timezone: "America/Sao_Paulo", campaignStartAt: "2026-08-10T08:00:00-03:00", enabled: false,
   maxConsecutiveFailures: 5, autoPause: true, followUpsEnabled: true, maxFollowUps: 3, followUpIntervalHours: 48, batchPriority: "priority",
 };
 const settings = await supabase.from("app_settings").upsert({ owner_id: owner, section: "outreach", values: outreach }, { onConflict: "owner_id,section" });

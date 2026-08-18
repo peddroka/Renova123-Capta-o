@@ -156,10 +156,10 @@ class MemoryRepository implements Repository {
         hourlyLimit: 8,
         weekdays: [0, 1, 2, 3, 4, 5, 6],
         startTime: "08:00",
-        endTime: "22:00",
+        endTime: "23:00",
         minIntervalSeconds: 5,
         maxIntervalSeconds: 5,
-        timezone: "America/Maceio",
+        timezone: "America/Sao_Paulo",
         maxConsecutiveFailures: 5,
         autoPause: true,
         dailyProactiveLimit: 50,
@@ -1547,12 +1547,14 @@ class SupabaseRepository implements Repository {
     return jobs;
   }
   async recoverStaleJobs(timeoutMs: number) {
-    const result = await this.db.rpc("recover_stale_queue_items", { p_lease_timeout_ms: timeoutMs });
+    const result = await this.db.rpc("recover_stale_queue_items", {
+      p_stale_after: `${Math.max(1, Math.round(timeoutMs / 1000))} seconds`,
+    });
     if (result.error) throw result.error;
     const row = Array.isArray(result.data) ? result.data[0] : result.data;
     return {
-      found: Number(row?.stale_jobs_found ?? row?.found ?? 0),
-      recovered: Number(row?.stale_jobs_recovered ?? row?.recovered ?? 0),
+      found: Number(typeof result.data === "number" ? result.data : row?.stale_jobs_found ?? row?.found ?? 0),
+      recovered: Number(row?.stale_jobs_recovered ?? row?.recovered ?? (typeof result.data === "number" ? result.data : 0)),
     };
   }
   async renewJobLease(id: string, workerId: string) {

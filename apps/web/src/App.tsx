@@ -31,6 +31,9 @@ export function App() {
     <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
       <Route index element={<Navigate to="/dashboard" replace />} />
       <Route path="dashboard" element={<DashboardPage />} />
+      <Route path="conversations" element={<ConversationsPage />} />
+      <Route path="leads" element={<ResourcePage pageKey="leads" />} />
+      <Route path="settings" element={<SettingsPage pageKey="settings" section="general" />} />
       <Route path="fluxo" element={<FlowPage />} />
       <Route path="the-wolf" element={<WolfPage />} />
       <Route path="importacoes" element={<ImportPage />} />

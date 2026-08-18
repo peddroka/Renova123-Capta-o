@@ -64,6 +64,15 @@ describe("API", () => {
     expect(response.statusCode).toBe(204);
     expect(response.headers["access-control-allow-methods"]).toContain("PATCH");
   });
+  it("não consome rate-limit com preflight nem healthchecks", async () => {
+    const app = await buildApp(); apps.push(app);
+    const headers = { origin: "http://127.0.0.1:5173", "access-control-request-method": "GET" };
+    const responses = await Promise.all([
+      ...Array.from({ length: 20 }, () => app.inject({ method: "OPTIONS", url: "/dashboard", headers })),
+      ...Array.from({ length: 20 }, () => app.inject({ method: "GET", url: "/health/live" })),
+    ]);
+    expect(responses.every((response) => response.statusCode === 204 || response.statusCode === 200)).toBe(true);
+  });
 
   it("entra em modo mock e lista dados", async () => {
     const app = await buildApp(); apps.push(app);
