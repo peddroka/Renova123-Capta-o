@@ -5,7 +5,9 @@
       "framework": "vite"
     },
     "wolf-transcription": {
-      "root": "services/wolf-transcription"
+      "root": "services/wolf-transcription",
+      "framework": "fastapi",
+      "entrypoint": "app:app"
     }
   },
   "rewrites": [
