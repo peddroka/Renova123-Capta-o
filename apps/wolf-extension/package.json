@@ -1,0 +1,10 @@
+{
+  "name": "@renova123/wolf-extension",
+  "version": "0.3.9",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node scripts/copy-build.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  }
+}

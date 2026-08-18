@@ -1,0 +1,16 @@
+node_modules/
+.pnpm-store/
+dist/
+coverage/
+.env
+.env.local
+.env.*
+!.env.example
+playwright-report/
+test-results/
+*.log
+.DS_Store
+infra/evolution/.env
+.supabase/
+.runtime/
+qr-francisco.html

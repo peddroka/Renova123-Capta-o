@@ -1,0 +1,74 @@
+name: renova123-captacao-evolution
+
+services:
+  evolution-api:
+    image: evoapicloud/evolution-api:v2.3.6
+    init: true
+    container_name: renova123_evolution_api
+    restart: unless-stopped
+    stop_grace_period: 30s
+    ports:
+      - "127.0.0.1:8080:8080"
+    env_file:
+      - .env
+    depends_on:
+      evolution-postgres:
+        condition: service_healthy
+      evolution-redis:
+        condition: service_healthy
+    volumes:
+      - evolution_instances:/evolution/instances
+    networks:
+      - evolution
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/ >/dev/null 2>&1 || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+  evolution-postgres:
+    image: postgres:15.13-alpine
+    container_name: renova123_evolution_postgres
+    restart: unless-stopped
+    stop_grace_period: 30s
+    environment:
+      POSTGRES_DB: ${POSTGRES_DATABASE}
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    command: ["postgres", "-c", "max_connections=200", "-c", "listen_addresses=*"]
+    volumes:
+      - evolution_postgres:/var/lib/postgresql/data
+    networks:
+      - evolution
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USERNAME} -d ${POSTGRES_DATABASE}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  evolution-redis:
+    image: redis:7.4.5-alpine
+    container_name: renova123_evolution_redis
+    restart: unless-stopped
+    stop_grace_period: 20s
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
+    volumes:
+      - evolution_redis:/data
+    networks:
+      - evolution
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  evolution_instances:
+  evolution_postgres:
+  evolution_redis:
+
+networks:
+  evolution:
+    name: renova123_evolution
+    driver: bridge

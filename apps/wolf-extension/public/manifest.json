@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "THE WOLF — Sales Copilot",
+  "version": "0.3.9",
+  "description": "Copiloto local de ligações do Renova123 dentro do WhatsApp Web.",
+  "permissions": ["sidePanel", "storage", "tabs", "tabCapture", "offscreen", "activeTab", "scripting"],
+  "host_permissions": ["https://web.whatsapp.com/*", "http://127.0.0.1:3333/*", "http://localhost:3333/*"],
+  "background": { "service_worker": "background.js", "type": "module" },
+  "action": { "default_title": "Abrir THE WOLF", "default_icon": { "16": "icons/wolf-16.png", "32": "icons/wolf-32.png", "48": "icons/wolf-48.png", "128": "icons/wolf-128.png" } },
+  "side_panel": { "default_path": "sidepanel.html" },
+  "content_scripts": [{ "matches": ["https://web.whatsapp.com/*"], "js": ["content.js"], "run_at": "document_idle" }],
+  "icons": { "16": "icons/wolf-16.png", "32": "icons/wolf-32.png", "48": "icons/wolf-48.png", "128": "icons/wolf-128.png" },
+  "content_security_policy": { "extension_pages": "script-src 'self'; object-src 'self'" }
+}

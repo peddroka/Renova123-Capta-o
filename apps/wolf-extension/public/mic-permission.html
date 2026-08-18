@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>THE WOLF — Microfone</title>
+    <style>
+      body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #111; color: #f4f4f4; font: 16px system-ui, sans-serif; }
+      main { width: min(420px, calc(100vw - 40px)); padding: 32px; border: 1px solid #444; border-radius: 16px; background: #1c1c1c; text-align: center; }
+      button { cursor: pointer; border: 0; border-radius: 10px; padding: 14px 20px; font-weight: 700; background: #f4f4f4; color: #111; }
+      .error { color: #ff9c9c; min-height: 24px; margin: 18px 0; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>THE WOLF</h1>
+      <p id="status">Microfone ainda não autorizado.</p>
+      <button id="allow">LIBERAR MICROFONE</button>
+      <div class="error" id="error" role="status"></div>
+    </main>
+    <script src="mic-permission.js"></script>
+  </body>
+</html>

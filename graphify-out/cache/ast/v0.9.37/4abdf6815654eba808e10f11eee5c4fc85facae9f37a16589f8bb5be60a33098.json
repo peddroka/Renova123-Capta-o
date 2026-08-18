@@ -1,0 +1,1 @@
+{"nodes": [{"id": "$graphify-root$_supabase_migrations_20260809000200_allow_gemini_agent_metrics_sql", "label": "20260809000200_allow_gemini_agent_metrics.sql", "file_type": "code", "source_file": "supabase/migrations/20260809000200_allow_gemini_agent_metrics.sql", "source_location": null}], "edges": []}

@@ -1,0 +1,8 @@
+import { AgentContextBuilder } from "./agent-context-builder.js";
+import { AgentDecisionValidator } from "./agent-decision-validator.js";
+import { aiDecisionSchema } from "@renova123/shared";
+import type { AgentExecutionInput, AgentExecutionResult, StructuredAgentProvider } from "./types.js";
+export class AgentExecutionService {
+  constructor(private readonly provider: StructuredAgentProvider, private readonly contextBuilder = new AgentContextBuilder(), private readonly validator = new AgentDecisionValidator()) {}
+  async execute(input: AgentExecutionInput): Promise<AgentExecutionResult> { const context = this.contextBuilder.build(input.snapshot, input.userMessage); const systemPrompt = input.systemInstructionSuffix ? `${context.systemPrompt}\nINSTRUÇÃO INTERNA DE CONTINUIDADE: ${input.systemInstructionSuffix}` : context.systemPrompt; const generated = await this.provider.generateStructuredResponse({ systemPrompt, userMessage: input.userMessage, model: input.model, ...(input.temperature === undefined ? {} : { temperature: input.temperature }) }); const decision = aiDecisionSchema.parse(generated.decision); const validated = this.validator.validate(decision, input.snapshot, input.userMessage); const metrics = generated.metrics ? { ...generated.metrics, ...context.tokenBreakdown } : undefined; return { rawDecision: decision, decision: validated.decision, rateLimits: generated.rateLimits, ...(metrics ? { metrics } : {}), context: { ...context, ...(input.systemInstructionSuffix ? { systemPrompt } : {}) }, selectedMaterial: validated.material, appointmentValid: validated.appointmentValid }; }
+}

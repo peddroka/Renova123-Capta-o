@@ -1,0 +1,58 @@
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { Save, ShieldAlert } from "lucide-react";
+import type { PageKey } from "@renova123/shared";
+import { api } from "../api";
+import { Feedback, SkeletonTable } from "../components/Feedback";
+import { PageHeader } from "../components/PageHeader";
+
+type Field = { key: string; label: string; type?: "text" | "textarea" | "number" | "time" | "boolean" | "select" | "password"; placeholder?: string; options?: string[]; help?: string; full?: boolean };
+
+export function SettingsPage({ pageKey, section }: { pageKey: PageKey; section: string }) {
+  const [values, setValues] = useState<Record<string, unknown> | null>(null); const [error, setError] = useState(""); const [success, setSuccess] = useState(""); const [saving, setSaving] = useState(false);
+  const fields = useMemo(() => fieldSets[section] ?? [], [section]);
+  useEffect(() => { api<Record<string, unknown>>(`/settings/${section}`).then((data) => setValues({ ...defaults[section], ...data })).catch((reason) => setError(reason.message)); }, [section]);
+  async function save(event: FormEvent) { event.preventDefault(); if (!values) return; if (section === "general" && values.realSendingEnabled === true && !window.confirm("Atenção: você está solicitando liberação de envio real. Confirma que credenciais, lista, limites e testes foram revisados?")) return; setSaving(true); setError(""); try { await api(`/settings/${section}`, { method: "PUT", body: JSON.stringify(values) }); setSuccess("Configurações salvas e registradas na auditoria."); } catch (reason) { setError(reason instanceof Error ? reason.message : "Falha ao salvar."); } finally { setSaving(false); } }
+  return <div className="page-stack"><PageHeader pageKey={pageKey} />{error ? <Feedback kind="error" message={error} onClose={() => setError("")} /> : null}{success ? <Feedback kind="success" message={success} onClose={() => setSuccess("")} /> : null}{section === "general" ? <div className="safety-banner"><ShieldAlert /><div><strong>Envio real protegido por duas chaves</strong><span>O modo de simulação precisa estar desligado e a liberação de envio real confirmada. A parada geral continua disponível no topo.</span></div></div> : null}{!values ? <section className="card"><SkeletonTable /></section> : <form className="card settings-form" onSubmit={(event) => void save(event)}><div className="form-grid">{fields.map((field) => <SettingField key={field.key} field={field} value={values[field.key]} onChange={(value) => setValues({ ...values, [field.key]: value })} />)}</div><footer className="settings-footer"><span>Alterações passam a valer no próximo ciclo seguro do worker.</span><button className="primary-button" disabled={saving}><Save /> {saving ? "Salvando..." : "Salvar alterações"}</button></footer></form>}</div>;
+}
+
+function SettingField({ field, value, onChange }: { field: Field; value: unknown; onChange: (value: unknown) => void }) {
+  if (field.type === "boolean") return <label className="switch-row full"><span><strong>{field.label}</strong>{field.help ? <small>{field.help}</small> : null}</span><input type="checkbox" checked={Boolean(value)} onChange={(event) => onChange(event.target.checked)} /><i /></label>;
+  const className = field.full || field.type === "textarea" ? "full" : "";
+  return <label className={className}>{field.label}{field.help ? <small>{field.help}</small> : null}{field.type === "textarea" ? <textarea rows={4} value={String(value ?? "")} placeholder={field.placeholder} onChange={(event) => onChange(event.target.value)} /> : field.type === "select" ? <select value={String(value ?? "")} onChange={(event) => onChange(event.target.value)}>{field.options?.map((option) => <option key={option} value={option}>{option}</option>)}</select> : <input type={field.type ?? "text"} value={Array.isArray(value) ? value.join(",") : String(value ?? "")} placeholder={field.placeholder} onChange={(event) => onChange(Array.isArray(value) ? event.target.value.split(",").map((item) => Number(item.trim())).filter((item) => Number.isInteger(item)) : field.type === "number" ? Number(event.target.value) : event.target.value)} />}</label>;
+}
+
+const defaults: Record<string, Record<string, unknown>> = {
+  outreach: { dailyLimit: 50, dailyProactiveLimit: 50, hourlyLimit: 8, weekdays: [0, 1, 2, 3, 4, 5, 6], startTime: "08:00", endTime: "22:00", minIntervalSeconds: 5, maxIntervalSeconds: 5, timezone: "America/Maceio", maxConsecutiveFailures: 5, autoPause: true, followUpsEnabled: true, maxFollowUps: 3, followUpIntervalHours: 48, batchPriority: "priority", demoDays: "segunda a sexta", demoStartTime: "09:00", demoEndTime: "17:00", demoDurationMinutes: 45, demoBufferMinutes: 15, demoMinNoticeHours: 24, demoBlockedSlots: "", demoCloser: "", demoNotes: "" },
+  groq: { model: "openai/gpt-oss-120b", configured: false, temperature: 0.35 },
+  general: { agentName: "Francisco", companyName: "Renova 123", salesCloserName: "Pedro", salesCloserPhone: "5582988543864", simulationMode: true, realSendingEnabled: false, globalPause: false, automationEnabled: false, timezone: "America/Sao_Paulo", uploadLimitMb: 25 },
+  mind: { agentName: "Francisco", role: "Assistente comercial", presentation: "", mission: "", primaryGoal: "", secondaryGoal: "", communicationStyle: "", tone: "", personality: "", preferredLength: "", targetAudience: "", companyDescription: "", productDescription: "", benefits: "", features: "", differentiators: "", prices: "", implementation: "", plans: "", freeTrial: "", multiStoreDiscount: "", referralProgram: "", validity: "", commercialTerms: "", exceptions: "", authorizationRequired: "", demoDuration: "", objections: "", approvedAnswers: "", faq: "", mandatoryRules: "", forbiddenInformation: "", hotLeadCriteria: "", handoffCriteria: "", additionalInstructions: "" },
+};
+
+const fieldSets: Record<string, Field[]> = {
+  outreach: [
+    { key: "dailyProactiveLimit", label: "Limite diário de disparos proativos", type: "number", help: "Inclui primeira abordagem, follow-ups e retomadas; respostas não consomem este limite." }, { key: "hourlyLimit", label: "Máximo por hora", type: "number" },
+    { key: "weekdays", label: "Dias da semana (0=domingo…6=sábado)", help: "Separe visualmente no cadastro; o valor atual é mantido como lista." }, { key: "startTime", label: "Horário inicial", type: "time" }, { key: "endTime", label: "Horário final", type: "time" },
+    { key: "minIntervalSeconds", label: "Intervalo mínimo (segundos)", type: "number" }, { key: "maxIntervalSeconds", label: "Intervalo máximo (segundos)", type: "number" }, { key: "timezone", label: "Fuso horário" },
+    { key: "maxConsecutiveFailures", label: "Máximo de falhas consecutivas", type: "number" }, { key: "autoPause", label: "Pausa automática", type: "boolean", help: "Interrompe novas abordagens ao atingir o limite de falhas." },
+    { key: "followUpsEnabled", label: "Ativar follow-ups", type: "boolean" }, { key: "maxFollowUps", label: "Máximo de follow-ups", type: "number" }, { key: "followUpIntervalHours", label: "Intervalo entre follow-ups (horas)", type: "number" },
+    { key: "batchPriority", label: "Prioridade entre lotes", type: "select", options: ["priority", "oldest", "round_robin"] }, { key: "demoDays", label: "Dias disponíveis para demonstração" },
+    { key: "demoStartTime", label: "Início da agenda", type: "time" }, { key: "demoEndTime", label: "Fim da agenda", type: "time" }, { key: "demoDurationMinutes", label: "Duração (minutos)", type: "number" },
+    { key: "demoBufferMinutes", label: "Intervalo entre reuniões", type: "number" }, { key: "demoMinNoticeHours", label: "Antecedência mínima (horas)", type: "number" }, { key: "demoBlockedSlots", label: "Horários bloqueados", type: "textarea", full: true, help: "Uma linha por bloqueio: 2026-08-10T14:00 | 2026-08-10T15:00 | motivo" },
+    { key: "demoCloser", label: "Closer responsável" }, { key: "demoNotes", label: "Observações da agenda", type: "textarea", full: true },
+  ],
+  groq: [{ key: "model", label: "Modelo GroqCloud", type: "select", options: ["openai/gpt-oss-120b", "openai/gpt-oss-20b"] }, { key: "temperature", label: "Temperatura", type: "number", help: "Sugestão: 0,2 a 0,5 para consistência comercial." }, { key: "configured", label: "Chave detectada no servidor", type: "boolean", help: "A chave nunca aparece nem é salva no navegador." }],
+  general: [{ key: "agentName", label: "Nome do agente" }, { key: "companyName", label: "Nome da empresa" }, { key: "salesCloserName", label: "Responsável comercial" }, { key: "salesCloserPhone", label: "WhatsApp do responsável" }, { key: "timezone", label: "Fuso horário" }, { key: "uploadLimitMb", label: "Limite de upload (MB)", type: "number" }, { key: "simulationMode", label: "Modo de simulação", type: "boolean", help: "Processa toda a lógica sem enviar ao WhatsApp real." }, { key: "realSendingEnabled", label: "Liberar envio real", type: "boolean", help: "Mantenha desligado até concluir o plano de testes." }, { key: "globalPause", label: "Parada geral", type: "boolean" }],
+  mind: [
+    { key: "agentName", label: "Nome do agente" }, { key: "role", label: "Cargo" }, { key: "presentation", label: "Apresentação", type: "textarea" }, { key: "mission", label: "Missão", type: "textarea" },
+    { key: "primaryGoal", label: "Objetivo principal", type: "textarea" }, { key: "secondaryGoal", label: "Objetivo secundário", type: "textarea" }, { key: "communicationStyle", label: "Estilo de comunicação" }, { key: "tone", label: "Tom" },
+    { key: "personality", label: "Personalidade", type: "textarea" }, { key: "preferredLength", label: "Tamanho preferido das mensagens" }, { key: "targetAudience", label: "Público-alvo", type: "textarea" },
+    { key: "companyDescription", label: "Descrição da empresa", type: "textarea" }, { key: "productDescription", label: "Descrição do produto", type: "textarea" }, { key: "benefits", label: "Benefícios", type: "textarea" },
+    { key: "features", label: "Funcionalidades", type: "textarea" }, { key: "differentiators", label: "Diferenciais", type: "textarea" }, { key: "prices", label: "Preços cadastrados", type: "textarea", help: "Francisco não pode inventar valores se este campo estiver vazio." },
+    { key: "plans", label: "Planos", type: "textarea" }, { key: "implementation", label: "Implantação", type: "textarea" }, { key: "freeTrial", label: "Teste gratuito", type: "textarea" },
+    { key: "multiStoreDiscount", label: "Condição para múltiplas óticas", type: "textarea" }, { key: "referralProgram", label: "Programa de indicação", type: "textarea", help: "Detalhe quando uma mensalidade gratuita pode ser concedida." }, { key: "validity", label: "Validade das condições", type: "textarea" },
+    { key: "commercialTerms", label: "Condições comerciais", type: "textarea" }, { key: "exceptions", label: "Exceções comerciais", type: "textarea" }, { key: "authorizationRequired", label: "Autorizações necessárias", type: "textarea" },
+    { key: "demoDuration", label: "Duração da demonstração" }, { key: "objections", label: "Objeções", type: "textarea" }, { key: "approvedAnswers", label: "Respostas aprovadas", type: "textarea" }, { key: "faq", label: "Perguntas frequentes", type: "textarea" },
+    { key: "mandatoryRules", label: "Regras obrigatórias", type: "textarea" }, { key: "forbiddenInformation", label: "Informações proibidas", type: "textarea" }, { key: "hotLeadCriteria", label: "Critérios de lead quente", type: "textarea" },
+    { key: "handoffCriteria", label: "Critérios de transferência", type: "textarea" }, { key: "additionalInstructions", label: "Instruções adicionais", type: "textarea" },
+  ],
+};

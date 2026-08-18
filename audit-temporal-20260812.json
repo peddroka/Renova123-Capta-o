@@ -1,0 +1,2235 @@
+﻿{
+    "Generated":  {
+                      "value":  "\/Date(1786579409870)\/",
+                      "DisplayHint":  2,
+                      "DateTime":  "quarta-feira, 12 de agosto de 2026 21:03:29"
+                  },
+    "SpanSec":  90,
+    "Start":  {
+                  "Time":  {
+                               "value":  "\/Date(1786579317448)\/",
+                               "DisplayHint":  2,
+                               "DateTime":  "quarta-feira, 12 de agosto de 2026 21:01:57"
+                           },
+                  "CPU":  13,
+                  "RAMUsedGB":  9.87,
+                  "RAMAvailableGB":  6.06,
+                  "RAMTotalGB":  15.92,
+                  "DiskActive":  1,
+                  "DiskMBps":  1.16,
+                  "DiskQueue":  1,
+                  "Processes":  250,
+                  "CommittedGB":  12.89,
+                  "CommitLimitGB":  34.76,
+                  "CacheGB":  0.39,
+                  "PagesInputSec":  47,
+                  "PageFaultsSec":  19030,
+                  "CompressionGB":  null
+              },
+    "End":  {
+                "Time":  {
+                             "value":  "\/Date(1786579408948)\/",
+                             "DisplayHint":  2,
+                             "DateTime":  "quarta-feira, 12 de agosto de 2026 21:03:28"
+                         },
+                "CPU":  14,
+                "RAMUsedGB":  9.83,
+                "RAMAvailableGB":  6.09,
+                "RAMTotalGB":  15.92,
+                "DiskActive":  15,
+                "DiskMBps":  0.12,
+                "DiskQueue":  0,
+                "Processes":  251,
+                "CommittedGB":  12.84,
+                "CommitLimitGB":  34.76,
+                "CacheGB":  0.4,
+                "PagesInputSec":  83,
+                "PageFaultsSec":  17363,
+                "CompressionGB":  null
+            },
+    "CPUDelta":  [
+                     {
+                         "Id":  24564,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  27.8,
+                         "Threads":  22
+                     },
+                     {
+                         "Id":  20684,
+                         "Process":  "Overwolf",
+                         "CPU_pct":  0.1,
+                         "RAM_MB":  188.2,
+                         "Threads":  92
+                     },
+                     {
+                         "Id":  9908,
+                         "Process":  "AggregatorHost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  12.2,
+                         "Threads":  2
+                     },
+                     {
+                         "Id":  21604,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  20.6,
+                         "Threads":  10
+                     },
+                     {
+                         "Id":  3440,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  26.1,
+                         "Threads":  15
+                     },
+                     {
+                         "Id":  10928,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  41.8,
+                         "Threads":  10
+                     },
+                     {
+                         "Id":  9900,
+                         "Process":  "CrossDeviceResume",
+                         "CPU_pct":  0,
+                         "RAM_MB":  62.5,
+                         "Threads":  20
+                     },
+                     {
+                         "Id":  21536,
+                         "Process":  "GCloud",
+                         "CPU_pct":  0,
+                         "RAM_MB":  23.6,
+                         "Threads":  10
+                     },
+                     {
+                         "Id":  13776,
+                         "Process":  "RuntimeBroker",
+                         "CPU_pct":  0,
+                         "RAM_MB":  13.9,
+                         "Threads":  2
+                     },
+                     {
+                         "Id":  8172,
+                         "Process":  "powershell",
+                         "CPU_pct":  0,
+                         "RAM_MB":  83.7,
+                         "Threads":  13
+                     },
+                     {
+                         "Id":  20244,
+                         "Process":  "PhoneExperienceHost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  174.4,
+                         "Threads":  34
+                     },
+                     {
+                         "Id":  4720,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  9,
+                         "Threads":  1
+                     },
+                     {
+                         "Id":  2564,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  11.1,
+                         "Threads":  5
+                     },
+                     {
+                         "Id":  2992,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  9.5,
+                         "Threads":  6
+                     },
+                     {
+                         "Id":  24540,
+                         "Process":  "msedgewebview2",
+                         "CPU_pct":  0,
+                         "RAM_MB":  3.4,
+                         "Threads":  9
+                     },
+                     {
+                         "Id":  12900,
+                         "Process":  "MSPCManagerCore",
+                         "CPU_pct":  0,
+                         "RAM_MB":  140.3,
+                         "Threads":  23
+                     },
+                     {
+                         "Id":  23672,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  15.5,
+                         "Threads":  7
+                     },
+                     {
+                         "Id":  22808,
+                         "Process":  "MSPCManagerService",
+                         "CPU_pct":  0,
+                         "RAM_MB":  115.1,
+                         "Threads":  21
+                     },
+                     {
+                         "Id":  10308,
+                         "Process":  "msedgewebview2",
+                         "CPU_pct":  0,
+                         "RAM_MB":  5.6,
+                         "Threads":  25
+                     },
+                     {
+                         "Id":  1256,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  35.9,
+                         "Threads":  14
+                     },
+                     {
+                         "Id":  824,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  20.7,
+                         "Threads":  9
+                     },
+                     {
+                         "Id":  23664,
+                         "Process":  "chrome",
+                         "CPU_pct":  0,
+                         "RAM_MB":  26.2,
+                         "Threads":  11
+                     },
+                     {
+                         "Id":  3228,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  19,
+                         "Threads":  4
+                     },
+                     {
+                         "Id":  10300,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  13.6,
+                         "Threads":  2
+                     },
+                     {
+                         "Id":  23660,
+                         "Process":  "MidiSrv",
+                         "CPU_pct":  0,
+                         "RAM_MB":  30.3,
+                         "Threads":  3
+                     },
+                     {
+                         "Id":  7120,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  15.9,
+                         "Threads":  8
+                     },
+                     {
+                         "Id":  4,
+                         "Process":  "System",
+                         "CPU_pct":  0,
+                         "RAM_MB":  13,
+                         "Threads":  326
+                     },
+                     {
+                         "Id":  7824,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  22.3,
+                         "Threads":  4
+                     },
+                     {
+                         "Id":  7512,
+                         "Process":  "uihost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  27.2,
+                         "Threads":  67
+                     },
+                     {
+                         "Id":  24080,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  28,
+                         "Threads":  23
+                     },
+                     {
+                         "Id":  2980,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  11.6,
+                         "Threads":  3
+                     },
+                     {
+                         "Id":  1664,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  7,
+                         "Threads":  3
+                     },
+                     {
+                         "Id":  11576,
+                         "Process":  "msedgewebview2",
+                         "CPU_pct":  0,
+                         "RAM_MB":  55.5,
+                         "Threads":  59
+                     },
+                     {
+                         "Id":  3816,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  32,
+                         "Threads":  17
+                     },
+                     {
+                         "Id":  10640,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  30.9,
+                         "Threads":  12
+                     },
+                     {
+                         "Id":  19760,
+                         "Process":  "crashpad_handler",
+                         "CPU_pct":  0,
+                         "RAM_MB":  7.9,
+                         "Threads":  7
+                     },
+                     {
+                         "Id":  15880,
+                         "Process":  "msedgewebview2",
+                         "CPU_pct":  0,
+                         "RAM_MB":  80,
+                         "Threads":  25
+                     },
+                     {
+                         "Id":  19784,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  24.4,
+                         "Threads":  4
+                     },
+                     {
+                         "Id":  5964,
+                         "Process":  "gamingservices",
+                         "CPU_pct":  0,
+                         "RAM_MB":  47,
+                         "Threads":  18
+                     },
+                     {
+                         "Id":  3808,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  25.8,
+                         "Threads":  7
+                     },
+                     {
+                         "Id":  20184,
+                         "Process":  "powershell",
+                         "CPU_pct":  0,
+                         "RAM_MB":  88.1,
+                         "Threads":  11
+                     },
+                     {
+                         "Id":  21036,
+                         "Process":  "ChatGPT",
+                         "CPU_pct":  1.3,
+                         "RAM_MB":  168,
+                         "Threads":  66
+                     },
+                     {
+                         "Id":  3800,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  25.8,
+                         "Threads":  17
+                     },
+                     {
+                         "Id":  17588,
+                         "Process":  "nvrla",
+                         "CPU_pct":  0,
+                         "RAM_MB":  12.1,
+                         "Threads":  2
+                     },
+                     {
+                         "Id":  2516,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  13.4,
+                         "Threads":  6
+                     },
+                     {
+                         "Id":  3792,
+                         "Process":  "GigabyteUpdateService",
+                         "CPU_pct":  0,
+                         "RAM_MB":  8.2,
+                         "Threads":  2
+                     },
+                     {
+                         "Id":  8532,
+                         "Process":  "taskhostw",
+                         "CPU_pct":  0,
+                         "RAM_MB":  21.4,
+                         "Threads":  10
+                     },
+                     {
+                         "Id":  2928,
+                         "Process":  "Memory Compression",
+                         "CPU_pct":  0,
+                         "RAM_MB":  599.8,
+                         "Threads":  42
+                     },
+                     {
+                         "Id":  3924,
+                         "Process":  "AdjustService",
+                         "CPU_pct":  0,
+                         "RAM_MB":  17.5,
+                         "Threads":  6
+                     },
+                     {
+                         "Id":  2752,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  18.6,
+                         "Threads":  3
+                     },
+                     {
+                         "Id":  12732,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  10.1,
+                         "Threads":  1
+                     },
+                     {
+                         "Id":  4216,
+                         "Process":  "ChatGPT",
+                         "CPU_pct":  0,
+                         "RAM_MB":  200.7,
+                         "Threads":  23
+                     },
+                     {
+                         "Id":  3784,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  7.3,
+                         "Threads":  3
+                     },
+                     {
+                         "Id":  15620,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  15.7,
+                         "Threads":  2
+                     },
+                     {
+                         "Id":  440,
+                         "Process":  "wininit",
+                         "CPU_pct":  0,
+                         "RAM_MB":  10.1,
+                         "Threads":  2
+                     },
+                     {
+                         "Id":  3776,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  10.4,
+                         "Threads":  5
+                     },
+                     {
+                         "Id":  17528,
+                         "Process":  "FvContainer.System",
+                         "CPU_pct":  0,
+                         "RAM_MB":  27.4,
+                         "Threads":  13
+                     },
+                     {
+                         "Id":  14116,
+                         "Process":  "msedgewebview2",
+                         "CPU_pct":  0,
+                         "RAM_MB":  112.3,
+                         "Threads":  51
+                     },
+                     {
+                         "Id":  13684,
+                         "Process":  "NVIDIA Overlay",
+                         "CPU_pct":  0,
+                         "RAM_MB":  36.6,
+                         "Threads":  19
+                     },
+                     {
+                         "Id":  4200,
+                         "Process":  "ChatGPT",
+                         "CPU_pct":  0,
+                         "RAM_MB":  11,
+                         "Threads":  6
+                     },
+                     {
+                         "Id":  3768,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  8.8,
+                         "Threads":  2
+                     },
+                     {
+                         "Id":  8508,
+                         "Process":  "nvcontainer",
+                         "CPU_pct":  0,
+                         "RAM_MB":  68.2,
+                         "Threads":  61
+                     },
+                     {
+                         "Id":  9800,
+                         "Process":  "msedgewebview2",
+                         "CPU_pct":  0,
+                         "RAM_MB":  2.8,
+                         "Threads":  11
+                     },
+                     {
+                         "Id":  17556,
+                         "Process":  "PresentMon_x64",
+                         "CPU_pct":  0,
+                         "RAM_MB":  20.2,
+                         "Threads":  10
+                     },
+                     {
+                         "Id":  13244,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  17.4,
+                         "Threads":  14
+                     },
+                     {
+                         "Id":  744,
+                         "Process":  "smss",
+                         "CPU_pct":  0,
+                         "RAM_MB":  1.6,
+                         "Threads":  2
+                     },
+                     {
+                         "Id":  3760,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  15,
+                         "Threads":  6
+                     },
+                     {
+                         "Id":  24016,
+                         "Process":  "SystemSettings",
+                         "CPU_pct":  0,
+                         "RAM_MB":  87.3,
+                         "Threads":  50
+                     },
+                     {
+                         "Id":  2896,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  11.5,
+                         "Threads":  3
+                     },
+                     {
+                         "Id":  5180,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  10.5,
+                         "Threads":  10
+                     },
+                     {
+                         "Id":  8928,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  23.9,
+                         "Threads":  9
+                     },
+                     {
+                         "Id":  18840,
+                         "Process":  "ChatGPT",
+                         "CPU_pct":  0.9,
+                         "RAM_MB":  392.5,
+                         "Threads":  26
+                     },
+                     {
+                         "Id":  9788,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  16,
+                         "Threads":  4
+                     },
+                     {
+                         "Id":  17544,
+                         "Process":  "FvContainer",
+                         "CPU_pct":  0,
+                         "RAM_MB":  21.6,
+                         "Threads":  12
+                     },
+                     {
+                         "Id":  11940,
+                         "Process":  "ApCent",
+                         "CPU_pct":  0,
+                         "RAM_MB":  79.5,
+                         "Threads":  15
+                     },
+                     {
+                         "Id":  8920,
+                         "Process":  "RuntimeBroker",
+                         "CPU_pct":  0,
+                         "RAM_MB":  13.8,
+                         "Threads":  2
+                     },
+                     {
+                         "Id":  13660,
+                         "Process":  "RuntimeBroker",
+                         "CPU_pct":  0,
+                         "RAM_MB":  20.3,
+                         "Threads":  3
+                     },
+                     {
+                         "Id":  3744,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  61.4,
+                         "Threads":  10
+                     },
+                     {
+                         "Id":  2880,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  11.8,
+                         "Threads":  5
+                     },
+                     {
+                         "Id":  15804,
+                         "Process":  "GameInputSvc",
+                         "CPU_pct":  0,
+                         "RAM_MB":  22.1,
+                         "Threads":  7
+                     },
+                     {
+                         "Id":  22268,
+                         "Process":  "ChatGPT",
+                         "CPU_pct":  0,
+                         "RAM_MB":  31.3,
+                         "Threads":  16
+                     },
+                     {
+                         "Id":  2008,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  10,
+                         "Threads":  5
+                     },
+                     {
+                         "Id":  2004,
+                         "Process":  "chrome",
+                         "CPU_pct":  0.1,
+                         "RAM_MB":  110.9,
+                         "Threads":  62
+                     },
+                     {
+                         "Id":  22260,
+                         "Process":  "ChatGPT",
+                         "CPU_pct":  0,
+                         "RAM_MB":  167.2,
+                         "Threads":  27
+                     },
+                     {
+                         "Id":  8036,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  35,
+                         "Threads":  6
+                     },
+                     {
+                         "Id":  2432,
+                         "Process":  "msedgewebview2",
+                         "CPU_pct":  0,
+                         "RAM_MB":  12.7,
+                         "Threads":  8
+                     },
+                     {
+                         "Id":  1568,
+                         "Process":  "dwm",
+                         "CPU_pct":  0,
+                         "RAM_MB":  91.1,
+                         "Threads":  88
+                     },
+                     {
+                         "Id":  1136,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  22.9,
+                         "Threads":  6
+                     },
+                     {
+                         "Id":  5012,
+                         "Process":  "RuntimeBroker",
+                         "CPU_pct":  0,
+                         "RAM_MB":  14.3,
+                         "Threads":  3
+                     },
+                     {
+                         "Id":  18372,
+                         "Process":  "TextInputHost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  130.4,
+                         "Threads":  68
+                     },
+                     {
+                         "Id":  14492,
+                         "Process":  "RuntimeBroker",
+                         "CPU_pct":  0,
+                         "RAM_MB":  22.5,
+                         "Threads":  2
+                     },
+                     {
+                         "Id":  19232,
+                         "Process":  "SpotifyLauncher",
+                         "CPU_pct":  0,
+                         "RAM_MB":  39.9,
+                         "Threads":  17
+                     },
+                     {
+                         "Id":  8456,
+                         "Process":  "nvcontainer",
+                         "CPU_pct":  0,
+                         "RAM_MB":  33.7,
+                         "Threads":  18
+                     },
+                     {
+                         "Id":  7832,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  41.3,
+                         "Threads":  28
+                     },
+                     {
+                         "Id":  22240,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  18.4,
+                         "Threads":  9
+                     },
+                     {
+                         "Id":  14480,
+                         "Process":  "NVIDIA Overlay",
+                         "CPU_pct":  0,
+                         "RAM_MB":  23.2,
+                         "Threads":  10
+                     },
+                     {
+                         "Id":  8004,
+                         "Process":  "UserOOBEBroker",
+                         "CPU_pct":  0,
+                         "RAM_MB":  11.7,
+                         "Threads":  1
+                     },
+                     {
+                         "Id":  8316,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  26.6,
+                         "Threads":  7
+                     },
+                     {
+                         "Id":  20940,
+                         "Process":  "msedgewebview2",
+                         "CPU_pct":  0,
+                         "RAM_MB":  5.8,
+                         "Threads":  20
+                     },
+                     {
+                         "Id":  20508,
+                         "Process":  "chrome",
+                         "CPU_pct":  0,
+                         "RAM_MB":  9,
+                         "Threads":  8
+                     },
+                     {
+                         "Id":  1112,
+                         "Process":  "lsass",
+                         "CPU_pct":  0,
+                         "RAM_MB":  33.7,
+                         "Threads":  11
+                     },
+                     {
+                         "Id":  21368,
+                         "Process":  "taskhostw",
+                         "CPU_pct":  0,
+                         "RAM_MB":  41.5,
+                         "Threads":  5
+                     },
+                     {
+                         "Id":  19212,
+                         "Process":  "chrome",
+                         "CPU_pct":  0,
+                         "RAM_MB":  71.1,
+                         "Threads":  24
+                     },
+                     {
+                         "Id":  1540,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  10.6,
+                         "Threads":  2
+                     },
+                     {
+                         "Id":  13176,
+                         "Process":  "ApplicationFrameHost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  66.6,
+                         "Threads":  47
+                     },
+                     {
+                         "Id":  18008,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  11.4,
+                         "Threads":  3
+                     },
+                     {
+                         "Id":  3260,
+                         "Process":  "spoolsv",
+                         "CPU_pct":  0,
+                         "RAM_MB":  18.4,
+                         "Threads":  9
+                     },
+                     {
+                         "Id":  4120,
+                         "Process":  "RvControlSvc",
+                         "CPU_pct":  0,
+                         "RAM_MB":  18.7,
+                         "Threads":  20
+                     },
+                     {
+                         "Id":  7424,
+                         "Process":  "WmiPrvSE",
+                         "CPU_pct":  0,
+                         "RAM_MB":  56.2,
+                         "Threads":  14
+                     },
+                     {
+                         "Id":  23944,
+                         "Process":  "RuntimeBroker",
+                         "CPU_pct":  0,
+                         "RAM_MB":  13.6,
+                         "Threads":  2
+                     },
+                     {
+                         "Id":  11012,
+                         "Process":  "CrossDeviceService",
+                         "CPU_pct":  0,
+                         "RAM_MB":  81.1,
+                         "Threads":  11
+                     },
+                     {
+                         "Id":  3684,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  26.4,
+                         "Threads":  3
+                     },
+                     {
+                         "Id":  4976,
+                         "Process":  "AdobeIPCBroker",
+                         "CPU_pct":  0,
+                         "RAM_MB":  10.3,
+                         "Threads":  2
+                     },
+                     {
+                         "Id":  7992,
+                         "Process":  "sihost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  52.3,
+                         "Threads":  13
+                     },
+                     {
+                         "Id":  4112,
+                         "Process":  "EasyTuneEngineService",
+                         "CPU_pct":  0,
+                         "RAM_MB":  29.1,
+                         "Threads":  9
+                     },
+                     {
+                         "Id":  7128,
+                         "Process":  "AdobeNotificationClient",
+                         "CPU_pct":  0,
+                         "RAM_MB":  24.1,
+                         "Threads":  28
+                     },
+                     {
+                         "Id":  1040,
+                         "Process":  "winlogon",
+                         "CPU_pct":  0,
+                         "RAM_MB":  16.8,
+                         "Threads":  3
+                     },
+                     {
+                         "Id":  8164,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  9.9,
+                         "Threads":  2
+                     },
+                     {
+                         "Id":  20484,
+                         "Process":  "chrome",
+                         "CPU_pct":  0,
+                         "RAM_MB":  255.1,
+                         "Threads":  45
+                     },
+                     {
+                         "Id":  4104,
+                         "Process":  "AGMService",
+                         "CPU_pct":  0,
+                         "RAM_MB":  14.7,
+                         "Threads":  7
+                     },
+                     {
+                         "Id":  224,
+                         "Process":  "Registry",
+                         "CPU_pct":  0,
+                         "RAM_MB":  44.7,
+                         "Threads":  4
+                     },
+                     {
+                         "Id":  10192,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  9.1,
+                         "Threads":  3
+                     },
+                     {
+                         "Id":  21772,
+                         "Process":  "conhost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  7,
+                         "Threads":  2
+                     },
+                     {
+                         "Id":  23924,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  14.6,
+                         "Threads":  6
+                     },
+                     {
+                         "Id":  6252,
+                         "Process":  "ChatGPT",
+                         "CPU_pct":  0,
+                         "RAM_MB":  53.5,
+                         "Threads":  22
+                     },
+                     {
+                         "Id":  15044,
+                         "Process":  "RuntimeBroker",
+                         "CPU_pct":  0,
+                         "RAM_MB":  44.9,
+                         "Threads":  4
+                     },
+                     {
+                         "Id":  23916,
+                         "Process":  "MSPCManager",
+                         "CPU_pct":  0,
+                         "RAM_MB":  234.6,
+                         "Threads":  34
+                     },
+                     {
+                         "Id":  14432,
+                         "Process":  "SearchIndexer",
+                         "CPU_pct":  0,
+                         "RAM_MB":  49.6,
+                         "Threads":  8
+                     },
+                     {
+                         "Id":  12232,
+                         "Process":  "Widgets",
+                         "CPU_pct":  0,
+                         "RAM_MB":  71.1,
+                         "Threads":  12
+                     },
+                     {
+                         "Id":  4516,
+                         "Process":  "OverwolfHelper64",
+                         "CPU_pct":  0,
+                         "RAM_MB":  27.6,
+                         "Threads":  9
+                     },
+                     {
+                         "Id":  1496,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  13.1,
+                         "Threads":  5
+                     },
+                     {
+                         "Id":  20452,
+                         "Process":  "GameInputRedistService",
+                         "CPU_pct":  0,
+                         "RAM_MB":  15.5,
+                         "Threads":  2
+                     },
+                     {
+                         "Id":  5364,
+                         "Process":  "WmiPrvSE",
+                         "CPU_pct":  0,
+                         "RAM_MB":  29.7,
+                         "Threads":  8
+                     },
+                     {
+                         "Id":  1052,
+                         "Process":  "services",
+                         "CPU_pct":  0,
+                         "RAM_MB":  20,
+                         "Threads":  7
+                     },
+                     {
+                         "Id":  23020,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  21.7,
+                         "Threads":  4
+                     },
+                     {
+                         "Id":  9236,
+                         "Process":  "explorer",
+                         "CPU_pct":  0,
+                         "RAM_MB":  206.4,
+                         "Threads":  104
+                     },
+                     {
+                         "Id":  11388,
+                         "Process":  "NVIDIA Overlay",
+                         "CPU_pct":  0,
+                         "RAM_MB":  159.8,
+                         "Threads":  117
+                     },
+                     {
+                         "Id":  5784,
+                         "Process":  "chrome",
+                         "CPU_pct":  0,
+                         "RAM_MB":  62.4,
+                         "Threads":  23
+                     },
+                     {
+                         "Id":  2764,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  10.4,
+                         "Threads":  5
+                     },
+                     {
+                         "Id":  21296,
+                         "Process":  "conhost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  9.2,
+                         "Threads":  3
+                     },
+                     {
+                         "Id":  22588,
+                         "Process":  "chrome",
+                         "CPU_pct":  0,
+                         "RAM_MB":  32.4,
+                         "Threads":  13
+                     },
+                     {
+                         "Id":  16984,
+                         "Process":  "ChatGPT",
+                         "CPU_pct":  0,
+                         "RAM_MB":  26,
+                         "Threads":  10
+                     },
+                     {
+                         "Id":  20000,
+                         "Process":  "ChatGPT",
+                         "CPU_pct":  0,
+                         "RAM_MB":  28,
+                         "Threads":  12
+                     },
+                     {
+                         "Id":  9224,
+                         "Process":  "msedgewebview2",
+                         "CPU_pct":  0,
+                         "RAM_MB":  5.1,
+                         "Threads":  63
+                     },
+                     {
+                         "Id":  17412,
+                         "Process":  "nvfvsdksvc_x64",
+                         "CPU_pct":  0,
+                         "RAM_MB":  13.9,
+                         "Threads":  3
+                     },
+                     {
+                         "Id":  4048,
+                         "Process":  "servicehost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  35,
+                         "Threads":  83
+                     },
+                     {
+                         "Id":  22148,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  29,
+                         "Threads":  14
+                     },
+                     {
+                         "Id":  7924,
+                         "Process":  "codex-computer-use",
+                         "CPU_pct":  0,
+                         "RAM_MB":  37.2,
+                         "Threads":  22
+                     },
+                     {
+                         "Id":  2136,
+                         "Process":  "RuntimeBroker",
+                         "CPU_pct":  0,
+                         "RAM_MB":  42.2,
+                         "Threads":  5
+                     },
+                     {
+                         "Id":  752,
+                         "Process":  "csrss",
+                         "CPU_pct":  0,
+                         "RAM_MB":  8.1,
+                         "Threads":  21
+                     },
+                     {
+                         "Id":  2748,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  7.7,
+                         "Threads":  4
+                     },
+                     {
+                         "Id":  12084,
+                         "Process":  "WhatsApp.Root",
+                         "CPU_pct":  0,
+                         "RAM_MB":  164.9,
+                         "Threads":  37
+                     },
+                     {
+                         "Id":  5332,
+                         "Process":  "chrome",
+                         "CPU_pct":  0,
+                         "RAM_MB":  52.2,
+                         "Threads":  24
+                     },
+                     {
+                         "Id":  1452,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  20.1,
+                         "Threads":  9
+                     },
+                     {
+                         "Id":  15672,
+                         "Process":  "NVIDIA Overlay",
+                         "CPU_pct":  0,
+                         "RAM_MB":  69.8,
+                         "Threads":  26
+                     },
+                     {
+                         "Id":  3172,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  12.4,
+                         "Threads":  2
+                     },
+                     {
+                         "Id":  2740,
+                         "Process":  "OverwolfBrowser",
+                         "CPU_pct":  0,
+                         "RAM_MB":  36.2,
+                         "Threads":  62
+                     },
+                     {
+                         "Id":  4032,
+                         "Process":  "MsMpEng",
+                         "CPU_pct":  0,
+                         "RAM_MB":  441.6,
+                         "Threads":  60
+                     },
+                     {
+                         "Id":  1876,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  13.9,
+                         "Threads":  3
+                     },
+                     {
+                         "Id":  3168,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  12.9,
+                         "Threads":  3
+                     },
+                     {
+                         "Id":  7908,
+                         "Process":  "chrome",
+                         "CPU_pct":  0,
+                         "RAM_MB":  59.6,
+                         "Threads":  22
+                     },
+                     {
+                         "Id":  19544,
+                         "Process":  "OverwolfBrowser",
+                         "CPU_pct":  0,
+                         "RAM_MB":  10.8,
+                         "Threads":  10
+                     },
+                     {
+                         "Id":  11352,
+                         "Process":  "nvsphelper64",
+                         "CPU_pct":  0,
+                         "RAM_MB":  17,
+                         "Threads":  6
+                     },
+                     {
+                         "Id":  4024,
+                         "Process":  "nvcontainer",
+                         "CPU_pct":  0,
+                         "RAM_MB":  39.7,
+                         "Threads":  28
+                     },
+                     {
+                         "Id":  3100,
+                         "Process":  "wslservice",
+                         "CPU_pct":  0,
+                         "RAM_MB":  28.2,
+                         "Threads":  5
+                     },
+                     {
+                         "Id":  12240,
+                         "Process":  "WidgetService",
+                         "CPU_pct":  0,
+                         "RAM_MB":  32.7,
+                         "Threads":  5
+                     },
+                     {
+                         "Id":  19536,
+                         "Process":  "GraphicsCardEngine",
+                         "CPU_pct":  0,
+                         "RAM_MB":  5,
+                         "Threads":  7
+                     },
+                     {
+                         "Id":  1864,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  7.6,
+                         "Threads":  7
+                     },
+                     {
+                         "Id":  13064,
+                         "Process":  "SecurityHealthService",
+                         "CPU_pct":  0,
+                         "RAM_MB":  22.5,
+                         "Threads":  5
+                     },
+                     {
+                         "Id":  20388,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  13.8,
+                         "Threads":  5
+                     },
+                     {
+                         "Id":  19524,
+                         "Process":  "OneDrive",
+                         "CPU_pct":  5.7,
+                         "RAM_MB":  1940.7,
+                         "Threads":  91
+                     },
+                     {
+                         "Id":  2556,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  9.6,
+                         "Threads":  3
+                     },
+                     {
+                         "Id":  19280,
+                         "Process":  "OverwolfBrowser",
+                         "CPU_pct":  0,
+                         "RAM_MB":  10.3,
+                         "Threads":  16
+                     },
+                     {
+                         "Id":  14348,
+                         "Process":  "ctfmon",
+                         "CPU_pct":  0,
+                         "RAM_MB":  32.7,
+                         "Threads":  14
+                     },
+                     {
+                         "Id":  10468,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  23.8,
+                         "Threads":  7
+                     },
+                     {
+                         "Id":  2708,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  10,
+                         "Threads":  4
+                     },
+                     {
+                         "Id":  8184,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  11.4,
+                         "Threads":  3
+                     },
+                     {
+                         "Id":  3752,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  9,
+                         "Threads":  2
+                     },
+                     {
+                         "Id":  4428,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  9.2,
+                         "Threads":  2
+                     },
+                     {
+                         "Id":  1316,
+                         "Process":  "fontdrvhost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  4.1,
+                         "Threads":  5
+                     },
+                     {
+                         "Id":  23388,
+                         "Process":  "msedgewebview2",
+                         "CPU_pct":  0,
+                         "RAM_MB":  8.1,
+                         "Threads":  58
+                     },
+                     {
+                         "Id":  22956,
+                         "Process":  "codex-code-mode-host",
+                         "CPU_pct":  0,
+                         "RAM_MB":  15.3,
+                         "Threads":  16
+                     },
+                     {
+                         "Id":  9664,
+                         "Process":  "ShellHost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  57.6,
+                         "Threads":  24
+                     },
+                     {
+                         "Id":  14760,
+                         "Process":  "LockApp",
+                         "CPU_pct":  0,
+                         "RAM_MB":  81.5,
+                         "Threads":  28
+                     },
+                     {
+                         "Id":  14328,
+                         "Process":  "NVIDIA Overlay",
+                         "CPU_pct":  0,
+                         "RAM_MB":  60.5,
+                         "Threads":  71
+                     },
+                     {
+                         "Id":  7000,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  14.2,
+                         "Threads":  3
+                     },
+                     {
+                         "Id":  2688,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  17.3,
+                         "Threads":  8
+                     },
+                     {
+                         "Id":  1076,
+                         "Process":  "AppActions",
+                         "CPU_pct":  0,
+                         "RAM_MB":  42.9,
+                         "Threads":  7
+                     },
+                     {
+                         "Id":  23804,
+                         "Process":  "OverwolfHelper",
+                         "CPU_pct":  0,
+                         "RAM_MB":  28.3,
+                         "Threads":  11
+                     },
+                     {
+                         "Id":  10220,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  18.4,
+                         "Threads":  10
+                     },
+                     {
+                         "Id":  11732,
+                         "Process":  "msedgewebview2",
+                         "CPU_pct":  0,
+                         "RAM_MB":  40.3,
+                         "Threads":  22
+                     },
+                     {
+                         "Id":  1816,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  20.9,
+                         "Threads":  7
+                     },
+                     {
+                         "Id":  2296,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  11.6,
+                         "Threads":  10
+                     },
+                     {
+                         "Id":  18620,
+                         "Process":  "ChatGPT",
+                         "CPU_pct":  0.1,
+                         "RAM_MB":  300.8,
+                         "Threads":  59
+                     },
+                     {
+                         "Id":  11160,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  29.8,
+                         "Threads":  3
+                     },
+                     {
+                         "Id":  11720,
+                         "Process":  "StartMenuExperienceHost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  143.1,
+                         "Threads":  31
+                     },
+                     {
+                         "Id":  23352,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  7.5,
+                         "Threads":  1
+                     },
+                     {
+                         "Id":  6112,
+                         "Process":  "NVDisplay.Container",
+                         "CPU_pct":  0,
+                         "RAM_MB":  47.1,
+                         "Threads":  29
+                     },
+                     {
+                         "Id":  7404,
+                         "Process":  "nvcontainer",
+                         "CPU_pct":  0,
+                         "RAM_MB":  40.2,
+                         "Threads":  23
+                     },
+                     {
+                         "Id":  4384,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  12.1,
+                         "Threads":  7
+                     },
+                     {
+                         "Id":  2644,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  23.2,
+                         "Threads":  4
+                     },
+                     {
+                         "Id":  7568,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  39.4,
+                         "Threads":  6
+                     },
+                     {
+                         "Id":  932,
+                         "Process":  "csrss",
+                         "CPU_pct":  0,
+                         "RAM_MB":  7.6,
+                         "Threads":  16
+                     },
+                     {
+                         "Id":  2224,
+                         "Process":  "NVDisplay.Container",
+                         "CPU_pct":  0,
+                         "RAM_MB":  39.8,
+                         "Threads":  37
+                     },
+                     {
+                         "Id":  14836,
+                         "Process":  "msedgewebview2",
+                         "CPU_pct":  0,
+                         "RAM_MB":  12.5,
+                         "Threads":  8
+                     },
+                     {
+                         "Id":  5224,
+                         "Process":  "conhost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  7,
+                         "Threads":  2
+                     },
+                     {
+                         "Id":  928,
+                         "Process":  "gamingservicesnet",
+                         "CPU_pct":  0,
+                         "RAM_MB":  13,
+                         "Threads":  39
+                     },
+                     {
+                         "Id":  19460,
+                         "Process":  "codex",
+                         "CPU_pct":  0.1,
+                         "RAM_MB":  134.7,
+                         "Threads":  43
+                     },
+                     {
+                         "Id":  20416,
+                         "Process":  "TranslucentTB",
+                         "CPU_pct":  0,
+                         "RAM_MB":  79.6,
+                         "Threads":  24
+                     },
+                     {
+                         "Id":  17300,
+                         "Process":  "NisSrv",
+                         "CPU_pct":  0,
+                         "RAM_MB":  14.1,
+                         "Threads":  5
+                     },
+                     {
+                         "Id":  4368,
+                         "Process":  "dasHost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  13.3,
+                         "Threads":  2
+                     },
+                     {
+                         "Id":  5228,
+                         "Process":  "chrome",
+                         "CPU_pct":  0,
+                         "RAM_MB":  50.2,
+                         "Threads":  31
+                     },
+                     {
+                         "Id":  11692,
+                         "Process":  "SearchHost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  124.1,
+                         "Threads":  27
+                     },
+                     {
+                         "Id":  2640,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  21.6,
+                         "Threads":  7
+                     },
+                     {
+                         "Id":  1776,
+                         "Process":  "msedgewebview2",
+                         "CPU_pct":  0,
+                         "RAM_MB":  15.1,
+                         "Threads":  50
+                     },
+                     {
+                         "Id":  10072,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  5.8,
+                         "Threads":  2
+                     },
+                     {
+                         "Id":  912,
+                         "Process":  "chrome",
+                         "CPU_pct":  0.2,
+                         "RAM_MB":  463.4,
+                         "Threads":  29
+                     },
+                     {
+                         "Id":  2468,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  10.6,
+                         "Threads":  6
+                     },
+                     {
+                         "Id":  19440,
+                         "Process":  "GameInputRedistService",
+                         "CPU_pct":  0,
+                         "RAM_MB":  14.3,
+                         "Threads":  9
+                     },
+                     {
+                         "Id":  1768,
+                         "Process":  "msedgewebview2",
+                         "CPU_pct":  0,
+                         "RAM_MB":  6.3,
+                         "Threads":  23
+                     },
+                     {
+                         "Id":  4056,
+                         "Process":  "MpDefenderCoreService",
+                         "CPU_pct":  0,
+                         "RAM_MB":  22,
+                         "Threads":  9
+                     },
+                     {
+                         "Id":  2628,
+                         "Process":  "chrome",
+                         "CPU_pct":  0,
+                         "RAM_MB":  19.7,
+                         "Threads":  11
+                     },
+                     {
+                         "Id":  14372,
+                         "Process":  "OverwolfBrowser",
+                         "CPU_pct":  0,
+                         "RAM_MB":  91.1,
+                         "Threads":  39
+                     },
+                     {
+                         "Id":  7964,
+                         "Process":  "node_repl",
+                         "CPU_pct":  0,
+                         "RAM_MB":  11.4,
+                         "Threads":  18
+                     },
+                     {
+                         "Id":  2572,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  18.9,
+                         "Threads":  10
+                     },
+                     {
+                         "Id":  15984,
+                         "Process":  "GameInputSvc",
+                         "CPU_pct":  0,
+                         "RAM_MB":  7.6,
+                         "Threads":  3
+                     },
+                     {
+                         "Id":  8224,
+                         "Process":  "cmd",
+                         "CPU_pct":  0,
+                         "RAM_MB":  5.5,
+                         "Threads":  1
+                     },
+                     {
+                         "Id":  9516,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  10.8,
+                         "Threads":  6
+                     },
+                     {
+                         "Id":  11668,
+                         "Process":  "msedgewebview2",
+                         "CPU_pct":  0,
+                         "RAM_MB":  4,
+                         "Threads":  21
+                     },
+                     {
+                         "Id":  1752,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  15.4,
+                         "Threads":  4
+                     },
+                     {
+                         "Id":  888,
+                         "Process":  "msedgewebview2",
+                         "CPU_pct":  0,
+                         "RAM_MB":  13,
+                         "Threads":  8
+                     },
+                     {
+                         "Id":  9076,
+                         "Process":  "RuntimeBroker",
+                         "CPU_pct":  0,
+                         "RAM_MB":  10.5,
+                         "Threads":  2
+                     },
+                     {
+                         "Id":  18556,
+                         "Process":  "ChatGPT",
+                         "CPU_pct":  0,
+                         "RAM_MB":  8.8,
+                         "Threads":  4
+                     },
+                     {
+                         "Id":  1288,
+                         "Process":  "WUDFHost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  54.9,
+                         "Threads":  5
+                     },
+                     {
+                         "Id":  1744,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  12.9,
+                         "Threads":  2
+                     },
+                     {
+                         "Id":  21568,
+                         "Process":  "msedgewebview2",
+                         "CPU_pct":  0,
+                         "RAM_MB":  17.5,
+                         "Threads":  49
+                     },
+                     {
+                         "Id":  3896,
+                         "Process":  "OverwolfBrowser",
+                         "CPU_pct":  0,
+                         "RAM_MB":  23.7,
+                         "Threads":  26
+                     },
+                     {
+                         "Id":  17912,
+                         "Process":  "extension-host",
+                         "CPU_pct":  0,
+                         "RAM_MB":  5.9,
+                         "Threads":  4
+                     },
+                     {
+                         "Id":  1308,
+                         "Process":  "fontdrvhost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  5.4,
+                         "Threads":  5
+                     },
+                     {
+                         "Id":  4752,
+                         "Process":  "node",
+                         "CPU_pct":  0,
+                         "RAM_MB":  54.7,
+                         "Threads":  9
+                     },
+                     {
+                         "Id":  2164,
+                         "Process":  "node_repl",
+                         "CPU_pct":  0,
+                         "RAM_MB":  9.1,
+                         "Threads":  16
+                     },
+                     {
+                         "Id":  15524,
+                         "Process":  "msedgewebview2",
+                         "CPU_pct":  0,
+                         "RAM_MB":  20,
+                         "Threads":  10
+                     },
+                     {
+                         "Id":  2592,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  9,
+                         "Threads":  2
+                     },
+                     {
+                         "Id":  3516,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  10.1,
+                         "Threads":  6
+                     },
+                     {
+                         "Id":  19828,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  9.2,
+                         "Threads":  6
+                     },
+                     {
+                         "Id":  2156,
+                         "Process":  "svchost",
+                         "CPU_pct":  0,
+                         "RAM_MB":  7.9,
+                         "Threads":  3
+                     },
+                     {
+                         "Id":  0,
+                         "Process":  "Idle",
+                         "CPU_pct":  0,
+                         "RAM_MB":  0,
+                         "Threads":  36
+                     }
+                 ],
+    "TopRAM":  [
+                   {
+                       "Id":  19524,
+                       "ProcessName":  "OneDrive",
+                       "RAM_MB":  1940.7,
+                       "CPU_s":  987,
+                       "Threads":  91,
+                       "Path":  "C:\\Users\\peddroka\\AppData\\Local\\Microsoft\\OneDrive\\OneDrive.exe"
+                   },
+                   {
+                       "Id":  2928,
+                       "ProcessName":  "Memory Compression",
+                       "RAM_MB":  599.8,
+                       "CPU_s":  0,
+                       "Threads":  42,
+                       "Path":  null
+                   },
+                   {
+                       "Id":  912,
+                       "ProcessName":  "chrome",
+                       "RAM_MB":  463.4,
+                       "CPU_s":  197.2,
+                       "Threads":  29,
+                       "Path":  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+                   },
+                   {
+                       "Id":  4032,
+                       "ProcessName":  "MsMpEng",
+                       "RAM_MB":  441.6,
+                       "CPU_s":  0,
+                       "Threads":  60,
+                       "Path":  null
+                   },
+                   {
+                       "Id":  18840,
+                       "ProcessName":  "ChatGPT",
+                       "RAM_MB":  392.9,
+                       "CPU_s":  130.1,
+                       "Threads":  26,
+                       "Path":  "C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.803.10989.0_x64__2p2nqsd0c76g0\\app\\ChatGPT.exe"
+                   },
+                   {
+                       "Id":  18620,
+                       "ProcessName":  "ChatGPT",
+                       "RAM_MB":  300.5,
+                       "CPU_s":  62.4,
+                       "Threads":  59,
+                       "Path":  "C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.803.10989.0_x64__2p2nqsd0c76g0\\app\\ChatGPT.exe"
+                   },
+                   {
+                       "Id":  20484,
+                       "ProcessName":  "chrome",
+                       "RAM_MB":  255.1,
+                       "CPU_s":  30.4,
+                       "Threads":  45,
+                       "Path":  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+                   },
+                   {
+                       "Id":  23916,
+                       "ProcessName":  "MSPCManager",
+                       "RAM_MB":  234.6,
+                       "CPU_s":  26.2,
+                       "Threads":  34,
+                       "Path":  "C:\\Program Files\\WindowsApps\\Microsoft.MicrosoftPCManager_3.22.3.0_x64__8wekyb3d8bbwe\\PCManager\\MSPCManager.exe"
+                   },
+                   {
+                       "Id":  9236,
+                       "ProcessName":  "explorer",
+                       "RAM_MB":  206.4,
+                       "CPU_s":  12.1,
+                       "Threads":  104,
+                       "Path":  "C:\\WINDOWS\\Explorer.EXE"
+                   },
+                   {
+                       "Id":  4216,
+                       "ProcessName":  "ChatGPT",
+                       "RAM_MB":  200.7,
+                       "CPU_s":  9.3,
+                       "Threads":  23,
+                       "Path":  "C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.803.10989.0_x64__2p2nqsd0c76g0\\app\\ChatGPT.exe"
+                   },
+                   {
+                       "Id":  20684,
+                       "ProcessName":  "Overwolf",
+                       "RAM_MB":  188.2,
+                       "CPU_s":  29.5,
+                       "Threads":  92,
+                       "Path":  "C:\\Program Files (x86)\\Overwolf\\Overwolf.exe"
+                   },
+                   {
+                       "Id":  20244,
+                       "ProcessName":  "PhoneExperienceHost",
+                       "RAM_MB":  174.4,
+                       "CPU_s":  2.3,
+                       "Threads":  34,
+                       "Path":  "C:\\Program Files\\WindowsApps\\Microsoft.YourPhone_1.26062.145.0_x64__8wekyb3d8bbwe\\PhoneExperienceHost.exe"
+                   },
+                   {
+                       "Id":  21036,
+                       "ProcessName":  "ChatGPT",
+                       "RAM_MB":  168.5,
+                       "CPU_s":  130.1,
+                       "Threads":  66,
+                       "Path":  "C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.803.10989.0_x64__2p2nqsd0c76g0\\app\\ChatGPT.exe"
+                   },
+                   {
+                       "Id":  22260,
+                       "ProcessName":  "ChatGPT",
+                       "RAM_MB":  167.2,
+                       "CPU_s":  5.2,
+                       "Threads":  27,
+                       "Path":  "C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.803.10989.0_x64__2p2nqsd0c76g0\\app\\ChatGPT.exe"
+                   },
+                   {
+                       "Id":  12084,
+                       "ProcessName":  "WhatsApp.Root",
+                       "RAM_MB":  164.9,
+                       "CPU_s":  2.5,
+                       "Threads":  37,
+                       "Path":  "C:\\Program Files\\WindowsApps\\5319275A.WhatsAppDesktop_2.2631.102.0_x64__cv1g1gvanyjgm\\WhatsApp.Root.exe"
+                   },
+                   {
+                       "Id":  11388,
+                       "ProcessName":  "NVIDIA Overlay",
+                       "RAM_MB":  159.8,
+                       "CPU_s":  7.9,
+                       "Threads":  117,
+                       "Path":  "C:\\Program Files\\NVIDIA Corporation\\NVIDIA App\\CEF\\NVIDIA Overlay.exe"
+                   },
+                   {
+                       "Id":  11720,
+                       "ProcessName":  "StartMenuExperienceHost",
+                       "RAM_MB":  143.1,
+                       "CPU_s":  4.2,
+                       "Threads":  31,
+                       "Path":  "C:\\WINDOWS\\SystemApps\\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\\StartMenuExperienceHost.exe"
+                   },
+                   {
+                       "Id":  12900,
+                       "ProcessName":  "MSPCManagerCore",
+                       "RAM_MB":  140.3,
+                       "CPU_s":  7.3,
+                       "Threads":  23,
+                       "Path":  null
+                   },
+                   {
+                       "Id":  19460,
+                       "ProcessName":  "codex",
+                       "RAM_MB":  134.7,
+                       "CPU_s":  24.7,
+                       "Threads":  43,
+                       "Path":  "C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.803.10989.0_x64__2p2nqsd0c76g0\\app\\resources\\codex.exe"
+                   },
+                   {
+                       "Id":  18372,
+                       "ProcessName":  "TextInputHost",
+                       "RAM_MB":  130.4,
+                       "CPU_s":  2.1,
+                       "Threads":  68,
+                       "Path":  "C:\\WINDOWS\\SystemApps\\MicrosoftWindows.Client.CBS_cw5n1h2txyewy\\TextInputHost.exe"
+                   },
+                   {
+                       "Id":  11692,
+                       "ProcessName":  "SearchHost",
+                       "RAM_MB":  124.1,
+                       "CPU_s":  1.9,
+                       "Threads":  27,
+                       "Path":  "C:\\WINDOWS\\SystemApps\\MicrosoftWindows.Client.CBS_cw5n1h2txyewy\\SearchHost.exe"
+                   },
+                   {
+                       "Id":  22808,
+                       "ProcessName":  "MSPCManagerService",
+                       "RAM_MB":  115.1,
+                       "CPU_s":  3,
+                       "Threads":  21,
+                       "Path":  null
+                   },
+                   {
+                       "Id":  14116,
+                       "ProcessName":  "msedgewebview2",
+                       "RAM_MB":  112.3,
+                       "CPU_s":  1.8,
+                       "Threads":  51,
+                       "Path":  "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\151.0.4129.78\\msedgewebview2.exe"
+                   },
+                   {
+                       "Id":  2004,
+                       "ProcessName":  "chrome",
+                       "RAM_MB":  110.9,
+                       "CPU_s":  62.7,
+                       "Threads":  62,
+                       "Path":  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+                   },
+                   {
+                       "Id":  1568,
+                       "ProcessName":  "dwm",
+                       "RAM_MB":  91.2,
+                       "CPU_s":  0,
+                       "Threads":  88,
+                       "Path":  null
+                   },
+                   {
+                       "Id":  14372,
+                       "ProcessName":  "OverwolfBrowser",
+                       "RAM_MB":  91.1,
+                       "CPU_s":  36.7,
+                       "Threads":  39,
+                       "Path":  "C:\\Program Files (x86)\\Overwolf\\0.305.0.9\\OverwolfBrowser.exe"
+                   },
+                   {
+                       "Id":  20184,
+                       "ProcessName":  "powershell",
+                       "RAM_MB":  88.1,
+                       "CPU_s":  0.9,
+                       "Threads":  11,
+                       "Path":  "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+                   },
+                   {
+                       "Id":  8172,
+                       "ProcessName":  "powershell",
+                       "RAM_MB":  87.8,
+                       "CPU_s":  0.5,
+                       "Threads":  16,
+                       "Path":  "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+                   },
+                   {
+                       "Id":  24016,
+                       "ProcessName":  "SystemSettings",
+                       "RAM_MB":  87.3,
+                       "CPU_s":  3.1,
+                       "Threads":  50,
+                       "Path":  "C:\\Windows\\ImmersiveControlPanel\\SystemSettings.exe"
+                   },
+                   {
+                       "Id":  14760,
+                       "ProcessName":  "LockApp",
+                       "RAM_MB":  81.5,
+                       "CPU_s":  0.9,
+                       "Threads":  28,
+                       "Path":  "C:\\WINDOWS\\SystemApps\\Microsoft.LockApp_cw5n1h2txyewy\\LockApp.exe"
+                   }
+               ],
+    "TopIO":  [
+                  {
+                      "Name":  "ChatGPT#6",
+                      "IDProcess":  18840,
+                      "IO_MB_s":  35.6,
+                      "CPU_pct":  11,
+                      "WorkingSet_MB":  392.9
+                  },
+                  {
+                      "Name":  "ChatGPT#3",
+                      "IDProcess":  21036,
+                      "IO_MB_s":  35.6,
+                      "CPU_pct":  11,
+                      "WorkingSet_MB":  168.4
+                  },
+                  {
+                      "Name":  "FvContainer.System",
+                      "IDProcess":  17528,
+                      "IO_MB_s":  2.24,
+                      "CPU_pct":  0,
+                      "WorkingSet_MB":  27.5
+                  },
+                  {
+                      "Name":  "PresentMon_x64",
+                      "IDProcess":  17556,
+                      "IO_MB_s":  0.45,
+                      "CPU_pct":  0,
+                      "WorkingSet_MB":  19.8
+                  },
+                  {
+                      "Name":  "FvContainer",
+                      "IDProcess":  17544,
+                      "IO_MB_s":  0.23,
+                      "CPU_pct":  0,
+                      "WorkingSet_MB":  21.6
+                  },
+                  {
+                      "Name":  "NVIDIA Overlay",
+                      "IDProcess":  11388,
+                      "IO_MB_s":  0.22,
+                      "CPU_pct":  0,
+                      "WorkingSet_MB":  159.8
+                  },
+                  {
+                      "Name":  "chrome#2",
+                      "IDProcess":  2004,
+                      "IO_MB_s":  0.04,
+                      "CPU_pct":  0,
+                      "WorkingSet_MB":  110.9
+                  },
+                  {
+                      "Name":  "chrome#8",
+                      "IDProcess":  912,
+                      "IO_MB_s":  0.04,
+                      "CPU_pct":  5,
+                      "WorkingSet_MB":  463.4
+                  },
+                  {
+                      "Name":  "ChatGPT",
+                      "IDProcess":  18620,
+                      "IO_MB_s":  0.02,
+                      "CPU_pct":  0,
+                      "WorkingSet_MB":  300.6
+                  },
+                  {
+                      "Name":  "ChatGPT#7",
+                      "IDProcess":  4216,
+                      "IO_MB_s":  0.02,
+                      "CPU_pct":  0,
+                      "WorkingSet_MB":  200.7
+                  },
+                  {
+                      "Name":  "NVDisplay.Container",
+                      "IDProcess":  2224,
+                      "IO_MB_s":  0.02,
+                      "CPU_pct":  5,
+                      "WorkingSet_MB":  39.8
+                  },
+                  {
+                      "Name":  "OneDrive",
+                      "IDProcess":  19524,
+                      "IO_MB_s":  0.02,
+                      "CPU_pct":  51,
+                      "WorkingSet_MB":  1940.7
+                  },
+                  {
+                      "Name":  "svchost#15",
+                      "IDProcess":  2468,
+                      "IO_MB_s":  0,
+                      "CPU_pct":  0,
+                      "WorkingSet_MB":  10.6
+                  },
+                  {
+                      "Name":  "svchost#14",
+                      "IDProcess":  2296,
+                      "IO_MB_s":  0,
+                      "CPU_pct":  5,
+                      "WorkingSet_MB":  11.7
+                  },
+                  {
+                      "Name":  "svchost#7",
+                      "IDProcess":  1864,
+                      "IO_MB_s":  0,
+                      "CPU_pct":  0,
+                      "WorkingSet_MB":  7.6
+                  },
+                  {
+                      "Name":  "svchost#8",
+                      "IDProcess":  1876,
+                      "IO_MB_s":  0,
+                      "CPU_pct":  0,
+                      "WorkingSet_MB":  13.9
+                  },
+                  {
+                      "Name":  "svchost#9",
+                      "IDProcess":  2008,
+                      "IO_MB_s":  0,
+                      "CPU_pct":  0,
+                      "WorkingSet_MB":  10
+                  },
+                  {
+                      "Name":  "svchost#13",
+                      "IDProcess":  2156,
+                      "IO_MB_s":  0,
+                      "CPU_pct":  0,
+                      "WorkingSet_MB":  7.9
+                  },
+                  {
+                      "Name":  "svchost#12",
+                      "IDProcess":  1540,
+                      "IO_MB_s":  0,
+                      "CPU_pct":  0,
+                      "WorkingSet_MB":  10.6
+                  },
+                  {
+                      "Name":  "svchost#10",
+                      "IDProcess":  824,
+                      "IO_MB_s":  0,
+                      "CPU_pct":  0,
+                      "WorkingSet_MB":  20.7
+                  },
+                  {
+                      "Name":  "svchost#11",
+                      "IDProcess":  1136,
+                      "IO_MB_s":  0,
+                      "CPU_pct":  0,
+                      "WorkingSet_MB":  22.9
+                  },
+                  {
+                      "Name":  "svchost#16",
+                      "IDProcess":  2516,
+                      "IO_MB_s":  0,
+                      "CPU_pct":  0,
+                      "WorkingSet_MB":  13.4
+                  },
+                  {
+                      "Name":  "svchost#27",
+                      "IDProcess":  2992,
+                      "IO_MB_s":  0,
+                      "CPU_pct":  0,
+                      "WorkingSet_MB":  9.5
+                  },
+                  {
+                      "Name":  "svchost#28",
+                      "IDProcess":  2572,
+                      "IO_MB_s":  0,
+                      "CPU_pct":  0,
+                      "WorkingSet_MB":  18.9
+                  },
+                  {
+                      "Name":  "svchost#25",
+                      "IDProcess":  2896,
+                      "IO_MB_s":  0,
+                      "CPU_pct":  0,
+                      "WorkingSet_MB":  11.5
+                  },
+                  {
+                      "Name":  "svchost#26",
+                      "IDProcess":  2980,
+                      "IO_MB_s":  0,
+                      "CPU_pct":  0,
+                      "WorkingSet_MB":  11.6
+                  },
+                  {
+                      "Name":  "svchost#31",
+                      "IDProcess":  3168,
+                      "IO_MB_s":  0,
+                      "CPU_pct":  0,
+                      "WorkingSet_MB":  12.9
+                  },
+                  {
+                      "Name":  "svchost#32",
+                      "IDProcess":  3172,
+                      "IO_MB_s":  0,
+                      "CPU_pct":  0,
+                      "WorkingSet_MB":  12.4
+                  },
+                  {
+                      "Name":  "svchost#29",
+                      "IDProcess":  2564,
+                      "IO_MB_s":  0,
+                      "CPU_pct":  0,
+                      "WorkingSet_MB":  11.1
+                  },
+                  {
+                      "Name":  "svchost#30",
+                      "IDProcess":  2640,
+                      "IO_MB_s":  0,
+                      "CPU_pct":  0,
+                      "WorkingSet_MB":  21.6
+                  }
+              ]
+}

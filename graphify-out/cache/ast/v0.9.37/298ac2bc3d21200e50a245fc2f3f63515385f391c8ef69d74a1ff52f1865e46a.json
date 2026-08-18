@@ -1,0 +1,1 @@
+{"nodes": [{"id": "$graphify-root$_supabase_migrations_20260816000200_sales_handoff_delivery_sql", "label": "20260816000200_sales_handoff_delivery.sql", "file_type": "code", "source_file": "supabase/migrations/20260816000200_sales_handoff_delivery.sql", "source_location": null}], "edges": []}
