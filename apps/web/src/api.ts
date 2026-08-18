@@ -1,6 +1,8 @@
 import { clearAuthSession, getValidAccessToken } from "./supabase";
 
-export const API_URL = import.meta.env.VITE_API_URL ?? "/api";
+const configuredApiUrl = import.meta.env.VITE_API_URL?.trim();
+const isLocalApiUrl = Boolean(configuredApiUrl && /^(https?:\/\/)?(127\.0\.0\.1|localhost)(:\d+)?\b/i.test(configuredApiUrl));
+export const API_URL = configuredApiUrl && !isLocalApiUrl ? configuredApiUrl : "/api";
 
 export class ApiError extends Error {
   constructor(
