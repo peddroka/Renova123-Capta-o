@@ -127,7 +127,7 @@
   "125": "AppointmentsPage.tsx",
   "126": "inspect-evolution-regressions.ts",
   "127": "20260811000100_the_wolf.sql",
-  "128": "outreach-policy.ts",
+  "128": "processInboundEvent",
   "129": "openrouter.ts",
   "130": "conversation-orchestrator.ts",
   "131": "wolf-transcription/README.md",
@@ -185,15 +185,14 @@
   "183": "architecture.test.ts",
   "184": "knowledge-service.ts",
   "185": "mic-permission.js",
-  "186": ".qrFrom",
+  "186": "WhatsAppMediaInput",
   "187": "conversation-memory-service.ts",
   "188": "createRepository",
-  "189": "interpretBrazilianContext",
+  "189": "WhatsAppPage.tsx",
   "190": "prompts.ts",
   "191": "20260816000300_daily_cadence_plans.sql",
-  "192": "services",
+  "192": "wolf-transcription",
   "193": "the-wolf-prompt.ts",
   "194": "decryptSecret",
-  "195": "expand-francisco-knowledge.mjs",
-  "196": "validate-francisco-providers.ts"
+  "195": "expand-francisco-knowledge.mjs"
 }

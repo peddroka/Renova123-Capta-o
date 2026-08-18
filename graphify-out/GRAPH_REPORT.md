@@ -1,16 +1,16 @@
 # Graph Report - Renova123 Captação  (2026-08-17)
 
 ## Corpus Check
-- 289 files · ~196,054 words
+- 289 files · ~196,110 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2161 nodes · 3855 edges · 196 communities (171 shown, 25 thin omitted)
+- 2161 nodes · 3855 edges · 195 communities (170 shown, 25 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 46 edges (avg confidence: 0.65)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `942f0679`
+- Built from commit: `b6e7c1ce`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -99,7 +99,6 @@
 - Mapa de reaproveitamento
 - AGENTS.md
 - public.capture_outreach_template_strategy
-- HealthPage.tsx
 - GroqProvider
 - executeAgentWithDailyLimitFallback
 - conversation-style.ts
@@ -187,7 +186,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (196 total, 25 thin omitted)
+## Communities (195 total, 25 thin omitted)
 
 ### Community 0 - "worker/src/index.ts"
 Cohesion: 0.07
@@ -227,7 +226,7 @@ Nodes (8): aggregateOutreachByHour(), localHour(), median(), OUTREACH_ANALYTICS_
 
 ### Community 10 - "index.tsx"
 Cohesion: 0.08
-Nodes (31): Theme, navigation, Item, KnowledgePage(), Log, LogsPage(), Material, MaterialsPage() (+23 more)
+Nodes (33): format(), Health, HealthPage(), serviceLabel(), Item, KnowledgePage(), Log, LogsPage() (+25 more)
 
 ### Community 11 - "groq.ts"
 Cohesion: 0.11
@@ -258,8 +257,8 @@ Cohesion: 0.16
 Nodes (14): configs, Field, formatCell(), friendly(), labels, localDateTime(), PageResult, ResourceConfig (+6 more)
 
 ### Community 19 - "App.tsx"
-Cohesion: 0.24
-Nodes (11): App(), resourceRoutes, AuthContext, AuthProvider(), AuthState, ProtectedRoute(), useAuth(), AppLayout() (+3 more)
+Cohesion: 0.15
+Nodes (17): App(), resourceRoutes, AuthContext, AuthProvider(), AuthState, ProtectedRoute(), useAuth(), AppLayout() (+9 more)
 
 ### Community 20 - "integrations/package.json"
 Cohesion: 0.11
@@ -461,10 +460,6 @@ Nodes (5): Arquitetura, Documentação, Início rápido no Windows, Qualidade, R
 Cohesion: 0.29
 Nodes (5): grouped, s.first_inbound_at, public.capture_outreach_template_strategy(), public.conversations, public.leads
 
-### Community 112 - "HealthPage.tsx"
-Cohesion: 0.32
-Nodes (7): format(), Health, HealthPage(), serviceLabel(), DataCard(), MetricCard(), SystemStatusIndicator()
-
 ### Community 113 - "GroqProvider"
 Cohesion: 0.28
 Nodes (5): callMetrics(), estimateTokens(), GroqProvider, isWhisper(), mockModels()
@@ -575,7 +570,7 @@ Nodes (3): checks, main(), portOpen()
 
 ### Community 162 - "PageHeader"
 Cohesion: 0.09
-Nodes (21): Feedback(), SkeletonTable(), PageHeader(), exitLabels, FlowData, FlowPage(), FlowRow, AiStatus (+13 more)
+Nodes (20): Feedback(), SkeletonTable(), PageHeader(), exitLabels, FlowData, FlowPage(), FlowRow, AiStatus (+12 more)
 
 ### Community 163 - "ai-decision.ts"
 Cohesion: 0.16

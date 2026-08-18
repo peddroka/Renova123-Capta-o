@@ -1210,8 +1210,8 @@
     "semantic_hash": ""
   },
   "services/wolf-transcription/app.py": {
-    "mtime": 1786912857.983332,
-    "ast_hash": "cc13275225d27574dbebae4547d88178",
+    "mtime": 1787017836.8159199,
+    "ast_hash": "2f68dd34ec1790248529b03adfe33d49",
     "semantic_hash": ""
   },
   "services/wolf-transcription/README.md": {
@@ -1220,8 +1220,8 @@
     "semantic_hash": ""
   },
   "services/wolf-transcription/requirements.txt": {
-    "mtime": 1786545246.8402488,
-    "ast_hash": "e2aa227a3f56c5e3798e8a2eaf3eac70",
+    "mtime": 1787017791.9486723,
+    "ast_hash": "64aa7d4be77dc5a7c996fc539e4dfb7d",
     "semantic_hash": ""
   },
   "supabase/migrations/20260812000200_wolf_operations.sql": {

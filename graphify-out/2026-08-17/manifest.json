@@ -1220,8 +1220,8 @@
     "semantic_hash": ""
   },
   "services/wolf-transcription/requirements.txt": {
-    "mtime": 1786545246.8402488,
-    "ast_hash": "e2aa227a3f56c5e3798e8a2eaf3eac70",
+    "mtime": 1787017791.9486723,
+    "ast_hash": "64aa7d4be77dc5a7c996fc539e4dfb7d",
     "semantic_hash": ""
   },
   "supabase/migrations/20260812000200_wolf_operations.sql": {
@@ -1600,8 +1600,8 @@
     "semantic_hash": ""
   },
   "vercel.json": {
-    "mtime": 1787016755.488768,
-    "ast_hash": "327384ae6625ec4f71c5328f8e942427",
+    "mtime": 1787017378.3549213,
+    "ast_hash": "1cbdc9d8a20d4a2754fb5bdab3f04079",
     "semantic_hash": ""
   }
 }
