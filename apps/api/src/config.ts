@@ -73,7 +73,12 @@ const schema = z.object({
 });
 
 const parsed = schema.parse(process.env);
-if (parsed.NODE_ENV === "production" && parsed.ENCRYPTION_KEY === "development-encryption-key-change-me") throw new Error("ENCRYPTION_KEY deve ser um segredo próprio em produção.");
+if (
+  parsed.NODE_ENV === "production" &&
+  !parsed.MOCK_MODE &&
+  parsed.ENCRYPTION_KEY === "development-encryption-key-change-me"
+)
+  throw new Error("ENCRYPTION_KEY deve ser um segredo próprio quando o modo real está ativo.");
 const supabaseUrl = optionalHttpUrl(parsed.SUPABASE_URL, "SUPABASE_URL", parsed.MOCK_MODE);
 const evolutionUrl = optionalHttpUrl(
   parsed.EVOLUTION_BASE_URL ?? parsed.EVOLUTION_API_URL,
