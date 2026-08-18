@@ -1,9 +1,11 @@
 fastapi==0.116.1
 uvicorn[standard]==0.35.0
 faster-whisper==1.2.0
+# Keep the Vercel/Linux bundle small. The local Windows setup can still use the
+# optional CUDA and Silero packages below for GPU acceleration and VAD.
+silero-vad==6.2.0; sys_platform == "win32"
+torch>=2.13,<2.14; sys_platform == "win32"
 # Official NVIDIA CUDA runtime wheels required by CTranslate2 4.8.x on Windows.
-nvidia-cublas-cu12
-nvidia-cudnn-cu12
-silero-vad==6.2.0
-torch>=2.13,<2.14
+nvidia-cublas-cu12; sys_platform == "win32"
+nvidia-cudnn-cu12; sys_platform == "win32"
 numpy==2.3.2
