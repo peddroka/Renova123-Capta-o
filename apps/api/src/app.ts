@@ -103,6 +103,11 @@ export async function buildApp(
   overrides: { repository?: Repository; whatsappProvider?: WhatsAppProvider } = {},
 ) {
   const app = Fastify({
+    rewriteUrl: (request) => {
+      const url = request.url ?? "/";
+      if (url === "/api") return "/";
+      return url.startsWith("/api/") ? url.slice(4) : url;
+    },
     logger: {
       level: config.LOG_LEVEL,
       redact: ["req.headers.authorization", "req.headers.apikey", "*.apiKey", "*.password", "*.token"],
@@ -349,7 +354,7 @@ export async function buildApp(
       setTimeout(ensureWolfHelper, 1000);
     });
   });
-  if (config.NODE_ENV !== "test")
+  if (config.NODE_ENV !== "test" && !process.env.VERCEL)
     await new Promise<void>((resolve) =>
       wolfAudioServer.listen(Number(process.env.WOLF_AUDIO_PORT ?? 3344), "127.0.0.1", () => resolve()),
     );
