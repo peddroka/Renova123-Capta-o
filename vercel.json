@@ -34,7 +34,8 @@
       "source": "/(.*)",
       "destination": {
         "type": "service",
-        "service": "web"
+        "service": "web",
+        "path": "/index.html"
       }
     }
   ]
