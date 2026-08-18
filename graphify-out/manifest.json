@@ -10,8 +10,8 @@
     "semantic_hash": "94b5b25925bca6f9a9b5cc1f88d4c4b5"
   },
   "apps/api/package.json": {
-    "mtime": 1786508625.7950094,
-    "ast_hash": "982715322de594a2784924150a4a9277",
+    "mtime": 1787018409.4628396,
+    "ast_hash": "149ccb3c7a8d1d4b89652fd45f1b54eb",
     "semantic_hash": ""
   },
   "apps/api/src/app.test.ts": {
