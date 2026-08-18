@@ -7830,8 +7830,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_notifysalesqualified",
-      "community": 54,
-      "community_name": "group-notifications.ts",
+      "community": 0,
+      "community_name": "worker/src/index.ts",
       "norm_label": "notifysalesqualified()"
     },
     {
@@ -7842,8 +7842,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_salesclosersettings",
-      "community": 54,
-      "community_name": "group-notifications.ts",
+      "community": 0,
+      "community_name": "worker/src/index.ts",
       "norm_label": "salesclosersettings()"
     },
     {
@@ -7949,8 +7949,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_humanconversationsummary",
-      "community": 54,
-      "community_name": "group-notifications.ts",
+      "community": 0,
+      "community_name": "worker/src/index.ts",
       "norm_label": "humanconversationsummary()"
     },
     {
@@ -7961,8 +7961,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_humanmaininterest",
-      "community": 54,
-      "community_name": "group-notifications.ts",
+      "community": 0,
+      "community_name": "worker/src/index.ts",
       "norm_label": "humanmaininterest()"
     },
     {
@@ -7973,8 +7973,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_lowerfirst",
-      "community": 54,
-      "community_name": "group-notifications.ts",
+      "community": 0,
+      "community_name": "worker/src/index.ts",
       "norm_label": "lowerfirst()"
     },
     {
@@ -64198,7 +64198,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/francisco-preflight.ts",
-      "source_location": "L76",
+      "source_location": "L78",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_francisco_preflight_main",

@@ -25,8 +25,8 @@
     "semantic_hash": ""
   },
   "apps/api/src/config.ts": {
-    "mtime": 1786509788.6201708,
-    "ast_hash": "cbf684c653ea6ed5124c3fc835388c5c",
+    "mtime": 1786993640.7874029,
+    "ast_hash": "5727f2f8e08239852789bb3378b816e9",
     "semantic_hash": ""
   },
   "apps/api/src/server.ts": {
@@ -1595,8 +1595,8 @@
     "semantic_hash": ""
   },
   "scripts/francisco-preflight.ts": {
-    "mtime": 1786992935.7096066,
-    "ast_hash": "a726fbf3c8970db94420940c647855a2",
+    "mtime": 1786993517.5376067,
+    "ast_hash": "bfa150cd25202448e1a622e706b65425",
     "semantic_hash": ""
   }
 }

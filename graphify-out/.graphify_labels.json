@@ -187,9 +187,13 @@
   "185": "mic-permission.js",
   "186": ".qrFrom",
   "187": "conversation-memory-service.ts",
-  "188": "integrations/src/index.ts",
-  "189": "WhatsAppPage.tsx",
+  "188": "createRepository",
+  "189": "interpretBrazilianContext",
   "190": "prompts.ts",
   "191": "20260816000300_daily_cadence_plans.sql",
-  "193": "the-wolf-prompt.ts"
+  "192": "services",
+  "193": "the-wolf-prompt.ts",
+  "194": "decryptSecret",
+  "195": "expand-francisco-knowledge.mjs",
+  "196": "validate-francisco-providers.ts"
 }

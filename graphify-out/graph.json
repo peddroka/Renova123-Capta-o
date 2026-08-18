@@ -583,7 +583,7 @@
       "_origin": "ast",
       "id": "apps_api_src_app_test",
       "community": 188,
-      "community_name": "integrations/src/index.ts",
+      "community_name": "createRepository",
       "norm_label": "app.test.ts"
     },
     {
@@ -594,7 +594,7 @@
       "_origin": "ast",
       "id": "apps_api_src_app_test_apps",
       "community": 188,
-      "community_name": "integrations/src/index.ts",
+      "community_name": "createRepository",
       "norm_label": "apps"
     },
     {
@@ -769,8 +769,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_api_src_app_resolvegroqapikey",
-      "community": 7,
-      "community_name": "app.ts",
+      "community": 194,
+      "community_name": "decryptSecret",
       "norm_label": "resolvegroqapikey()"
     },
     {
@@ -781,8 +781,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_api_src_app_sanitizegroqsettings",
-      "community": 7,
-      "community_name": "app.ts",
+      "community": 194,
+      "community_name": "decryptSecret",
       "norm_label": "sanitizegroqsettings()"
     },
     {
@@ -1078,8 +1078,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_api_src_whatsapp_flow_test",
-      "community": 188,
-      "community_name": "integrations/src/index.ts",
+      "community": 39,
+      "community_name": "database/src/index.ts",
       "norm_label": "whatsapp-flow.test.ts"
     },
     {
@@ -3371,8 +3371,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_web_src_pages_whatsapppage",
-      "community": 189,
-      "community_name": "WhatsAppPage.tsx",
+      "community": 158,
+      "community_name": "PageHeader.tsx",
       "norm_label": "whatsapppage.tsx"
     },
     {
@@ -3384,8 +3384,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "apps_web_src_pages_whatsapppage_connectionstate",
-      "community": 189,
-      "community_name": "WhatsAppPage.tsx",
+      "community": 158,
+      "community_name": "PageHeader.tsx",
       "norm_label": "connectionstate"
     },
     {
@@ -3397,8 +3397,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "apps_web_src_pages_whatsapppage_pairingstatus",
-      "community": 189,
-      "community_name": "WhatsAppPage.tsx",
+      "community": 158,
+      "community_name": "PageHeader.tsx",
       "norm_label": "pairingstatus"
     },
     {
@@ -3410,8 +3410,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "apps_web_src_pages_whatsapppage_diagnostics",
-      "community": 189,
-      "community_name": "WhatsAppPage.tsx",
+      "community": 158,
+      "community_name": "PageHeader.tsx",
       "norm_label": "diagnostics"
     },
     {
@@ -3422,8 +3422,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_web_src_pages_whatsapppage_whatsapppage",
-      "community": 189,
-      "community_name": "WhatsAppPage.tsx",
+      "community": 158,
+      "community_name": "PageHeader.tsx",
       "norm_label": "whatsapppage()"
     },
     {
@@ -3434,8 +3434,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_web_src_pages_whatsapppage_labelstate",
-      "community": 189,
-      "community_name": "WhatsAppPage.tsx",
+      "community": 158,
+      "community_name": "PageHeader.tsx",
       "norm_label": "labelstate()"
     },
     {
@@ -3446,8 +3446,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_web_src_pages_whatsapppage_formatdate",
-      "community": 189,
-      "community_name": "WhatsAppPage.tsx",
+      "community": 158,
+      "community_name": "PageHeader.tsx",
       "norm_label": "formatdate()"
     },
     {
@@ -3458,8 +3458,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_web_src_pages_whatsapppage_formattime",
-      "community": 189,
-      "community_name": "WhatsAppPage.tsx",
+      "community": 158,
+      "community_name": "PageHeader.tsx",
       "norm_label": "formattime()"
     },
     {
@@ -3470,8 +3470,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_web_src_pages_whatsapppage_message",
-      "community": 189,
-      "community_name": "WhatsAppPage.tsx",
+      "community": 158,
+      "community_name": "PageHeader.tsx",
       "norm_label": "message()"
     },
     {
@@ -7432,8 +7432,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_worker_src_francisco_test",
-      "community": 174,
-      "community_name": "AgentSnapshot",
+      "community": 2,
+      "community_name": "shared/src/index.ts",
       "norm_label": "francisco.test.ts"
     },
     {
@@ -7443,8 +7443,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_worker_src_francisco_test_basesnapshot",
-      "community": 174,
-      "community_name": "AgentSnapshot",
+      "community": 2,
+      "community_name": "shared/src/index.ts",
       "norm_label": "basesnapshot"
     },
     {
@@ -7455,8 +7455,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_francisco_test_decision",
-      "community": 174,
-      "community_name": "AgentSnapshot",
+      "community": 2,
+      "community_name": "shared/src/index.ts",
       "norm_label": "decision()"
     },
     {
@@ -7830,8 +7830,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_notifysalesqualified",
-      "community": 0,
-      "community_name": "worker/src/index.ts",
+      "community": 54,
+      "community_name": "group-notifications.ts",
       "norm_label": "notifysalesqualified()"
     },
     {
@@ -7842,8 +7842,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_salesclosersettings",
-      "community": 0,
-      "community_name": "worker/src/index.ts",
+      "community": 27,
+      "community_name": "normalizeBrazilianPhone",
       "norm_label": "salesclosersettings()"
     },
     {
@@ -7877,8 +7877,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_sendsaleshandoffonce",
-      "community": 0,
-      "community_name": "worker/src/index.ts",
+      "community": 54,
+      "community_name": "group-notifications.ts",
       "norm_label": "sendsaleshandoffonce()"
     },
     {
@@ -7949,8 +7949,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_humanconversationsummary",
-      "community": 0,
-      "community_name": "worker/src/index.ts",
+      "community": 54,
+      "community_name": "group-notifications.ts",
       "norm_label": "humanconversationsummary()"
     },
     {
@@ -7961,8 +7961,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_humanmaininterest",
-      "community": 0,
-      "community_name": "worker/src/index.ts",
+      "community": 54,
+      "community_name": "group-notifications.ts",
       "norm_label": "humanmaininterest()"
     },
     {
@@ -7973,8 +7973,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_lowerfirst",
-      "community": 0,
-      "community_name": "worker/src/index.ts",
+      "community": 54,
+      "community_name": "group-notifications.ts",
       "norm_label": "lowerfirst()"
     },
     {
@@ -8564,8 +8564,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_commercialmemoryupdates",
-      "community": 28,
-      "community_name": "deriveConversationState",
+      "community": 116,
+      "community_name": "conversation-style.ts",
       "norm_label": "commercialmemoryupdates()"
     },
     {
@@ -8588,8 +8588,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_mergedecisionmemoryupdates",
-      "community": 116,
-      "community_name": "conversation-style.ts",
+      "community": 174,
+      "community_name": "AgentSnapshot",
       "norm_label": "mergedecisionmemoryupdates()"
     },
     {
@@ -10851,8 +10851,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_core_src_agent_contextual_pt_br_test",
-      "community": 28,
-      "community_name": "deriveConversationState",
+      "community": 189,
+      "community_name": "interpretBrazilianContext",
       "norm_label": "contextual-pt-br.test.ts"
     },
     {
@@ -10862,8 +10862,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_core_src_agent_contextual_pt_br",
-      "community": 28,
-      "community_name": "deriveConversationState",
+      "community": 189,
+      "community_name": "interpretBrazilianContext",
       "norm_label": "contextual-pt-br.ts"
     },
     {
@@ -10875,8 +10875,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_contextual_pt_br_contextualspeechact",
-      "community": 28,
-      "community_name": "deriveConversationState",
+      "community": 189,
+      "community_name": "interpretBrazilianContext",
       "norm_label": "contextualspeechact"
     },
     {
@@ -10888,8 +10888,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_contextual_pt_br_contextualinterpretation",
-      "community": 28,
-      "community_name": "deriveConversationState",
+      "community": 189,
+      "community_name": "interpretBrazilianContext",
       "norm_label": "contextualinterpretation"
     },
     {
@@ -10900,8 +10900,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_contextual_pt_br_fold",
-      "community": 28,
-      "community_name": "deriveConversationState",
+      "community": 189,
+      "community_name": "interpretBrazilianContext",
       "norm_label": "fold()"
     },
     {
@@ -10912,8 +10912,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_contextual_pt_br_interpretbraziliancontext",
-      "community": 28,
-      "community_name": "deriveConversationState",
+      "community": 189,
+      "community_name": "interpretBrazilianContext",
       "norm_label": "interpretbraziliancontext()"
     },
     {
@@ -10924,8 +10924,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_contextual_pt_br_withcontextualhint",
-      "community": 28,
-      "community_name": "deriveConversationState",
+      "community": 189,
+      "community_name": "interpretBrazilianContext",
       "norm_label": "withcontextualhint()"
     },
     {
@@ -10936,8 +10936,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_contextual_pt_br_hassocialopening",
-      "community": 28,
-      "community_name": "deriveConversationState",
+      "community": 189,
+      "community_name": "interpretBrazilianContext",
       "norm_label": "hassocialopening()"
     },
     {
@@ -10948,8 +10948,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_contextual_pt_br_stripsocialopening",
-      "community": 28,
-      "community_name": "deriveConversationState",
+      "community": 189,
+      "community_name": "interpretBrazilianContext",
       "norm_label": "stripsocialopening()"
     },
     {
@@ -11089,8 +11089,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_conversation_orchestrator_interpretationconfidence",
-      "community": 28,
-      "community_name": "deriveConversationState",
+      "community": 189,
+      "community_name": "interpretBrazilianContext",
       "norm_label": "interpretationconfidence"
     },
     {
@@ -11296,8 +11296,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_core_src_agent_conversation_pipeline_test",
-      "community": 28,
-      "community_name": "deriveConversationState",
+      "community": 189,
+      "community_name": "interpretBrazilianContext",
       "norm_label": "conversation-pipeline.test.ts"
     },
     {
@@ -11308,8 +11308,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_conversation_pipeline_test_base",
-      "community": 28,
-      "community_name": "deriveConversationState",
+      "community": 189,
+      "community_name": "interpretBrazilianContext",
       "norm_label": "base()"
     },
     {
@@ -11903,8 +11903,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_core_src_agent_qualification_service",
-      "community": 130,
-      "community_name": "conversation-orchestrator.ts",
+      "community": 174,
+      "community_name": "AgentSnapshot",
       "norm_label": "qualification-service.ts"
     },
     {
@@ -11916,8 +11916,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_qualification_service_qualificationservice",
-      "community": 130,
-      "community_name": "conversation-orchestrator.ts",
+      "community": 174,
+      "community_name": "AgentSnapshot",
       "norm_label": "qualificationservice"
     },
     {
@@ -11928,8 +11928,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_qualification_service_qualificationservice_evaluate",
-      "community": 130,
-      "community_name": "conversation-orchestrator.ts",
+      "community": 174,
+      "community_name": "AgentSnapshot",
       "norm_label": ".evaluate()"
     },
     {
@@ -11940,8 +11940,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_qualification_service_posthandoffreply",
-      "community": 130,
-      "community_name": "conversation-orchestrator.ts",
+      "community": 174,
+      "community_name": "AgentSnapshot",
       "norm_label": "posthandoffreply()"
     },
     {
@@ -11952,8 +11952,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_qualification_service_qualifiedreply",
-      "community": 130,
-      "community_name": "conversation-orchestrator.ts",
+      "community": 174,
+      "community_name": "AgentSnapshot",
       "norm_label": "qualifiedreply()"
     },
     {
@@ -11964,8 +11964,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_qualification_service_schedulereply",
-      "community": 130,
-      "community_name": "conversation-orchestrator.ts",
+      "community": 174,
+      "community_name": "AgentSnapshot",
       "norm_label": "schedulereply()"
     },
     {
@@ -11976,8 +11976,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_qualification_service_schedulefromfacts",
-      "community": 130,
-      "community_name": "conversation-orchestrator.ts",
+      "community": 174,
+      "community_name": "AgentSnapshot",
       "norm_label": "schedulefromfacts()"
     },
     {
@@ -12142,8 +12142,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_strong_commercial_intent_title",
-      "community": 139,
-      "community_name": "configure-francisco.mjs",
+      "community": 130,
+      "community_name": "conversation-orchestrator.ts",
       "norm_label": "title()"
     },
     {
@@ -13321,8 +13321,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_core_src_secrets",
-      "community": 7,
-      "community_name": "app.ts",
+      "community": 194,
+      "community_name": "decryptSecret",
       "norm_label": "secrets.ts"
     },
     {
@@ -13333,8 +13333,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_secrets_encryptsecret",
-      "community": 7,
-      "community_name": "app.ts",
+      "community": 194,
+      "community_name": "decryptSecret",
       "norm_label": "encryptsecret()"
     },
     {
@@ -13345,8 +13345,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_secrets_decryptsecret",
-      "community": 7,
-      "community_name": "app.ts",
+      "community": 194,
+      "community_name": "decryptSecret",
       "norm_label": "decryptsecret()"
     },
     {
@@ -13357,8 +13357,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_secrets_masksecret",
-      "community": 7,
-      "community_name": "app.ts",
+      "community": 194,
+      "community_name": "decryptSecret",
       "norm_label": "masksecret()"
     },
     {
@@ -14167,7 +14167,7 @@
       "_origin": "ast",
       "id": "packages_database_src_index_createrepository",
       "community": 188,
-      "community_name": "integrations/src/index.ts",
+      "community_name": "createRepository",
       "norm_label": "createrepository()"
     },
     {
@@ -14852,8 +14852,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_database_src_index_supabaserepository_enqueue",
-      "community": 39,
-      "community_name": "database/src/index.ts",
+      "community": 31,
+      "community_name": "SupabaseRepository",
       "norm_label": ".enqueue()"
     },
     {
@@ -15149,8 +15149,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_database_src_index_canonicalqueue",
-      "community": 39,
-      "community_name": "database/src/index.ts",
+      "community": 31,
+      "community_name": "SupabaseRepository",
       "norm_label": "canonicalqueue()"
     },
     {
@@ -15550,8 +15550,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "packages_integrations_src_ai_decision_aistructuredoutputerror",
-      "community": 163,
-      "community_name": "ai-decision.ts",
+      "community": 122,
+      "community_name": "gemini.ts",
       "norm_label": "aistructuredoutputerror"
     },
     {
@@ -15562,8 +15562,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_integrations_src_ai_decision_aistructuredoutputerror_constructor",
-      "community": 163,
-      "community_name": "ai-decision.ts",
+      "community": 122,
+      "community_name": "gemini.ts",
       "norm_label": ".constructor()"
     },
     {
@@ -16485,8 +16485,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "packages_integrations_src_groq_groqmodel",
-      "community": 174,
-      "community_name": "AgentSnapshot",
+      "community": 11,
+      "community_name": "groq.ts",
       "norm_label": "groqmodel"
     },
     {
@@ -16950,8 +16950,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_integrations_src_index",
-      "community": 188,
-      "community_name": "integrations/src/index.ts",
+      "community": 129,
+      "community_name": "openrouter.ts",
       "norm_label": "integrations/src/index.ts"
     },
     {
@@ -17503,8 +17503,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_integrations_src_structured_output_test",
-      "community": 163,
-      "community_name": "ai-decision.ts",
+      "community": 122,
+      "community_name": "gemini.ts",
       "norm_label": "structured-output.test.ts"
     },
     {
@@ -17514,8 +17514,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "packages_integrations_src_structured_output_test_validdecision",
-      "community": 163,
-      "community_name": "ai-decision.ts",
+      "community": 122,
+      "community_name": "gemini.ts",
       "norm_label": "validdecision"
     },
     {
@@ -17525,8 +17525,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "packages_integrations_src_structured_output_test_compactdecision",
-      "community": 163,
-      "community_name": "ai-decision.ts",
+      "community": 122,
+      "community_name": "gemini.ts",
       "norm_label": "compactdecision"
     },
     {
@@ -18208,8 +18208,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "packages_shared_src_index_aidecisionschema",
-      "community": 163,
-      "community_name": "ai-decision.ts",
+      "community": 117,
+      "community_name": "types.ts",
       "norm_label": "aidecisionschema"
     },
     {
@@ -19815,8 +19815,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scripts_expand_francisco_knowledge",
-      "community": 139,
-      "community_name": "configure-francisco.mjs",
+      "community": 195,
+      "community_name": "expand-francisco-knowledge.mjs",
       "norm_label": "expand-francisco-knowledge.mjs"
     },
     {
@@ -19826,8 +19826,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "scripts_expand_francisco_knowledge_headers",
-      "community": 139,
-      "community_name": "configure-francisco.mjs",
+      "community": 195,
+      "community_name": "expand-francisco-knowledge.mjs",
       "norm_label": "headers"
     },
     {
@@ -19838,8 +19838,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_expand_francisco_knowledge_request",
-      "community": 139,
-      "community_name": "configure-francisco.mjs",
+      "community": 195,
+      "community_name": "expand-francisco-knowledge.mjs",
       "norm_label": "request()"
     },
     {
@@ -19849,8 +19849,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "scripts_expand_francisco_knowledge_items",
-      "community": 139,
-      "community_name": "configure-francisco.mjs",
+      "community": 195,
+      "community_name": "expand-francisco-knowledge.mjs",
       "norm_label": "items"
     },
     {
@@ -20161,8 +20161,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scripts_profile_francisco_context",
-      "community": 174,
-      "community_name": "AgentSnapshot",
+      "community": 163,
+      "community_name": "ai-decision.ts",
       "norm_label": "profile-francisco-context.ts"
     },
     {
@@ -20172,8 +20172,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "scripts_profile_francisco_context_headers",
-      "community": 174,
-      "community_name": "AgentSnapshot",
+      "community": 163,
+      "community_name": "ai-decision.ts",
       "norm_label": "headers"
     },
     {
@@ -20184,8 +20184,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_profile_francisco_context_rows",
-      "community": 174,
-      "community_name": "AgentSnapshot",
+      "community": 163,
+      "community_name": "ai-decision.ts",
       "norm_label": "rows()"
     },
     {
@@ -20196,8 +20196,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_profile_francisco_context_main",
-      "community": 174,
-      "community_name": "AgentSnapshot",
+      "community": 163,
+      "community_name": "ai-decision.ts",
       "norm_label": "main()"
     },
     {
@@ -21022,8 +21022,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scripts_validate_francisco_providers",
-      "community": 174,
-      "community_name": "AgentSnapshot",
+      "community": 196,
+      "community_name": "validate-francisco-providers.ts",
       "norm_label": "validate-francisco-providers.ts"
     },
     {
@@ -21033,8 +21033,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "scripts_validate_francisco_providers_headers",
-      "community": 174,
-      "community_name": "AgentSnapshot",
+      "community": 196,
+      "community_name": "validate-francisco-providers.ts",
       "norm_label": "headers"
     },
     {
@@ -21045,8 +21045,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_validate_francisco_providers_rows",
-      "community": 174,
-      "community_name": "AgentSnapshot",
+      "community": 196,
+      "community_name": "validate-francisco-providers.ts",
       "norm_label": "rows()"
     },
     {
@@ -21057,8 +21057,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_validate_francisco_providers_main",
-      "community": 174,
-      "community_name": "AgentSnapshot",
+      "community": 196,
+      "community_name": "validate-francisco-providers.ts",
       "norm_label": "main()"
     },
     {
@@ -21205,7 +21205,7 @@
       "_origin": "ast",
       "id": "scripts_wolf_qwen_check",
       "community": 188,
-      "community_name": "integrations/src/index.ts",
+      "community_name": "createRepository",
       "norm_label": "wolf-qwen-check.ts"
     },
     {
@@ -21217,7 +21217,7 @@
       "_origin": "ast",
       "id": "scripts_wolf_qwen_check_main",
       "community": 188,
-      "community_name": "integrations/src/index.ts",
+      "community_name": "createRepository",
       "norm_label": "main()"
     },
     {
@@ -23345,6 +23345,94 @@
       "community": 16,
       "community_name": "compilerOptions",
       "norm_label": "sourcemap"
+    },
+    {
+      "label": "vercel.json",
+      "file_type": "code",
+      "source_file": "vercel.json",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "vercel",
+      "community": 192,
+      "community_name": "services",
+      "norm_label": "vercel.json"
+    },
+    {
+      "label": "services",
+      "file_type": "code",
+      "source_file": "vercel.json",
+      "source_location": "L2",
+      "_origin": "ast",
+      "id": "vercel_services",
+      "community": 192,
+      "community_name": "services",
+      "norm_label": "services"
+    },
+    {
+      "label": "web",
+      "file_type": "code",
+      "source_file": "vercel.json",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "vercel_services_web",
+      "community": 192,
+      "community_name": "services",
+      "norm_label": "web"
+    },
+    {
+      "label": "root",
+      "file_type": "code",
+      "source_file": "vercel.json",
+      "source_location": "L4",
+      "_origin": "ast",
+      "id": "vercel_web_root",
+      "community": 192,
+      "community_name": "services",
+      "norm_label": "root"
+    },
+    {
+      "label": "framework",
+      "file_type": "code",
+      "source_file": "vercel.json",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "vercel_web_framework",
+      "community": 192,
+      "community_name": "services",
+      "norm_label": "framework"
+    },
+    {
+      "label": "wolf-transcription",
+      "file_type": "code",
+      "source_file": "vercel.json",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "vercel_services_wolf_transcription",
+      "community": 192,
+      "community_name": "services",
+      "norm_label": "wolf-transcription"
+    },
+    {
+      "label": "root",
+      "file_type": "code",
+      "source_file": "vercel.json",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "vercel_wolf_transcription_root",
+      "community": 192,
+      "community_name": "services",
+      "norm_label": "root"
+    },
+    {
+      "label": "rewrites",
+      "file_type": "code",
+      "source_file": "vercel.json",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "vercel_rewrites",
+      "community": 192,
+      "community_name": "services",
+      "norm_label": "rewrites"
     },
     {
       "label": "vitest.config.ts",
@@ -67865,6 +67953,83 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "vercel.json",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "vercel",
+      "target": "vercel_rewrites",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "vercel.json",
+      "source_location": "L2",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "vercel",
+      "target": "vercel_services",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "vercel.json",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "vercel_services",
+      "target": "vercel_services_web",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "vercel.json",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "vercel_services",
+      "target": "vercel_services_wolf_transcription",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "vercel.json",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "vercel_services_web",
+      "target": "vercel_web_framework",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "vercel.json",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "vercel_services_web",
+      "target": "vercel_web_root",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "vercel.json",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "vercel_services_wolf_transcription",
+      "target": "vercel_wolf_transcription_root",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "AGENTS.md",
       "source_location": "L1",
       "weight": 1.0,
@@ -69326,5 +69491,6 @@
       "confidence_score": 1.0
     }
   ],
-  "hyperedges": []
+  "hyperedges": [],
+  "built_at_commit": "afaa1f772da8f5e9c2cd2ace4fb6a56069f613a0"
 }

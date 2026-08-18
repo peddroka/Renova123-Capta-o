@@ -1,7 +1,7 @@
 # Graph Report - Renova123 Captação  (2026-08-17)
 
 ## Corpus Check
-- 288 files · ~195,811 words
+- 288 files · ~195,998 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -182,8 +182,8 @@
 ## Communities (193 total, 24 thin omitted)
 
 ### Community 0 - "worker/src/index.ts"
-Cohesion: 0.07
-Nodes (53): acquireInstanceLock(), applyFollowUpDecision(), auditTokenUsage(), configuredGroq(), DeferredJobError, deliverGroupNotification(), ensureLatestInboundProcessing(), executeAgent() (+45 more)
+Cohesion: 0.06
+Nodes (58): acquireInstanceLock(), applyFollowUpDecision(), auditTokenUsage(), configuredGroq(), DeferredJobError, deliverGroupNotification(), ensureLatestInboundProcessing(), executeAgent() (+50 more)
 
 ### Community 2 - "shared/src/index.ts"
 Cohesion: 0.09
@@ -366,8 +366,8 @@ Cohesion: 0.29
 Nodes (5): existingOpener, headers, items, mind, opener
 
 ### Community 54 - "group-notifications.ts"
-Cohesion: 0.11
-Nodes (31): countUniqueRelevantInboundMessages(), enqueueGroupNotification(), humanConversationSummary(), humanMainInterest(), lowerFirst(), markStalledLead(), notifyDisqualified(), notifySalesQualified() (+23 more)
+Cohesion: 0.14
+Nodes (26): countUniqueRelevantInboundMessages(), enqueueGroupNotification(), markStalledLead(), notifyDisqualified(), processQualificationDeadlines(), cleanValue(), disqualifiedMessage(), field() (+18 more)
 
 ### Community 55 - ".prettierrc.json"
 Cohesion: 0.40
@@ -666,7 +666,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **What connects `semi`, `singleQuote`, `trailingComma` to the rest of the system?**
   _647 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `worker/src/index.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.06604324956165984 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.061507936507936505 - nodes in this community are weakly interconnected._
 - **Should `MockWhatsAppProvider` be split into smaller, more focused modules?**
   _Cohesion score 0.1422924901185771 - nodes in this community are weakly interconnected._
 - **Should `shared/src/index.ts` be split into smaller, more focused modules?**

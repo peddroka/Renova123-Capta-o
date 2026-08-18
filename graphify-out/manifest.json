@@ -1598,5 +1598,10 @@
     "mtime": 1786993517.5376067,
     "ast_hash": "bfa150cd25202448e1a622e706b65425",
     "semantic_hash": ""
+  },
+  "vercel.json": {
+    "mtime": 1787016755.488768,
+    "ast_hash": "327384ae6625ec4f71c5328f8e942427",
+    "semantic_hash": ""
   }
 }
