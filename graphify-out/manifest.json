@@ -55,8 +55,8 @@
     "semantic_hash": ""
   },
   "apps/web/src/api.ts": {
-    "mtime": 1786546828.549045,
-    "ast_hash": "146a2ed8e50fec0832eb8b04b49e81f3",
+    "mtime": 1787018150.2920332,
+    "ast_hash": "4b63ecca62d10aef52791c4f516ef1d0",
     "semantic_hash": ""
   },
   "apps/web/src/components/AppLayout.tsx": {
@@ -835,8 +835,8 @@
     "semantic_hash": ""
   },
   "apps/web/src/pages/LoginPage.tsx": {
-    "mtime": 1786293410.8873546,
-    "ast_hash": "9263f4af850f7647d063b6786566ebac",
+    "mtime": 1787018150.2920332,
+    "ast_hash": "f754a5c48ed0aeb2cf1bc47784716887",
     "semantic_hash": ""
   },
   "apps/web/src/supabase.ts": {
@@ -1600,8 +1600,8 @@
     "semantic_hash": ""
   },
   "vercel.json": {
-    "mtime": 1787017378.3549213,
-    "ast_hash": "1cbdc9d8a20d4a2754fb5bdab3f04079",
+    "mtime": 1787018150.2930422,
+    "ast_hash": "44b90a18f7404470a6171ed2077549aa",
     "semantic_hash": ""
   }
 }

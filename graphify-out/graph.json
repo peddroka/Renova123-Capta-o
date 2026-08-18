@@ -1045,8 +1045,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_api_src_the_wolf_prompt",
-      "community": 193,
-      "community_name": "the-wolf-prompt.ts",
+      "community": 7,
+      "community_name": "app.ts",
       "norm_label": "the-wolf-prompt.ts"
     },
     {
@@ -1056,8 +1056,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_api_src_the_wolf_prompt_the_wolf_transcription_hint",
-      "community": 193,
-      "community_name": "the-wolf-prompt.ts",
+      "community": 7,
+      "community_name": "app.ts",
       "norm_label": "the_wolf_transcription_hint"
     },
     {
@@ -1067,8 +1067,8 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "apps_api_src_the_wolf_prompt_the_wolf_system_prompt",
-      "community": 193,
-      "community_name": "the-wolf-prompt.ts",
+      "community": 7,
+      "community_name": "app.ts",
       "norm_label": "the_wolf_system_prompt"
     },
     {
@@ -7364,8 +7364,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_worker_src_encoding_boundary_test",
-      "community": 57,
-      "community_name": "whatsapp.ts",
+      "community": 54,
+      "community_name": "group-notifications.ts",
       "norm_label": "encoding-boundary.test.ts"
     },
     {
@@ -7432,8 +7432,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_worker_src_francisco_test",
-      "community": 174,
-      "community_name": "AgentSnapshot",
+      "community": 2,
+      "community_name": "shared/src/index.ts",
       "norm_label": "francisco.test.ts"
     },
     {
@@ -7443,8 +7443,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_worker_src_francisco_test_basesnapshot",
-      "community": 174,
-      "community_name": "AgentSnapshot",
+      "community": 2,
+      "community_name": "shared/src/index.ts",
       "norm_label": "basesnapshot"
     },
     {
@@ -7455,8 +7455,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_francisco_test_decision",
-      "community": 174,
-      "community_name": "AgentSnapshot",
+      "community": 2,
+      "community_name": "shared/src/index.ts",
       "norm_label": "decision()"
     },
     {
@@ -7638,8 +7638,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_processinboundevent",
-      "community": 128,
-      "community_name": "processInboundEvent",
+      "community": 0,
+      "community_name": "worker/src/index.ts",
       "norm_label": "processinboundevent()"
     },
     {
@@ -7722,8 +7722,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_markcadenceresponded",
-      "community": 128,
-      "community_name": "processInboundEvent",
+      "community": 0,
+      "community_name": "worker/src/index.ts",
       "norm_label": "markcadenceresponded()"
     },
     {
@@ -7830,8 +7830,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_notifysalesqualified",
-      "community": 0,
-      "community_name": "worker/src/index.ts",
+      "community": 27,
+      "community_name": "groupNotificationDedupKey",
       "norm_label": "notifysalesqualified()"
     },
     {
@@ -7842,8 +7842,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_salesclosersettings",
-      "community": 0,
-      "community_name": "worker/src/index.ts",
+      "community": 27,
+      "community_name": "groupNotificationDedupKey",
       "norm_label": "salesclosersettings()"
     },
     {
@@ -7889,8 +7889,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_notifydisqualified",
-      "community": 54,
-      "community_name": "group-notifications.ts",
+      "community": 27,
+      "community_name": "groupNotificationDedupKey",
       "norm_label": "notifydisqualified()"
     },
     {
@@ -7901,8 +7901,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_countuniquerelevantinboundmessages",
-      "community": 54,
-      "community_name": "group-notifications.ts",
+      "community": 27,
+      "community_name": "groupNotificationDedupKey",
       "norm_label": "countuniquerelevantinboundmessages()"
     },
     {
@@ -7914,7 +7914,7 @@
       "_origin": "ast",
       "id": "apps_worker_src_index_humandisqualificationreason",
       "community": 27,
-      "community_name": "normalizeBrazilianPhone",
+      "community_name": "groupNotificationDedupKey",
       "norm_label": "humandisqualificationreason()"
     },
     {
@@ -7938,7 +7938,7 @@
       "_origin": "ast",
       "id": "apps_worker_src_index_regionfromphone",
       "community": 27,
-      "community_name": "normalizeBrazilianPhone",
+      "community_name": "groupNotificationDedupKey",
       "norm_label": "regionfromphone()"
     },
     {
@@ -7949,8 +7949,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_humanconversationsummary",
-      "community": 0,
-      "community_name": "worker/src/index.ts",
+      "community": 27,
+      "community_name": "groupNotificationDedupKey",
       "norm_label": "humanconversationsummary()"
     },
     {
@@ -7961,8 +7961,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_humanmaininterest",
-      "community": 0,
-      "community_name": "worker/src/index.ts",
+      "community": 27,
+      "community_name": "groupNotificationDedupKey",
       "norm_label": "humanmaininterest()"
     },
     {
@@ -7973,8 +7973,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_lowerfirst",
-      "community": 0,
-      "community_name": "worker/src/index.ts",
+      "community": 27,
+      "community_name": "groupNotificationDedupKey",
       "norm_label": "lowerfirst()"
     },
     {
@@ -7985,8 +7985,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_enqueuegroupnotification",
-      "community": 54,
-      "community_name": "group-notifications.ts",
+      "community": 27,
+      "community_name": "groupNotificationDedupKey",
       "norm_label": "enqueuegroupnotification()"
     },
     {
@@ -8009,8 +8009,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_processqualificationdeadlines",
-      "community": 54,
-      "community_name": "group-notifications.ts",
+      "community": 27,
+      "community_name": "groupNotificationDedupKey",
       "norm_label": "processqualificationdeadlines()"
     },
     {
@@ -8021,8 +8021,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_markstalledlead",
-      "community": 54,
-      "community_name": "group-notifications.ts",
+      "community": 27,
+      "community_name": "groupNotificationDedupKey",
       "norm_label": "markstalledlead()"
     },
     {
@@ -8033,8 +8033,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_configuredgroq",
-      "community": 114,
-      "community_name": "executeAgentWithDailyLimitFallback",
+      "community": 0,
+      "community_name": "worker/src/index.ts",
       "norm_label": "configuredgroq()"
     },
     {
@@ -8069,8 +8069,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_executeagent",
-      "community": 114,
-      "community_name": "executeAgentWithDailyLimitFallback",
+      "community": 0,
+      "community_name": "worker/src/index.ts",
       "norm_label": "executeagent()"
     },
     {
@@ -8189,8 +8189,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_sendtextsequence",
-      "community": 13,
-      "community_name": "sendTextOnce",
+      "community": 116,
+      "community_name": "conversation-style.ts",
       "norm_label": "sendtextsequence()"
     },
     {
@@ -8310,7 +8310,7 @@
       "_origin": "ast",
       "id": "apps_worker_src_index_operationaltestmodeactive",
       "community": 128,
-      "community_name": "processInboundEvent",
+      "community_name": "outreach-policy.ts",
       "norm_label": "operationaltestmodeactive()"
     },
     {
@@ -8333,8 +8333,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_assertoperationaltestdestination",
-      "community": 0,
-      "community_name": "worker/src/index.ts",
+      "community": 128,
+      "community_name": "outreach-policy.ts",
       "norm_label": "assertoperationaltestdestination()"
     },
     {
@@ -8346,7 +8346,7 @@
       "_origin": "ast",
       "id": "apps_worker_src_index_blockjobduringoperationaltest",
       "community": 128,
-      "community_name": "processInboundEvent",
+      "community_name": "outreach-policy.ts",
       "norm_label": "blockjobduringoperationaltest()"
     },
     {
@@ -8357,8 +8357,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_sleep",
-      "community": 13,
-      "community_name": "sendTextOnce",
+      "community": 142,
+      "community_name": "runWorker",
       "norm_label": "sleep()"
     },
     {
@@ -8444,8 +8444,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_acquireinstancelock",
-      "community": 0,
-      "community_name": "worker/src/index.ts",
+      "community": 142,
+      "community_name": "runWorker",
       "norm_label": "acquireinstancelock()"
     },
     {
@@ -8480,8 +8480,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_processexists",
-      "community": 0,
-      "community_name": "worker/src/index.ts",
+      "community": 142,
+      "community_name": "runWorker",
       "norm_label": "processexists()"
     },
     {
@@ -8516,8 +8516,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_presencestate",
-      "community": 128,
-      "community_name": "processInboundEvent",
+      "community": 0,
+      "community_name": "worker/src/index.ts",
       "norm_label": "presencestate()"
     },
     {
@@ -8541,7 +8541,7 @@
       "_origin": "ast",
       "id": "apps_worker_src_index_isscopedonlinetestjob",
       "community": 128,
-      "community_name": "processInboundEvent",
+      "community_name": "outreach-policy.ts",
       "norm_label": "isscopedonlinetestjob()"
     },
     {
@@ -8553,7 +8553,7 @@
       "_origin": "ast",
       "id": "apps_worker_src_index_jobphone",
       "community": 128,
-      "community_name": "processInboundEvent",
+      "community_name": "outreach-policy.ts",
       "norm_label": "jobphone()"
     },
     {
@@ -8564,8 +8564,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_commercialmemoryupdates",
-      "community": 28,
-      "community_name": "deriveConversationState",
+      "community": 0,
+      "community_name": "worker/src/index.ts",
       "norm_label": "commercialmemoryupdates()"
     },
     {
@@ -8588,8 +8588,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_index_mergedecisionmemoryupdates",
-      "community": 0,
-      "community_name": "worker/src/index.ts",
+      "community": 174,
+      "community_name": "AgentSnapshot",
       "norm_label": "mergedecisionmemoryupdates()"
     },
     {
@@ -8611,8 +8611,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_worker_src_ordered_message_sequence_test",
-      "community": 13,
-      "community_name": "sendTextOnce",
+      "community": 0,
+      "community_name": "worker/src/index.ts",
       "norm_label": "ordered-message-sequence.test.ts"
     },
     {
@@ -8622,8 +8622,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_worker_src_ordered_message_sequence",
-      "community": 13,
-      "community_name": "sendTextOnce",
+      "community": 0,
+      "community_name": "worker/src/index.ts",
       "norm_label": "ordered-message-sequence.ts"
     },
     {
@@ -8634,8 +8634,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_ordered_message_sequence_sendorderedparts",
-      "community": 13,
-      "community_name": "sendTextOnce",
+      "community": 0,
+      "community_name": "worker/src/index.ts",
       "norm_label": "sendorderedparts()"
     },
     {
@@ -8645,8 +8645,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_worker_src_outbound_text_integrity_test",
-      "community": 27,
-      "community_name": "normalizeBrazilianPhone",
+      "community": 12,
+      "community_name": "processOutbound",
       "norm_label": "outbound-text-integrity.test.ts"
     },
     {
@@ -8656,8 +8656,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_worker_src_outbound_text_integrity",
-      "community": 27,
-      "community_name": "normalizeBrazilianPhone",
+      "community": 12,
+      "community_name": "processOutbound",
       "norm_label": "outbound-text-integrity.ts"
     },
     {
@@ -8668,8 +8668,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_outbound_text_integrity_materializeoutreachtemplate",
-      "community": 27,
-      "community_name": "normalizeBrazilianPhone",
+      "community": 12,
+      "community_name": "processOutbound",
       "norm_label": "materializeoutreachtemplate()"
     },
     {
@@ -8680,8 +8680,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_worker_src_outbound_text_integrity_compareoutboundtext",
-      "community": 27,
-      "community_name": "normalizeBrazilianPhone",
+      "community": 12,
+      "community_name": "processOutbound",
       "norm_label": "compareoutboundtext()"
     },
     {
@@ -8692,7 +8692,7 @@
       "_origin": "ast",
       "id": "apps_worker_src_outreach_policy_test",
       "community": 128,
-      "community_name": "processInboundEvent",
+      "community_name": "outreach-policy.ts",
       "norm_label": "outreach-policy.test.ts"
     },
     {
@@ -8703,7 +8703,7 @@
       "_origin": "ast",
       "id": "apps_worker_src_outreach_policy",
       "community": 128,
-      "community_name": "processInboundEvent",
+      "community_name": "outreach-policy.ts",
       "norm_label": "outreach-policy.ts"
     },
     {
@@ -8714,7 +8714,7 @@
       "_origin": "ast",
       "id": "apps_worker_src_outreach_policy_controlled_outreach_test_phone",
       "community": 128,
-      "community_name": "processInboundEvent",
+      "community_name": "outreach-policy.ts",
       "norm_label": "controlled_outreach_test_phone"
     },
     {
@@ -8726,7 +8726,7 @@
       "_origin": "ast",
       "id": "apps_worker_src_outreach_policy_isoperationaltestmode",
       "community": 128,
-      "community_name": "processInboundEvent",
+      "community_name": "outreach-policy.ts",
       "norm_label": "isoperationaltestmode()"
     },
     {
@@ -8738,7 +8738,7 @@
       "_origin": "ast",
       "id": "apps_worker_src_outreach_policy_operationaltestdestination",
       "community": 128,
-      "community_name": "processInboundEvent",
+      "community_name": "outreach-policy.ts",
       "norm_label": "operationaltestdestination()"
     },
     {
@@ -8750,7 +8750,7 @@
       "_origin": "ast",
       "id": "apps_worker_src_outreach_policy_iscontrolledoutreachtestjob",
       "community": 128,
-      "community_name": "processInboundEvent",
+      "community_name": "outreach-policy.ts",
       "norm_label": "iscontrolledoutreachtestjob()"
     },
     {
@@ -10851,8 +10851,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_core_src_agent_contextual_pt_br_test",
-      "community": 28,
-      "community_name": "deriveConversationState",
+      "community": 112,
+      "community_name": "interpretBrazilianContext",
       "norm_label": "contextual-pt-br.test.ts"
     },
     {
@@ -10862,8 +10862,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_core_src_agent_contextual_pt_br",
-      "community": 28,
-      "community_name": "deriveConversationState",
+      "community": 112,
+      "community_name": "interpretBrazilianContext",
       "norm_label": "contextual-pt-br.ts"
     },
     {
@@ -10875,8 +10875,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_contextual_pt_br_contextualspeechact",
-      "community": 28,
-      "community_name": "deriveConversationState",
+      "community": 112,
+      "community_name": "interpretBrazilianContext",
       "norm_label": "contextualspeechact"
     },
     {
@@ -10888,8 +10888,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_contextual_pt_br_contextualinterpretation",
-      "community": 28,
-      "community_name": "deriveConversationState",
+      "community": 112,
+      "community_name": "interpretBrazilianContext",
       "norm_label": "contextualinterpretation"
     },
     {
@@ -10900,8 +10900,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_contextual_pt_br_fold",
-      "community": 28,
-      "community_name": "deriveConversationState",
+      "community": 112,
+      "community_name": "interpretBrazilianContext",
       "norm_label": "fold()"
     },
     {
@@ -10912,8 +10912,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_contextual_pt_br_interpretbraziliancontext",
-      "community": 28,
-      "community_name": "deriveConversationState",
+      "community": 112,
+      "community_name": "interpretBrazilianContext",
       "norm_label": "interpretbraziliancontext()"
     },
     {
@@ -10924,8 +10924,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_contextual_pt_br_withcontextualhint",
-      "community": 28,
-      "community_name": "deriveConversationState",
+      "community": 112,
+      "community_name": "interpretBrazilianContext",
       "norm_label": "withcontextualhint()"
     },
     {
@@ -10936,8 +10936,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_contextual_pt_br_hassocialopening",
-      "community": 28,
-      "community_name": "deriveConversationState",
+      "community": 112,
+      "community_name": "interpretBrazilianContext",
       "norm_label": "hassocialopening()"
     },
     {
@@ -10948,8 +10948,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_contextual_pt_br_stripsocialopening",
-      "community": 28,
-      "community_name": "deriveConversationState",
+      "community": 112,
+      "community_name": "interpretBrazilianContext",
       "norm_label": "stripsocialopening()"
     },
     {
@@ -11053,8 +11053,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_core_src_agent_conversation_orchestrator_test",
-      "community": 174,
-      "community_name": "AgentSnapshot",
+      "community": 130,
+      "community_name": "conversation-orchestrator.ts",
       "norm_label": "conversation-orchestrator.test.ts"
     },
     {
@@ -11065,8 +11065,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_conversation_orchestrator_test_snapshot",
-      "community": 174,
-      "community_name": "AgentSnapshot",
+      "community": 130,
+      "community_name": "conversation-orchestrator.ts",
       "norm_label": "snapshot()"
     },
     {
@@ -11089,8 +11089,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_conversation_orchestrator_interpretationconfidence",
-      "community": 28,
-      "community_name": "deriveConversationState",
+      "community": 112,
+      "community_name": "interpretBrazilianContext",
       "norm_label": "interpretationconfidence"
     },
     {
@@ -11296,8 +11296,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_core_src_agent_conversation_pipeline_test",
-      "community": 28,
-      "community_name": "deriveConversationState",
+      "community": 112,
+      "community_name": "interpretBrazilianContext",
       "norm_label": "conversation-pipeline.test.ts"
     },
     {
@@ -11308,8 +11308,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_conversation_pipeline_test_base",
-      "community": 28,
-      "community_name": "deriveConversationState",
+      "community": 112,
+      "community_name": "interpretBrazilianContext",
       "norm_label": "base()"
     },
     {
@@ -11903,8 +11903,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_core_src_agent_qualification_service",
-      "community": 130,
-      "community_name": "conversation-orchestrator.ts",
+      "community": 174,
+      "community_name": "AgentSnapshot",
       "norm_label": "qualification-service.ts"
     },
     {
@@ -11916,8 +11916,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_qualification_service_qualificationservice",
-      "community": 130,
-      "community_name": "conversation-orchestrator.ts",
+      "community": 174,
+      "community_name": "AgentSnapshot",
       "norm_label": "qualificationservice"
     },
     {
@@ -11928,8 +11928,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_qualification_service_qualificationservice_evaluate",
-      "community": 130,
-      "community_name": "conversation-orchestrator.ts",
+      "community": 174,
+      "community_name": "AgentSnapshot",
       "norm_label": ".evaluate()"
     },
     {
@@ -11940,8 +11940,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_qualification_service_posthandoffreply",
-      "community": 130,
-      "community_name": "conversation-orchestrator.ts",
+      "community": 174,
+      "community_name": "AgentSnapshot",
       "norm_label": "posthandoffreply()"
     },
     {
@@ -11952,8 +11952,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_qualification_service_qualifiedreply",
-      "community": 130,
-      "community_name": "conversation-orchestrator.ts",
+      "community": 174,
+      "community_name": "AgentSnapshot",
       "norm_label": "qualifiedreply()"
     },
     {
@@ -11964,8 +11964,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_qualification_service_schedulereply",
-      "community": 130,
-      "community_name": "conversation-orchestrator.ts",
+      "community": 174,
+      "community_name": "AgentSnapshot",
       "norm_label": "schedulereply()"
     },
     {
@@ -11976,8 +11976,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_qualification_service_schedulefromfacts",
-      "community": 130,
-      "community_name": "conversation-orchestrator.ts",
+      "community": 174,
+      "community_name": "AgentSnapshot",
       "norm_label": "schedulefromfacts()"
     },
     {
@@ -12269,8 +12269,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "packages_core_src_agent_types_agentcallmetrics",
-      "community": 117,
-      "community_name": "types.ts",
+      "community": 0,
+      "community_name": "worker/src/index.ts",
       "norm_label": "agentcallmetrics"
     },
     {
@@ -12460,7 +12460,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_core_src_core_test",
-      "community": 27,
+      "community": 181,
       "community_name": "normalizeBrazilianPhone",
       "norm_label": "core.test.ts"
     },
@@ -12472,7 +12472,7 @@
       "_origin": "ast",
       "id": "packages_core_src_csv",
       "community": 181,
-      "community_name": "parsePhoneList",
+      "community_name": "normalizeBrazilianPhone",
       "norm_label": "csv.ts"
     },
     {
@@ -12483,7 +12483,7 @@
       "_origin": "ast",
       "id": "packages_core_src_csv_acceptedheaders",
       "community": 181,
-      "community_name": "parsePhoneList",
+      "community_name": "normalizeBrazilianPhone",
       "norm_label": "acceptedheaders"
     },
     {
@@ -12496,7 +12496,7 @@
       "_origin": "ast",
       "id": "packages_core_src_csv_csvpreviewrow",
       "community": 181,
-      "community_name": "parsePhoneList",
+      "community_name": "normalizeBrazilianPhone",
       "norm_label": "csvpreviewrow"
     },
     {
@@ -12508,7 +12508,7 @@
       "_origin": "ast",
       "id": "packages_core_src_csv_parsephonelist",
       "community": 181,
-      "community_name": "parsePhoneList",
+      "community_name": "normalizeBrazilianPhone",
       "norm_label": "parsephonelist()"
     },
     {
@@ -12520,7 +12520,7 @@
       "_origin": "ast",
       "id": "packages_core_src_csv_cleanheader",
       "community": 181,
-      "community_name": "parsePhoneList",
+      "community_name": "normalizeBrazilianPhone",
       "norm_label": "cleanheader()"
     },
     {
@@ -12532,7 +12532,7 @@
       "_origin": "ast",
       "id": "packages_core_src_csv_guessdelimiter",
       "community": 181,
-      "community_name": "parsePhoneList",
+      "community_name": "normalizeBrazilianPhone",
       "norm_label": "guessdelimiter()"
     },
     {
@@ -12544,7 +12544,7 @@
       "_origin": "ast",
       "id": "packages_core_src_csv_splitline",
       "community": 181,
-      "community_name": "parsePhoneList",
+      "community_name": "normalizeBrazilianPhone",
       "norm_label": "splitline()"
     },
     {
@@ -12672,8 +12672,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_group_notifications_groupnotificationdedupkey",
-      "community": 54,
-      "community_name": "group-notifications.ts",
+      "community": 27,
+      "community_name": "groupNotificationDedupKey",
       "norm_label": "groupnotificationdedupkey()"
     },
     {
@@ -12684,8 +12684,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_group_notifications_canattemptgroupdelivery",
-      "community": 54,
-      "community_name": "group-notifications.ts",
+      "community": 0,
+      "community_name": "worker/src/index.ts",
       "norm_label": "canattemptgroupdelivery()"
     },
     {
@@ -12756,8 +12756,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_group_notifications_formatstalledgroupmessage",
-      "community": 54,
-      "community_name": "group-notifications.ts",
+      "community": 27,
+      "community_name": "groupNotificationDedupKey",
       "norm_label": "formatstalledgroupmessage()"
     },
     {
@@ -12998,7 +12998,7 @@
       "_origin": "ast",
       "id": "packages_core_src_phone_test",
       "community": 27,
-      "community_name": "normalizeBrazilianPhone",
+      "community_name": "groupNotificationDedupKey",
       "norm_label": "phone.test.ts"
     },
     {
@@ -13008,7 +13008,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_core_src_phone",
-      "community": 27,
+      "community": 181,
       "community_name": "normalizeBrazilianPhone",
       "norm_label": "phone.ts"
     },
@@ -13021,7 +13021,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "packages_core_src_phone_phonevalidation",
-      "community": 27,
+      "community": 181,
       "community_name": "normalizeBrazilianPhone",
       "norm_label": "phonevalidation"
     },
@@ -13033,7 +13033,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_phone_normalizeimportedphone",
-      "community": 27,
+      "community": 181,
       "community_name": "normalizeBrazilianPhone",
       "norm_label": "normalizeimportedphone()"
     },
@@ -13045,7 +13045,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_phone_normalizebrazilianphone",
-      "community": 27,
+      "community": 181,
       "community_name": "normalizeBrazilianPhone",
       "norm_label": "normalizebrazilianphone()"
     },
@@ -13056,7 +13056,7 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "packages_core_src_phone_validareacodes",
-      "community": 27,
+      "community": 181,
       "community_name": "normalizeBrazilianPhone",
       "norm_label": "validareacodes"
     },
@@ -13068,7 +13068,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_phone_expandscientificnotation",
-      "community": 27,
+      "community": 181,
       "community_name": "normalizeBrazilianPhone",
       "norm_label": "expandscientificnotation()"
     },
@@ -13080,7 +13080,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_phone_invalid",
-      "community": 27,
+      "community": 181,
       "community_name": "normalizeBrazilianPhone",
       "norm_label": "invalid()"
     },
@@ -13092,7 +13092,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_core_src_phone_isoptouttext",
-      "community": 27,
+      "community": 181,
       "community_name": "normalizeBrazilianPhone",
       "norm_label": "isoptouttext()"
     },
@@ -13105,7 +13105,7 @@
       "_origin": "ast",
       "id": "packages_core_src_phone_isexplicitnointeresttext",
       "community": 27,
-      "community_name": "normalizeBrazilianPhone",
+      "community_name": "groupNotificationDedupKey",
       "norm_label": "isexplicitnointeresttext()"
     },
     {
@@ -13115,7 +13115,7 @@
       "source_location": "L69",
       "_origin": "ast",
       "id": "packages_core_src_phone_dddtostate",
-      "community": 27,
+      "community": 181,
       "community_name": "normalizeBrazilianPhone",
       "norm_label": "dddtostate"
     },
@@ -13128,7 +13128,7 @@
       "_origin": "ast",
       "id": "packages_core_src_phone_regionfrombrazilianphone",
       "community": 27,
-      "community_name": "normalizeBrazilianPhone",
+      "community_name": "groupNotificationDedupKey",
       "norm_label": "regionfrombrazilianphone()"
     },
     {
@@ -15550,8 +15550,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "packages_integrations_src_ai_decision_aistructuredoutputerror",
-      "community": 163,
-      "community_name": "ai-decision.ts",
+      "community": 122,
+      "community_name": "gemini.ts",
       "norm_label": "aistructuredoutputerror"
     },
     {
@@ -15562,8 +15562,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_integrations_src_ai_decision_aistructuredoutputerror_constructor",
-      "community": 163,
-      "community_name": "ai-decision.ts",
+      "community": 122,
+      "community_name": "gemini.ts",
       "norm_label": ".constructor()"
     },
     {
@@ -15811,8 +15811,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_integrations_src_evolution_evolutionwhatsappprovider_getqrcode",
-      "community": 23,
-      "community_name": "EvolutionWhatsAppProvider",
+      "community": 186,
+      "community_name": ".qrFrom",
       "norm_label": ".getqrcode()"
     },
     {
@@ -15859,8 +15859,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_integrations_src_evolution_evolutionwhatsappprovider_sendtext",
-      "community": 186,
-      "community_name": "WhatsAppMediaInput",
+      "community": 23,
+      "community_name": "EvolutionWhatsAppProvider",
       "norm_label": ".sendtext()"
     },
     {
@@ -15871,8 +15871,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_integrations_src_evolution_evolutionwhatsappprovider_sendimage",
-      "community": 186,
-      "community_name": "WhatsAppMediaInput",
+      "community": 23,
+      "community_name": "EvolutionWhatsAppProvider",
       "norm_label": ".sendimage()"
     },
     {
@@ -15883,8 +15883,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_integrations_src_evolution_evolutionwhatsappprovider_sendvideo",
-      "community": 186,
-      "community_name": "WhatsAppMediaInput",
+      "community": 23,
+      "community_name": "EvolutionWhatsAppProvider",
       "norm_label": ".sendvideo()"
     },
     {
@@ -15895,8 +15895,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_integrations_src_evolution_evolutionwhatsappprovider_senddocument",
-      "community": 186,
-      "community_name": "WhatsAppMediaInput",
+      "community": 23,
+      "community_name": "EvolutionWhatsAppProvider",
       "norm_label": ".senddocument()"
     },
     {
@@ -15907,8 +15907,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_integrations_src_evolution_evolutionwhatsappprovider_sendcontact",
-      "community": 186,
-      "community_name": "WhatsAppMediaInput",
+      "community": 23,
+      "community_name": "EvolutionWhatsAppProvider",
       "norm_label": ".sendcontact()"
     },
     {
@@ -15919,8 +15919,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_integrations_src_evolution_evolutionwhatsappprovider_sendaudio",
-      "community": 186,
-      "community_name": "WhatsAppMediaInput",
+      "community": 23,
+      "community_name": "EvolutionWhatsAppProvider",
       "norm_label": ".sendaudio()"
     },
     {
@@ -15955,8 +15955,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_integrations_src_evolution_evolutionwhatsappprovider_markasread",
-      "community": 23,
-      "community_name": "EvolutionWhatsAppProvider",
+      "community": 57,
+      "community_name": "whatsapp.ts",
       "norm_label": ".markasread()"
     },
     {
@@ -15967,8 +15967,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_integrations_src_evolution_evolutionwhatsappprovider_downloadmedia",
-      "community": 23,
-      "community_name": "EvolutionWhatsAppProvider",
+      "community": 104,
+      "community_name": "evolution.ts",
       "norm_label": ".downloadmedia()"
     },
     {
@@ -15979,8 +15979,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_integrations_src_evolution_evolutionwhatsappprovider_validatewebhook",
-      "community": 23,
-      "community_name": "EvolutionWhatsAppProvider",
+      "community": 104,
+      "community_name": "evolution.ts",
       "norm_label": ".validatewebhook()"
     },
     {
@@ -16003,8 +16003,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_integrations_src_evolution_evolutionwhatsappprovider_sendmedia",
-      "community": 186,
-      "community_name": "WhatsAppMediaInput",
+      "community": 23,
+      "community_name": "EvolutionWhatsAppProvider",
       "norm_label": ".sendmedia()"
     },
     {
@@ -16039,8 +16039,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_integrations_src_evolution_evolutionwhatsappprovider_qrfrom",
-      "community": 104,
-      "community_name": "evolution.ts",
+      "community": 186,
+      "community_name": ".qrFrom",
       "norm_label": ".qrfrom()"
     },
     {
@@ -16076,8 +16076,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_integrations_src_evolution_sendresult",
-      "community": 186,
-      "community_name": "WhatsAppMediaInput",
+      "community": 23,
+      "community_name": "EvolutionWhatsAppProvider",
       "norm_label": "sendresult()"
     },
     {
@@ -16136,8 +16136,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_integrations_src_evolution_numberat",
-      "community": 104,
-      "community_name": "evolution.ts",
+      "community": 186,
+      "community_name": ".qrFrom",
       "norm_label": "numberat()"
     },
     {
@@ -16160,8 +16160,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_integrations_src_evolution_normalizeqr",
-      "community": 104,
-      "community_name": "evolution.ts",
+      "community": 186,
+      "community_name": ".qrFrom",
       "norm_label": "normalizeqr()"
     },
     {
@@ -16172,8 +16172,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_integrations_src_evolution_headervalue",
-      "community": 23,
-      "community_name": "EvolutionWhatsAppProvider",
+      "community": 104,
+      "community_name": "evolution.ts",
       "norm_label": "headervalue()"
     },
     {
@@ -16268,8 +16268,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_integrations_src_evolution_recoverablestatus",
-      "community": 104,
-      "community_name": "evolution.ts",
+      "community": 23,
+      "community_name": "EvolutionWhatsAppProvider",
       "norm_label": "recoverablestatus()"
     },
     {
@@ -16280,8 +16280,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_integrations_src_evolution_isrecoverable",
-      "community": 104,
-      "community_name": "evolution.ts",
+      "community": 23,
+      "community_name": "EvolutionWhatsAppProvider",
       "norm_label": "isrecoverable()"
     },
     {
@@ -16292,8 +16292,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_integrations_src_evolution_sleep",
-      "community": 104,
-      "community_name": "evolution.ts",
+      "community": 23,
+      "community_name": "EvolutionWhatsAppProvider",
       "norm_label": "sleep()"
     },
     {
@@ -16485,8 +16485,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "packages_integrations_src_groq_groqmodel",
-      "community": 174,
-      "community_name": "AgentSnapshot",
+      "community": 11,
+      "community_name": "groq.ts",
       "norm_label": "groqmodel"
     },
     {
@@ -16950,8 +16950,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_integrations_src_index",
-      "community": 57,
-      "community_name": "whatsapp.ts",
+      "community": 129,
+      "community_name": "openrouter.ts",
       "norm_label": "integrations/src/index.ts"
     },
     {
@@ -17154,8 +17154,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_integrations_src_mock_whatsapp_mockwhatsappprovider_sendcontact",
-      "community": 1,
-      "community_name": "MockWhatsAppProvider",
+      "community": 57,
+      "community_name": "whatsapp.ts",
       "norm_label": ".sendcontact()"
     },
     {
@@ -17503,8 +17503,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_integrations_src_structured_output_test",
-      "community": 163,
-      "community_name": "ai-decision.ts",
+      "community": 122,
+      "community_name": "gemini.ts",
       "norm_label": "structured-output.test.ts"
     },
     {
@@ -17514,8 +17514,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "packages_integrations_src_structured_output_test_validdecision",
-      "community": 163,
-      "community_name": "ai-decision.ts",
+      "community": 122,
+      "community_name": "gemini.ts",
       "norm_label": "validdecision"
     },
     {
@@ -17525,8 +17525,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "packages_integrations_src_structured_output_test_compactdecision",
-      "community": 163,
-      "community_name": "ai-decision.ts",
+      "community": 122,
+      "community_name": "gemini.ts",
       "norm_label": "compactdecision"
     },
     {
@@ -17575,8 +17575,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "packages_integrations_src_whatsapp_whatsappqrcode",
-      "community": 1,
-      "community_name": "MockWhatsAppProvider",
+      "community": 186,
+      "community_name": ".qrFrom",
       "norm_label": "whatsappqrcode"
     },
     {
@@ -17588,8 +17588,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "packages_integrations_src_whatsapp_whatsappsendresult",
-      "community": 186,
-      "community_name": "WhatsAppMediaInput",
+      "community": 23,
+      "community_name": "EvolutionWhatsAppProvider",
       "norm_label": "whatsappsendresult"
     },
     {
@@ -17601,8 +17601,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "packages_integrations_src_whatsapp_whatsappmediainput",
-      "community": 186,
-      "community_name": "WhatsAppMediaInput",
+      "community": 1,
+      "community_name": "MockWhatsAppProvider",
       "norm_label": "whatsappmediainput"
     },
     {
@@ -18208,8 +18208,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "packages_shared_src_index_aidecisionschema",
-      "community": 163,
-      "community_name": "ai-decision.ts",
+      "community": 117,
+      "community_name": "types.ts",
       "norm_label": "aidecisionschema"
     },
     {
@@ -20002,7 +20002,7 @@
       "_origin": "ast",
       "id": "scripts_import_francisco_prospecting",
       "community": 181,
-      "community_name": "parsePhoneList",
+      "community_name": "normalizeBrazilianPhone",
       "norm_label": "import-francisco-prospecting.ts"
     },
     {
@@ -20013,7 +20013,7 @@
       "_origin": "ast",
       "id": "scripts_import_francisco_prospecting_root",
       "community": 181,
-      "community_name": "parsePhoneList",
+      "community_name": "normalizeBrazilianPhone",
       "norm_label": "root"
     },
     {
@@ -20024,7 +20024,7 @@
       "_origin": "ast",
       "id": "scripts_import_francisco_prospecting_env",
       "community": 181,
-      "community_name": "parsePhoneList",
+      "community_name": "normalizeBrazilianPhone",
       "norm_label": "env"
     },
     {
@@ -20035,7 +20035,7 @@
       "_origin": "ast",
       "id": "scripts_import_francisco_prospecting_supabase",
       "community": 181,
-      "community_name": "parsePhoneList",
+      "community_name": "normalizeBrazilianPhone",
       "norm_label": "supabase"
     },
     {
@@ -20046,7 +20046,7 @@
       "_origin": "ast",
       "id": "scripts_import_francisco_prospecting_imports",
       "community": 181,
-      "community_name": "parsePhoneList",
+      "community_name": "normalizeBrazilianPhone",
       "norm_label": "imports"
     },
     {
@@ -20058,7 +20058,7 @@
       "_origin": "ast",
       "id": "scripts_import_francisco_prospecting_read",
       "community": 181,
-      "community_name": "parsePhoneList",
+      "community_name": "normalizeBrazilianPhone",
       "norm_label": "read()"
     },
     {
@@ -20070,7 +20070,7 @@
       "_origin": "ast",
       "id": "scripts_import_francisco_prospecting_main",
       "community": 181,
-      "community_name": "parsePhoneList",
+      "community_name": "normalizeBrazilianPhone",
       "norm_label": "main()"
     },
     {
@@ -20161,8 +20161,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scripts_profile_francisco_context",
-      "community": 174,
-      "community_name": "AgentSnapshot",
+      "community": 163,
+      "community_name": "ai-decision.ts",
       "norm_label": "profile-francisco-context.ts"
     },
     {
@@ -20172,8 +20172,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "scripts_profile_francisco_context_headers",
-      "community": 174,
-      "community_name": "AgentSnapshot",
+      "community": 163,
+      "community_name": "ai-decision.ts",
       "norm_label": "headers"
     },
     {
@@ -20184,8 +20184,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_profile_francisco_context_rows",
-      "community": 174,
-      "community_name": "AgentSnapshot",
+      "community": 163,
+      "community_name": "ai-decision.ts",
       "norm_label": "rows()"
     },
     {
@@ -20196,8 +20196,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_profile_francisco_context_main",
-      "community": 174,
-      "community_name": "AgentSnapshot",
+      "community": 163,
+      "community_name": "ai-decision.ts",
       "norm_label": "main()"
     },
     {
@@ -20655,7 +20655,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scripts_run_controlled_francisco_opener",
-      "community": 27,
+      "community": 181,
       "community_name": "normalizeBrazilianPhone",
       "norm_label": "run-controlled-francisco-opener.ts"
     },
@@ -20667,7 +20667,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_run_controlled_francisco_opener_main",
-      "community": 27,
+      "community": 181,
       "community_name": "normalizeBrazilianPhone",
       "norm_label": "main()"
     },
@@ -20679,7 +20679,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_run_controlled_francisco_opener_assertok",
-      "community": 27,
+      "community": 181,
       "community_name": "normalizeBrazilianPhone",
       "norm_label": "assertok()"
     },
@@ -21022,8 +21022,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scripts_validate_francisco_providers",
-      "community": 174,
-      "community_name": "AgentSnapshot",
+      "community": 193,
+      "community_name": "validate-francisco-providers.ts",
       "norm_label": "validate-francisco-providers.ts"
     },
     {
@@ -21033,8 +21033,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "scripts_validate_francisco_providers_headers",
-      "community": 174,
-      "community_name": "AgentSnapshot",
+      "community": 193,
+      "community_name": "validate-francisco-providers.ts",
       "norm_label": "headers"
     },
     {
@@ -21045,8 +21045,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_validate_francisco_providers_rows",
-      "community": 174,
-      "community_name": "AgentSnapshot",
+      "community": 193,
+      "community_name": "validate-francisco-providers.ts",
       "norm_label": "rows()"
     },
     {
@@ -21057,8 +21057,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_validate_francisco_providers_main",
-      "community": 174,
-      "community_name": "AgentSnapshot",
+      "community": 193,
+      "community_name": "validate-francisco-providers.ts",
       "norm_label": "main()"
     },
     {
@@ -23354,7 +23354,7 @@
       "_origin": "ast",
       "id": "vercel",
       "community": 192,
-      "community_name": "wolf-transcription",
+      "community_name": "services",
       "norm_label": "vercel.json"
     },
     {
@@ -23365,7 +23365,7 @@
       "_origin": "ast",
       "id": "vercel_services",
       "community": 192,
-      "community_name": "wolf-transcription",
+      "community_name": "services",
       "norm_label": "services"
     },
     {
@@ -23376,7 +23376,7 @@
       "_origin": "ast",
       "id": "vercel_services_web",
       "community": 192,
-      "community_name": "wolf-transcription",
+      "community_name": "services",
       "norm_label": "web"
     },
     {
@@ -23387,7 +23387,7 @@
       "_origin": "ast",
       "id": "vercel_web_root",
       "community": 192,
-      "community_name": "wolf-transcription",
+      "community_name": "services",
       "norm_label": "root"
     },
     {
@@ -23398,19 +23398,19 @@
       "_origin": "ast",
       "id": "vercel_web_framework",
       "community": 192,
-      "community_name": "wolf-transcription",
+      "community_name": "services",
       "norm_label": "framework"
     },
     {
-      "label": "wolf-transcription",
+      "label": "api",
       "file_type": "code",
       "source_file": "vercel.json",
       "source_location": "L7",
       "_origin": "ast",
-      "id": "vercel_services_wolf_transcription",
+      "id": "vercel_services_api",
       "community": 192,
-      "community_name": "wolf-transcription",
-      "norm_label": "wolf-transcription"
+      "community_name": "services",
+      "norm_label": "api"
     },
     {
       "label": "root",
@@ -23418,9 +23418,9 @@
       "source_file": "vercel.json",
       "source_location": "L8",
       "_origin": "ast",
-      "id": "vercel_wolf_transcription_root",
+      "id": "vercel_api_root",
       "community": 192,
-      "community_name": "wolf-transcription",
+      "community_name": "services",
       "norm_label": "root"
     },
     {
@@ -23429,9 +23429,9 @@
       "source_file": "vercel.json",
       "source_location": "L9",
       "_origin": "ast",
-      "id": "vercel_wolf_transcription_framework",
+      "id": "vercel_api_framework",
       "community": 192,
-      "community_name": "wolf-transcription",
+      "community_name": "services",
       "norm_label": "framework"
     },
     {
@@ -23440,20 +23440,64 @@
       "source_file": "vercel.json",
       "source_location": "L10",
       "_origin": "ast",
+      "id": "vercel_api_entrypoint",
+      "community": 192,
+      "community_name": "services",
+      "norm_label": "entrypoint"
+    },
+    {
+      "label": "wolf-transcription",
+      "file_type": "code",
+      "source_file": "vercel.json",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "vercel_services_wolf_transcription",
+      "community": 192,
+      "community_name": "services",
+      "norm_label": "wolf-transcription"
+    },
+    {
+      "label": "root",
+      "file_type": "code",
+      "source_file": "vercel.json",
+      "source_location": "L13",
+      "_origin": "ast",
+      "id": "vercel_wolf_transcription_root",
+      "community": 192,
+      "community_name": "services",
+      "norm_label": "root"
+    },
+    {
+      "label": "framework",
+      "file_type": "code",
+      "source_file": "vercel.json",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "vercel_wolf_transcription_framework",
+      "community": 192,
+      "community_name": "services",
+      "norm_label": "framework"
+    },
+    {
+      "label": "entrypoint",
+      "file_type": "code",
+      "source_file": "vercel.json",
+      "source_location": "L15",
+      "_origin": "ast",
       "id": "vercel_wolf_transcription_entrypoint",
       "community": 192,
-      "community_name": "wolf-transcription",
+      "community_name": "services",
       "norm_label": "entrypoint"
     },
     {
       "label": "rewrites",
       "file_type": "code",
       "source_file": "vercel.json",
-      "source_location": "L13",
+      "source_location": "L18",
       "_origin": "ast",
       "id": "vercel_rewrites",
       "community": 192,
-      "community_name": "wolf-transcription",
+      "community_name": "services",
       "norm_label": "rewrites"
     },
     {
@@ -67976,7 +68020,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "vercel.json",
-      "source_location": "L13",
+      "source_location": "L18",
       "weight": 1.0,
       "_origin": "ast",
       "source": "vercel",
@@ -67998,6 +68042,17 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "vercel.json",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "vercel_services",
+      "target": "vercel_services_api",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "vercel.json",
       "source_location": "L3",
       "weight": 1.0,
       "_origin": "ast",
@@ -68009,7 +68064,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "vercel.json",
-      "source_location": "L7",
+      "source_location": "L12",
       "weight": 1.0,
       "_origin": "ast",
       "source": "vercel_services",
@@ -68045,6 +68100,39 @@
       "source_location": "L10",
       "weight": 1.0,
       "_origin": "ast",
+      "source": "vercel_services_api",
+      "target": "vercel_api_entrypoint",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "vercel.json",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "vercel_services_api",
+      "target": "vercel_api_framework",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "vercel.json",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "vercel_services_api",
+      "target": "vercel_api_root",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "vercel.json",
+      "source_location": "L15",
+      "weight": 1.0,
+      "_origin": "ast",
       "source": "vercel_services_wolf_transcription",
       "target": "vercel_wolf_transcription_entrypoint",
       "confidence_score": 1.0
@@ -68053,7 +68141,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "vercel.json",
-      "source_location": "L9",
+      "source_location": "L14",
       "weight": 1.0,
       "_origin": "ast",
       "source": "vercel_services_wolf_transcription",
@@ -68064,7 +68152,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "vercel.json",
-      "source_location": "L8",
+      "source_location": "L13",
       "weight": 1.0,
       "_origin": "ast",
       "source": "vercel_services_wolf_transcription",
@@ -69536,5 +69624,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "b6e7c1ce7dce7fda4cc02ffc73078d5bc35be677"
+  "built_at_commit": "ac06fa4e25d89dce24ec9bc17c3bbe6e5d5b0cb8"
 }
