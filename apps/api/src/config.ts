@@ -7,6 +7,7 @@ const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../.
 loadEnv({ path: [resolve(repositoryRoot, ".env.local"), resolve(repositoryRoot, ".env")], override: false, quiet: true });
 
 const booleanString = (defaultValue: boolean) => z.string().default(String(defaultValue)).transform((value) => value.toLowerCase() === "true");
+const hostedAppUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://127.0.0.1:5173";
 
 function optionalHttpUrl(value: string | undefined, name: string, allowInvalid: boolean) {
   const normalized = value?.trim();
@@ -24,11 +25,11 @@ function optionalHttpUrl(value: string | undefined, name: string, allowInvalid: 
 const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   BUILD_VERSION: z.string().default("local"),
-  API_PORT: z.coerce.number().int().positive().default(3333),
+  API_PORT: z.coerce.number().int().positive().default(Number(process.env.PORT ?? 3333)),
   LOCAL_API_PORT: z.coerce.number().int().positive().optional(),
-  API_HOST: z.string().default("127.0.0.1"),
+  API_HOST: z.string().default(process.env.PORT ? "0.0.0.0" : "127.0.0.1"),
   LOCAL_API_URL: z.string().url().default("http://127.0.0.1:3333"),
-  APP_URL: z.string().url().default("http://127.0.0.1:5173"),
+  APP_URL: z.string().url().default(hostedAppUrl),
   MOCK_MODE: booleanString(true),
   MOCK_GROQ: booleanString(true),
   MOCK_GEMINI: booleanString(true),
