@@ -4,6 +4,11 @@
       "root": "apps/web",
       "framework": "vite"
     },
+    "api": {
+      "root": "apps/api",
+      "framework": "fastify",
+      "entrypoint": "src/server.ts"
+    },
     "wolf-transcription": {
       "root": "services/wolf-transcription",
       "framework": "fastapi",
@@ -13,6 +18,13 @@
   "rewrites": [
     {
       "source": "/api(/.*)?",
+      "destination": {
+        "type": "service",
+        "service": "api"
+      }
+    },
+    {
+      "source": "/transcription(/.*)?",
       "destination": {
         "type": "service",
         "service": "wolf-transcription"

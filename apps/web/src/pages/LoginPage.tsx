@@ -34,7 +34,7 @@ export function LoginPage() {
 
   return <main className="login-page">
     <section className="login-card" aria-labelledby="login-title">
-      <div className="login-brand"><img src="/brand/renova123-logo.png" alt="Renova123" /></div>
+      <div className="login-brand"><img src="/brand/renova123-logo-white.png" alt="Renova123" /></div>
       <div className="login-copy">
         <span>Acesso seguro</span>
         <h1 id="login-title">Login administrativo</h1>
