@@ -1,16 +1,16 @@
 # Graph Report - Renova123 Captação  (2026-08-17)
 
 ## Corpus Check
-- 289 files · ~196,110 words
+- 289 files · ~196,130 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2161 nodes · 3855 edges · 195 communities (170 shown, 25 thin omitted)
+- 2165 nodes · 3859 edges · 196 communities (172 shown, 24 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 46 edges (avg confidence: 0.65)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `b6e7c1ce`
+- Built from commit: `ac06fa4e`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -42,7 +42,7 @@
 - supervisor.ts
 - shared/package.json
 - public.get_dashboard_stats
-- normalizeBrazilianPhone
+- groupNotificationDedupKey
 - deriveConversationState
 - compilerOptions
 - 20260803000400_persistent_platform.sql
@@ -99,6 +99,7 @@
 - Mapa de reaproveitamento
 - AGENTS.md
 - public.capture_outreach_template_strategy
+- interpretBrazilianContext
 - GroqProvider
 - executeAgentWithDailyLimitFallback
 - conversation-style.ts
@@ -110,7 +111,7 @@
 - apply-francisco-conversation-test.mjs
 - AppointmentsPage.tsx
 - inspect-evolution-regressions.ts
-- processInboundEvent
+- outreach-policy.ts
 - openrouter.ts
 - conversation-orchestrator.ts
 - wolf-transcription/README.md
@@ -144,18 +145,18 @@
 - support-bundle.mjs
 - qa-francisco.ts
 - background.js
-- parsePhoneList
+- normalizeBrazilianPhone
 - offscreen.js
 - architecture.test.ts
 - knowledge-service.ts
 - mic-permission.js
-- WhatsAppMediaInput
+- .qrFrom
 - conversation-memory-service.ts
 - createRepository
 - WhatsAppPage.tsx
 - prompts.ts
-- wolf-transcription
-- the-wolf-prompt.ts
+- services
+- validate-francisco-providers.ts
 - decryptSecret
 - expand-francisco-knowledge.mjs
 
@@ -176,25 +177,25 @@
   scripts/wolf-qwen-check.ts → apps/wolf-extension/public/content.js
 - `persistInboundDecision()` --indirect_call--> `item()`  [INFERRED]
   apps/worker/src/index.ts → packages/core/src/agent/knowledge-retrieval.test.ts
-- `mergeDecisionMemoryUpdates()` --indirect_call--> `item()`  [INFERRED]
-  apps/worker/src/index.ts → packages/core/src/agent/knowledge-retrieval.test.ts
 - `buildApp()` --calls--> `parsePhoneList()`  [EXTRACTED]
   apps/api/src/app.ts → packages/core/src/csv.ts
 - `buildApp()` --calls--> `normalizeBrazilianPhone()`  [EXTRACTED]
   apps/api/src/app.ts → packages/core/src/phone.ts
+- `buildApp()` --calls--> `encryptSecret()`  [EXTRACTED]
+  apps/api/src/app.ts → packages/core/src/secrets.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (195 total, 25 thin omitted)
+## Communities (196 total, 24 thin omitted)
 
 ### Community 0 - "worker/src/index.ts"
 Cohesion: 0.07
-Nodes (56): acquireInstanceLock(), applyFollowUpDecision(), assertOperationalTestDestination(), auditTokenUsage(), DeferredJobError, deliverGroupNotification(), ensureLatestInboundProcessing(), ensureSalesContactReply() (+48 more)
+Nodes (56): applyFollowUpDecision(), auditTokenUsage(), commercialMemoryUpdates(), configuredGroq(), DeferredJobError, deliverGroupNotification(), ensureLatestInboundProcessing(), ensureSalesContactReply() (+48 more)
 
 ### Community 2 - "shared/src/index.ts"
-Cohesion: 0.09
-Nodes (25): AgentDecisionValidator, reconcileAction(), safeSlotReply(), validateCommercialClaims(), AppointmentTool, enforceCommercialFactuality(), extractExplicitLeadName(), HandoffTool (+17 more)
+Cohesion: 0.08
+Nodes (26): baseSnapshot, AgentDecisionValidator, reconcileAction(), safeSlotReply(), validateCommercialClaims(), AppointmentTool, enforceCommercialFactuality(), extractExplicitLeadName() (+18 more)
 
 ### Community 3 - "dependencies"
 Cohesion: 0.06
@@ -213,8 +214,8 @@ Cohesion: 0.24
 Nodes (13): AIResponseWorker, AppointmentWorker, DelayedReplyWorker, dispatchJobs(), FollowUpWorker, InboundMessageWorker, JobHandler, MaintenanceWorker (+5 more)
 
 ### Community 7 - "app.ts"
-Cohesion: 0.12
-Nodes (28): buildApp(), buildWolfLiveContext(), creatableResources, createAuthClient(), createServiceClient(), deletableResources, editableResourceKey(), ensureNoAppointmentConflict() (+20 more)
+Cohesion: 0.10
+Nodes (30): buildApp(), buildWolfLiveContext(), creatableResources, createAuthClient(), createServiceClient(), deletableResources, editableResourceKey(), ensureNoAppointmentConflict() (+22 more)
 
 ### Community 8 - "francisco-preflight.ts"
 Cohesion: 0.23
@@ -229,16 +230,16 @@ Cohesion: 0.08
 Nodes (33): format(), Health, HealthPage(), serviceLabel(), Item, KnowledgePage(), Log, LogsPage() (+25 more)
 
 ### Community 11 - "groq.ts"
-Cohesion: 0.11
-Nodes (13): enrichQuotaDetails(), GroqCallMetrics, GroqHealth, GroqModelUnavailableError, GroqProviderError, GroqRateLimitError, GroqRateLimits, GroqStructuredClient (+5 more)
+Cohesion: 0.10
+Nodes (14): enrichQuotaDetails(), GroqCallMetrics, GroqHealth, GroqModel, GroqModelUnavailableError, GroqProviderError, GroqRateLimitError, GroqRateLimits (+6 more)
 
 ### Community 12 - "processOutbound"
-Cohesion: 0.16
-Nodes (12): nextCommercialSlot(), processOutbound(), reconcileScheduledResume(), CadenceCandidate, DEFAULT_CADENCE_DELAYS_DAYS, nextCadenceAttempt(), planDailyCadence(), evaluateScheduledResume() (+4 more)
+Cohesion: 0.14
+Nodes (14): nextCommercialSlot(), processOutbound(), reconcileScheduledResume(), compareOutboundText(), materializeOutreachTemplate(), CadenceCandidate, DEFAULT_CADENCE_DELAYS_DAYS, nextCadenceAttempt() (+6 more)
 
 ### Community 13 - "sendTextOnce"
-Cohesion: 0.27
-Nodes (11): deliveryIsUncertain(), deliveryWasAccepted(), markDeliveryAccepted(), markDeliveryUncertain(), markerPath(), directories, writeMarker(), sendTextOnce() (+3 more)
+Cohesion: 0.47
+Nodes (8): deliveryIsUncertain(), deliveryWasAccepted(), markDeliveryAccepted(), markDeliveryUncertain(), markerPath(), directories, writeMarker(), sendTextOnce()
 
 ### Community 15 - "20260804001000_operational_completion.sql"
 Cohesion: 0.16
@@ -273,8 +274,8 @@ Cohesion: 0.22
 Nodes (6): config, evolutionUrl, parsed, repositoryRoot, schema, supabaseUrl
 
 ### Community 23 - "EvolutionWhatsAppProvider"
-Cohesion: 0.24
-Nodes (3): EvolutionWhatsAppProvider, headerValue(), WhatsAppConnectionStatus
+Cohesion: 0.18
+Nodes (7): EvolutionWhatsAppProvider, isRecoverable(), recoverableStatus(), sendResult(), sleep(), WhatsAppConnectionStatus, WhatsAppSendResult
 
 ### Community 24 - "supervisor.ts"
 Cohesion: 0.11
@@ -288,13 +289,13 @@ Nodes (11): dependencies, zod, exports, zod, name, private, scripts, build (+3 m
 Cohesion: 0.18
 Nodes (11): public.ai_response_queue, public.app_settings, public.follow_up_queue, public.outreach_queue, public.suppression_list, public.system_settings, public.get_dashboard_stats(), public.import_lead_batch() (+3 more)
 
-### Community 27 - "normalizeBrazilianPhone"
-Cohesion: 0.15
-Nodes (16): humanDisqualificationReason(), regionFromPhone(), compareOutboundText(), materializeOutreachTemplate(), dddToState, expandScientificNotation(), invalid(), isExplicitNoInterestText() (+8 more)
+### Community 27 - "groupNotificationDedupKey"
+Cohesion: 0.18
+Nodes (16): countUniqueRelevantInboundMessages(), enqueueGroupNotification(), humanConversationSummary(), humanDisqualificationReason(), humanMainInterest(), lowerFirst(), markStalledLead(), notifyDisqualified() (+8 more)
 
 ### Community 28 - "deriveConversationState"
-Cohesion: 0.15
-Nodes (22): commercialMemoryUpdates(), ContextualInterpretation, ContextualSpeechAct, fold(), hasSocialOpening(), interpretBrazilianContext(), stripSocialOpening(), withContextualHint() (+14 more)
+Cohesion: 0.28
+Nodes (13): asksAgentIdentity(), contextualSpeechAct(), ConversationState, deriveConversationState(), extractQuestions(), hasExplicitMemory(), isContextualAffirmative(), isOwnerOrRoleQuestion() (+5 more)
 
 ### Community 29 - "compilerOptions"
 Cohesion: 0.17
@@ -373,8 +374,8 @@ Cohesion: 0.29
 Nodes (5): existingOpener, headers, items, mind, opener
 
 ### Community 54 - "group-notifications.ts"
-Cohesion: 0.14
-Nodes (27): countUniqueRelevantInboundMessages(), enqueueGroupNotification(), markStalledLead(), notifyDisqualified(), processQualificationDeadlines(), canAttemptGroupDelivery(), cleanValue(), disqualifiedMessage() (+19 more)
+Cohesion: 0.16
+Nodes (19): cleanValue(), disqualifiedMessage(), field(), format(), formatDisqualifiedGroupMessage(), formatDisqualifiedGroupMessageClean(), formatHumanQualifiedGroupMessage(), formatQualifiedGroupMessage() (+11 more)
 
 ### Community 55 - ".prettierrc.json"
 Cohesion: 0.40
@@ -385,7 +386,7 @@ Cohesion: 0.50
 Nodes (3): directory, files, requiredTables
 
 ### Community 57 - "whatsapp.ts"
-Cohesion: 0.16
+Cohesion: 0.15
 Nodes (10): EvolutionConfig, sanitizeWebhookPayload(), config, NormalizedWhatsAppEventType, normalizeWhatsAppText(), WhatsAppConnectionState, WhatsAppContactInput, WhatsAppDownloadedMedia (+2 more)
 
 ### Community 88 - "README.md"
@@ -445,8 +446,8 @@ Cohesion: 0.40
 Nodes (4): Atualização segura, Evolution API local, Primeiro uso, Teste real guiado
 
 ### Community 104 - "evolution.ts"
-Cohesion: 0.16
-Nodes (20): deliveryStatus(), detectMessageType(), eventTime(), extractQuotedContext(), extractText(), ignoreReason(), IntegrationError, isRecoverable() (+12 more)
+Cohesion: 0.18
+Nodes (16): deliveryStatus(), detectMessageType(), eventTime(), extractQuotedContext(), extractText(), headerValue(), ignoreReason(), IntegrationError (+8 more)
 
 ### Community 105 - "api.ts"
 Cohesion: 0.11
@@ -460,21 +461,25 @@ Nodes (5): Arquitetura, Documentação, Início rápido no Windows, Qualidade, R
 Cohesion: 0.29
 Nodes (5): grouped, s.first_inbound_at, public.capture_outreach_template_strategy(), public.conversations, public.leads
 
+### Community 112 - "interpretBrazilianContext"
+Cohesion: 0.29
+Nodes (8): ContextualInterpretation, ContextualSpeechAct, fold(), hasSocialOpening(), interpretBrazilianContext(), stripSocialOpening(), withContextualHint(), InterpretationConfidence
+
 ### Community 113 - "GroqProvider"
 Cohesion: 0.28
 Nodes (5): callMetrics(), estimateTokens(), GroqProvider, isWhisper(), mockModels()
 
 ### Community 114 - "executeAgentWithDailyLimitFallback"
-Cohesion: 0.13
-Nodes (15): eligibleProviderOrder(), groqAttemptModels(), isSharedGroqQuotaError(), providerPoolRetrySeconds(), configuredGemini(), configuredGroq(), configuredOpenRouter(), cooldownRemainingSeconds() (+7 more)
+Cohesion: 0.14
+Nodes (13): eligibleProviderOrder(), groqAttemptModels(), isSharedGroqQuotaError(), providerPoolRetrySeconds(), configuredGemini(), configuredOpenRouter(), cooldownRemainingSeconds(), executeAgentWithDailyLimitFallback() (+5 more)
 
 ### Community 116 - "conversation-style.ts"
-Cohesion: 0.15
-Nodes (28): base, appendLatestLeadMessageIfMissing(), containsBusinessFact(), conversationalBubbleDelayMs(), currentLeadTurn(), ensureActiveInboundReply(), isGreetingOnly(), isIrritatedTurn() (+20 more)
+Cohesion: 0.14
+Nodes (29): base, appendLatestLeadMessageIfMissing(), containsBusinessFact(), conversationalBubbleDelayMs(), currentLeadTurn(), ensureActiveInboundReply(), isGreetingOnly(), isIrritatedTurn() (+21 more)
 
 ### Community 117 - "types.ts"
 Cohesion: 0.15
-Nodes (14): AgentExecutionService, MaterialRecommendationService, normalize(), AgentCallMetrics, AgentExecutionInput, AgentExecutionResult, AgentMaterial, AgentMessage (+6 more)
+Nodes (14): AgentExecutionService, MaterialRecommendationService, normalize(), AgentExecutionInput, AgentExecutionResult, AgentMaterial, AgentMessage, ContextTokenBreakdown (+6 more)
 
 ### Community 118 - "app.py"
 Cohesion: 0.21
@@ -489,8 +494,8 @@ Cohesion: 0.48
 Nodes (6): auditLead(), db, main(), one(), pick(), targets
 
 ### Community 122 - "gemini.ts"
-Cohesion: 0.24
-Nodes (7): AgentCallMetrics, estimate(), GeminiProvider, GeminiProviderError, GeminiRateLimitError, metrics(), mockDecision()
+Cohesion: 0.18
+Nodes (10): AiStructuredOutputError, AgentCallMetrics, estimate(), GeminiProvider, GeminiProviderError, GeminiRateLimitError, metrics(), mockDecision() (+2 more)
 
 ### Community 124 - "apply-francisco-conversation-test.mjs"
 Cohesion: 0.33
@@ -504,17 +509,17 @@ Nodes (9): Appointment, AppointmentModal(), AppointmentsPage(), dateKey(), label
 Cohesion: 0.43
 Nodes (6): baseUrl, db, evolution(), main(), records(), textOf()
 
-### Community 128 - "processInboundEvent"
-Cohesion: 0.26
-Nodes (11): blockJobDuringOperationalTest(), isScopedOnlineTestJob(), jobPhone(), markCadenceResponded(), operationalTestModeActive(), presenceState(), processInboundEvent(), CONTROLLED_OUTREACH_TEST_PHONE (+3 more)
+### Community 128 - "outreach-policy.ts"
+Cohesion: 0.33
+Nodes (9): assertOperationalTestDestination(), blockJobDuringOperationalTest(), isScopedOnlineTestJob(), jobPhone(), operationalTestModeActive(), CONTROLLED_OUTREACH_TEST_PHONE, isControlledOutreachTestJob(), isOperationalTestMode() (+1 more)
 
 ### Community 129 - "openrouter.ts"
-Cohesion: 0.17
+Cohesion: 0.16
 Nodes (12): providerDecisionJsonSchema, assertFreeModel(), estimateTokens(), numericHeader(), OpenRouterCallMetrics, OpenRouterProvider, OpenRouterProviderError, OpenRouterRateLimitError (+4 more)
 
 ### Community 130 - "conversation-orchestrator.ts"
-Cohesion: 0.14
-Nodes (29): ConversationPlan, deduplicateUpdates(), extractDeterministicFacts(), extractLastQuestion(), fold(), inferCurrentTopic(), inferInterest(), memoryAnsweredTopics() (+21 more)
+Cohesion: 0.15
+Nodes (24): ConversationPlan, deduplicateUpdates(), extractDeterministicFacts(), extractLastQuestion(), fold(), inferCurrentTopic(), inferInterest(), memoryAnsweredTopics() (+16 more)
 
 ### Community 136 - "ConversationsPage.tsx"
 Cohesion: 0.29
@@ -533,8 +538,8 @@ Cohesion: 0.38
 Nodes (5): EARLY_PITCH_WORDS, isHumanAttentionOpener(), plain(), ROLE_WORDS, HUMAN_OPENERS
 
 ### Community 142 - "runWorker"
-Cohesion: 0.18
-Nodes (8): ConversationLanes, LaneJob, conversationKey(), ensureDailyCadencePlan(), heartbeat(), recoverStaleJobs(), releaseInstanceLock(), runWorker()
+Cohesion: 0.14
+Nodes (11): ConversationLanes, LaneJob, acquireInstanceLock(), conversationKey(), ensureDailyCadencePlan(), heartbeat(), processExists(), recoverStaleJobs() (+3 more)
 
 ### Community 143 - "devDependencies"
 Cohesion: 0.09
@@ -573,8 +578,8 @@ Cohesion: 0.09
 Nodes (20): Feedback(), SkeletonTable(), PageHeader(), exitLabels, FlowData, FlowPage(), FlowRow, AiStatus (+12 more)
 
 ### Community 163 - "ai-decision.ts"
-Cohesion: 0.16
-Nodes (15): aiDecisionJsonSchema, AiStructuredOutputError, expandProviderDecision(), extractJsonObject(), JsonSchema, MEMORY_KEYS, parseAiDecision(), providerDecisionSchema (+7 more)
+Cohesion: 0.18
+Nodes (14): aiDecisionJsonSchema, expandProviderDecision(), extractJsonObject(), JsonSchema, MEMORY_KEYS, parseAiDecision(), providerDecisionSchema, repairCompactDecision() (+6 more)
 
 ### Community 164 - "wolf-extension/package.json"
 Cohesion: 0.25
@@ -597,8 +602,8 @@ Cohesion: 0.22
 Nodes (8): dist, hash, manifest, packageJson, required, root, source, timestamp
 
 ### Community 174 - "AgentSnapshot"
-Cohesion: 0.12
-Nodes (11): baseSnapshot, AgentContextBuilder, item(), AgentSnapshot, GroqModel, headers, main(), rows() (+3 more)
+Cohesion: 0.20
+Nodes (9): mergeDecisionMemoryUpdates(), AgentContextBuilder, item(), postHandoffReply(), QualificationService, qualifiedReply(), scheduleFromFacts(), scheduleReply() (+1 more)
 
 ### Community 175 - "content.js"
 Cohesion: 0.54
@@ -616,9 +621,9 @@ Nodes (29): child(), cleanup(), commonEnv, dbPath(), delay(), enableTestOutreach
 Cohesion: 0.25
 Nodes (12): capturedTabs(), captureStartInFlight, debugEvents, debugWrite, emit(), ensureOffscreen(), OFFSCREEN_STATES, resetOffscreenReadiness() (+4 more)
 
-### Community 181 - "parsePhoneList"
-Cohesion: 0.20
-Nodes (12): acceptedHeaders, cleanHeader(), CsvPreviewRow, guessDelimiter(), parsePhoneList(), splitLine(), env, imports (+4 more)
+### Community 181 - "normalizeBrazilianPhone"
+Cohesion: 0.12
+Nodes (22): acceptedHeaders, cleanHeader(), CsvPreviewRow, guessDelimiter(), parsePhoneList(), splitLine(), dddToState, expandScientificNotation() (+14 more)
 
 ### Community 182 - "offscreen.js"
 Cohesion: 0.39
@@ -632,9 +637,9 @@ Nodes (4): keywords(), KnowledgeService, normalize(), scoreText()
 Cohesion: 0.50
 Nodes (3): button, error, status
 
-### Community 186 - "WhatsAppMediaInput"
-Cohesion: 0.36
-Nodes (3): sendResult(), WhatsAppMediaInput, WhatsAppSendResult
+### Community 186 - ".qrFrom"
+Cohesion: 0.50
+Nodes (3): normalizeQr(), numberAt(), WhatsAppQrCode
 
 ### Community 187 - "conversation-memory-service.ts"
 Cohesion: 0.42
@@ -652,18 +657,22 @@ Nodes (8): ConnectionState, Diagnostics, formatDate(), formatTime(), labelState(
 Cohesion: 0.50
 Nodes (3): buildFranciscoSystemPrompt(), PromptContext, context
 
-### Community 192 - "wolf-transcription"
-Cohesion: 0.20
-Nodes (9): rewrites, services, web, wolf-transcription, framework, root, entrypoint, framework (+1 more)
+### Community 192 - "services"
+Cohesion: 0.14
+Nodes (13): entrypoint, framework, root, rewrites, services, api, web, wolf-transcription (+5 more)
+
+### Community 193 - "validate-francisco-providers.ts"
+Cohesion: 0.67
+Nodes (3): headers, main(), rows()
 
 ### Community 194 - "decryptSecret"
 Cohesion: 0.33
 Nodes (5): resolveGroqApiKey(), sanitizeGroqSettings(), decryptSecret(), encryptSecret(), maskSecret()
 
 ## Knowledge Gaps
-- **653 isolated node(s):** `semi`, `singleQuote`, `trailingComma`, `printWidth`, `name` (+648 more)
+- **656 isolated node(s):** `semi`, `singleQuote`, `trailingComma`, `printWidth`, `name` (+651 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **25 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **24 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
@@ -671,14 +680,14 @@ _Questions this graph is uniquely positioned to answer:_
 - **Why does `MockWhatsAppProvider` connect `MockWhatsAppProvider` to `worker/src/index.ts`, `app.ts`, `WhatsAppProvider`, `EvolutionWhatsAppProvider`, `whatsapp.ts`, `createRepository`?**
   _High betweenness centrality (0.018) - this node is a cross-community bridge._
 - **Why does `Repository` connect `Repository` to `DashboardStats`, `MemoryRepository`, `database/src/index.ts`, `app.ts`, `outreach-analytics.ts`, `qa-francisco.ts`, `PageHeader.tsx`, `SupabaseRepository`?**
-  _High betweenness centrality (0.018) - this node is a cross-community bridge._
+  _High betweenness centrality (0.017) - this node is a cross-community bridge._
 - **Why does `WhatsAppProvider` connect `WhatsAppProvider` to `worker/src/index.ts`, `MockWhatsAppProvider`, `app.ts`, `evolution.ts`, `EvolutionWhatsAppProvider`, `whatsapp.ts`?**
   _High betweenness centrality (0.014) - this node is a cross-community bridge._
 - **What connects `semi`, `singleQuote`, `trailingComma` to the rest of the system?**
-  _653 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _656 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `worker/src/index.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.07005649717514124 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.0671602326811211 - nodes in this community are weakly interconnected._
 - **Should `MockWhatsAppProvider` be split into smaller, more focused modules?**
-  _Cohesion score 0.12681159420289856 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.1422924901185771 - nodes in this community are weakly interconnected._
 - **Should `shared/src/index.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.08880666049953746 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.08326530612244898 - nodes in this community are weakly interconnected._

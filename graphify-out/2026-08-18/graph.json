@@ -964,7 +964,7 @@
       "label": "optionalHttpUrl()",
       "file_type": "code",
       "source_file": "apps/api/src/config.ts",
-      "source_location": "L11",
+      "source_location": "L12",
       "_callable": true,
       "_origin": "ast",
       "id": "apps_api_src_config_optionalhttpurl",
@@ -976,7 +976,7 @@
       "label": "schema",
       "file_type": "code",
       "source_file": "apps/api/src/config.ts",
-      "source_location": "L24",
+      "source_location": "L25",
       "_origin": "ast",
       "id": "apps_api_src_config_schema",
       "community": 22,
@@ -987,7 +987,7 @@
       "label": "parsed",
       "file_type": "code",
       "source_file": "apps/api/src/config.ts",
-      "source_location": "L74",
+      "source_location": "L75",
       "_origin": "ast",
       "id": "apps_api_src_config_parsed",
       "community": 22,
@@ -998,7 +998,7 @@
       "label": "supabaseUrl",
       "file_type": "code",
       "source_file": "apps/api/src/config.ts",
-      "source_location": "L76",
+      "source_location": "L77",
       "_origin": "ast",
       "id": "apps_api_src_config_supabaseurl",
       "community": 22,
@@ -1009,7 +1009,7 @@
       "label": "evolutionUrl",
       "file_type": "code",
       "source_file": "apps/api/src/config.ts",
-      "source_location": "L77",
+      "source_location": "L78",
       "_origin": "ast",
       "id": "apps_api_src_config_evolutionurl",
       "community": 22,
@@ -1020,7 +1020,7 @@
       "label": "config",
       "file_type": "code",
       "source_file": "apps/api/src/config.ts",
-      "source_location": "L82",
+      "source_location": "L83",
       "_origin": "ast",
       "id": "apps_api_src_config_config",
       "community": 22,
@@ -1975,8 +1975,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_web_src_components_applayout",
-      "community": 19,
-      "community_name": "App.tsx",
+      "community": 10,
+      "community_name": "index.tsx",
       "norm_label": "applayout.tsx"
     },
     {
@@ -1988,8 +1988,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "apps_web_src_components_applayout_theme",
-      "community": 19,
-      "community_name": "App.tsx",
+      "community": 10,
+      "community_name": "index.tsx",
       "norm_label": "theme"
     },
     {
@@ -2127,8 +2127,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "apps_web_src_navigation_navigation",
-      "community": 19,
-      "community_name": "App.tsx",
+      "community": 10,
+      "community_name": "index.tsx",
       "norm_label": "navigation"
     },
     {
@@ -2748,8 +2748,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_web_src_pages_healthpage",
-      "community": 10,
-      "community_name": "index.tsx",
+      "community": 196,
+      "community_name": "HealthPage.tsx",
       "norm_label": "healthpage.tsx"
     },
     {
@@ -2761,8 +2761,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "apps_web_src_pages_healthpage_health",
-      "community": 10,
-      "community_name": "index.tsx",
+      "community": 196,
+      "community_name": "HealthPage.tsx",
       "norm_label": "health"
     },
     {
@@ -2773,8 +2773,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_web_src_pages_healthpage_healthpage",
-      "community": 10,
-      "community_name": "index.tsx",
+      "community": 196,
+      "community_name": "HealthPage.tsx",
       "norm_label": "healthpage()"
     },
     {
@@ -2785,8 +2785,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_web_src_pages_healthpage_servicelabel",
-      "community": 10,
-      "community_name": "index.tsx",
+      "community": 196,
+      "community_name": "HealthPage.tsx",
       "norm_label": "servicelabel()"
     },
     {
@@ -2797,8 +2797,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "apps_web_src_pages_healthpage_format",
-      "community": 10,
-      "community_name": "index.tsx",
+      "community": 196,
+      "community_name": "HealthPage.tsx",
       "norm_label": "format()"
     },
     {
@@ -18658,8 +18658,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_ui_src_index_appshell",
-      "community": 19,
-      "community_name": "App.tsx",
+      "community": 10,
+      "community_name": "index.tsx",
       "norm_label": "appshell()"
     },
     {
@@ -18682,8 +18682,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_ui_src_index_sidebaritem",
-      "community": 19,
-      "community_name": "App.tsx",
+      "community": 10,
+      "community_name": "index.tsx",
       "norm_label": "sidebaritem()"
     },
     {
@@ -18718,8 +18718,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_ui_src_index_metriccard",
-      "community": 10,
-      "community_name": "index.tsx",
+      "community": 196,
+      "community_name": "HealthPage.tsx",
       "norm_label": "metriccard()"
     },
     {
@@ -18730,8 +18730,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_ui_src_index_datacard",
-      "community": 10,
-      "community_name": "index.tsx",
+      "community": 196,
+      "community_name": "HealthPage.tsx",
       "norm_label": "datacard()"
     },
     {
@@ -18803,8 +18803,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_ui_src_index_emptystate",
-      "community": 10,
-      "community_name": "index.tsx",
+      "community": 162,
+      "community_name": "PageHeader",
       "norm_label": "emptystate()"
     },
     {
@@ -18875,8 +18875,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_ui_src_index_toast",
-      "community": 19,
-      "community_name": "App.tsx",
+      "community": 10,
+      "community_name": "index.tsx",
       "norm_label": "toast()"
     },
     {
@@ -18887,8 +18887,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_ui_src_index_toastviewport",
-      "community": 19,
-      "community_name": "App.tsx",
+      "community": 10,
+      "community_name": "index.tsx",
       "norm_label": "toastviewport()"
     },
     {
@@ -18935,8 +18935,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "packages_ui_src_index_systemstatusindicator",
-      "community": 10,
-      "community_name": "index.tsx",
+      "community": 196,
+      "community_name": "HealthPage.tsx",
       "norm_label": "systemstatusindicator()"
     },
     {
@@ -26874,7 +26874,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/api/src/config.ts",
-      "source_location": "L82",
+      "source_location": "L83",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_api_src_config",
@@ -26885,7 +26885,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/api/src/config.ts",
-      "source_location": "L77",
+      "source_location": "L78",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_api_src_config",
@@ -26896,7 +26896,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/api/src/config.ts",
-      "source_location": "L11",
+      "source_location": "L12",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_api_src_config",
@@ -26907,7 +26907,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/api/src/config.ts",
-      "source_location": "L74",
+      "source_location": "L75",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_api_src_config",
@@ -26929,7 +26929,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/api/src/config.ts",
-      "source_location": "L24",
+      "source_location": "L25",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_api_src_config",
@@ -26940,7 +26940,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/api/src/config.ts",
-      "source_location": "L76",
+      "source_location": "L77",
       "weight": 1.0,
       "_origin": "ast",
       "source": "apps_api_src_config",
@@ -69624,5 +69624,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "ac06fa4e25d89dce24ec9bc17c3bbe6e5d5b0cb8"
+  "built_at_commit": "e521f321b19b1366155748c0fbde13318c4f7309"
 }

@@ -33,6 +33,7 @@ export class EvolutionWhatsAppProvider implements WhatsAppProvider {
   private circuitOpenedAt = 0;
   private lastEventAt: string | null = null;
   private lastConnectionAt: string | null = null;
+  private currentQr: WhatsAppQrCode | null = null;
 
   constructor(private readonly config: EvolutionConfig) {}
 
@@ -70,15 +71,29 @@ export class EvolutionWhatsAppProvider implements WhatsAppProvider {
   }
 
   async connect(): Promise<WhatsAppQrCode> {
-    await this.createInstance();
+    const status = await this.getConnectionStatus();
+    if (status.state === "not_created") {
+      throw new IntegrationError("A instância renova123-francisco não existe; criação automática está desabilitada.", 409);
+    }
+    if (status.state === "open") {
+      return { code: null, pairingCode: null, expiresAt: null, status: "open", count: null };
+    }
     await this.configureWebhook();
-    return this.qrFrom(await this.request(`/instance/connect/${encodeURIComponent(this.config.instanceName)}`, {}, true));
+    const qr = this.qrFrom(await this.request(`/instance/connect/${encodeURIComponent(this.config.instanceName)}`, {}, true));
+    this.currentQr = qr;
+    return qr;
   }
 
   async getQrCode(): Promise<WhatsAppQrCode> {
     const status = await this.getConnectionStatus();
-    if (status.state !== "connecting") return { code: null, pairingCode: null, expiresAt: null, status: status.state, count: null };
-    return this.qrFrom(await this.request(`/instance/connect/${encodeURIComponent(this.config.instanceName)}`, {}, true));
+    if (status.state !== "connecting") {
+      this.currentQr = null;
+      return { code: null, pairingCode: null, expiresAt: null, status: status.state, count: null };
+    }
+    if (this.currentQr?.code && this.currentQr.expiresAt && Date.parse(this.currentQr.expiresAt) > Date.now()) return this.currentQr;
+    const qr = this.qrFrom(await this.request(`/instance/connect/${encodeURIComponent(this.config.instanceName)}`, {}, true));
+    this.currentQr = qr;
+    return qr;
   }
 
   async logout(): Promise<void> {
@@ -244,7 +259,11 @@ export class EvolutionWhatsAppProvider implements WhatsAppProvider {
 }
 
 export class IntegrationError extends Error {
-  constructor(message: string, public readonly status: number, public readonly details?: unknown, public readonly recoverable = false) { super(message); }
+  public readonly statusCode: number;
+  constructor(message: string, public readonly status: number, public readonly details?: unknown, public readonly recoverable = false) {
+    super(message);
+    this.statusCode = status;
+  }
 }
 
 function sendResult(raw: Record<string, unknown>): WhatsAppSendResult { return { externalMessageId: stringAt(raw, ["key.id", "id", "messageId"]) ?? crypto.randomUUID(), status: "sent", raw: sanitizeWebhookPayload(raw) }; }

@@ -2,7 +2,10 @@ import { clearAuthSession, getValidAccessToken } from "./supabase";
 
 const configuredApiUrl = import.meta.env.VITE_API_URL?.trim();
 const isLocalApiUrl = Boolean(configuredApiUrl && /^(https?:\/\/)?(127\.0\.0\.1|localhost)(:\d+)?\b/i.test(configuredApiUrl));
-export const API_URL = configuredApiUrl && !isLocalApiUrl ? configuredApiUrl : "/api";
+if (import.meta.env.PROD && (!configuredApiUrl || isLocalApiUrl)) {
+  throw new Error("VITE_API_URL de produção deve apontar para o backend HTTPS do Francisco na AWS.");
+}
+export const API_URL = configuredApiUrl || "/api";
 
 export class ApiError extends Error {
   constructor(

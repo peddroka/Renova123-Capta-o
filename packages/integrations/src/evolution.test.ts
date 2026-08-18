@@ -121,15 +121,32 @@ describe("EvolutionWhatsAppProvider v2.3.7", () => {
     await expect(new EvolutionWhatsAppProvider(config).sendText("5511987654321", "Olá", "twice")).rejects.toThrow("Evolution respondeu 502");
   });
 
-  it("reaproveita instância já existente durante o connect", async () => {
+  it("não cria a instância automaticamente durante o connect", async () => {
     const fetchMock = vi.fn(async (input: string | URL | Request) => {
       const url = String(input);
       if (url.includes("connectionState")) return new Response(JSON.stringify({}), { status: 404 });
-      if (url.endsWith("/instance/create")) return new Response(JSON.stringify({ error: "Forbidden", response: { message: ["Instance already exists"] } }), { status: 403 });
+      if (url.endsWith("/instance/create")) throw new Error("instance/create não deveria ser chamado");
       return new Response(JSON.stringify({ base64: "qr-code" }), { status: 200 });
     });
     vi.stubGlobal("fetch", fetchMock);
-    await expect(new EvolutionWhatsAppProvider(config).connect()).resolves.toMatchObject({ status: "connecting" });
+    await expect(new EvolutionWhatsAppProvider(config).connect()).rejects.toMatchObject({ status: 409 });
+  });
+
+  it("reutiliza o QR atual durante o polling e só pede outro após expirar", async () => {
+    let qrRequests = 0;
+    const fetchMock = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes("connectionState")) return new Response(JSON.stringify({ instance: { state: "connecting" } }), { status: 200 });
+      qrRequests += 1;
+      return new Response(JSON.stringify({ count: qrRequests, base64: `data:image/png;base64,qr${qrRequests}` }), { status: 200 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const provider = new EvolutionWhatsAppProvider({ ...config, qrTtlSeconds: 60 });
+    const first = await provider.getQrCode();
+    const second = await provider.getQrCode();
+    expect(second).toEqual(first);
+    expect(qrRequests).toBe(1);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
   it("busca o número nos detalhes quando connectionState retorna somente open", async () => {

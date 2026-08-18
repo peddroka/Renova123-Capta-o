@@ -20,13 +20,13 @@
     "semantic_hash": ""
   },
   "apps/api/src/app.ts": {
-    "mtime": 1786984669.341965,
-    "ast_hash": "47fffaa8b1e0b4129c7fbd7500ca36e5",
+    "mtime": 1787020081.7490742,
+    "ast_hash": "1efd20c996f4c493cff6a3e6fe2b328d",
     "semantic_hash": ""
   },
   "apps/api/src/config.ts": {
-    "mtime": 1786993640.7874029,
-    "ast_hash": "5727f2f8e08239852789bb3378b816e9",
+    "mtime": 1787020244.966982,
+    "ast_hash": "e9ac9e41ada94d89641cffb6558a2174",
     "semantic_hash": ""
   },
   "apps/api/src/server.ts": {
@@ -55,8 +55,8 @@
     "semantic_hash": ""
   },
   "apps/web/src/api.ts": {
-    "mtime": 1787018150.2920332,
-    "ast_hash": "4b63ecca62d10aef52791c4f516ef1d0",
+    "mtime": 1787026829.352785,
+    "ast_hash": "6160f90458d7871447444da01c6bd2c6",
     "semantic_hash": ""
   },
   "apps/web/src/components/AppLayout.tsx": {
@@ -145,8 +145,8 @@
     "semantic_hash": "891b93b4623c1a8b21dce0c50f171f09"
   },
   "apps/web/src/pages/WhatsAppPage.tsx": {
-    "mtime": 1786389406.115607,
-    "ast_hash": "4e2ecfd441f580eda67c88ca8627e1ae",
+    "mtime": 1787026829.351784,
+    "ast_hash": "315ca95689fe2020acab1cc8df8d75c3",
     "semantic_hash": ""
   },
   "apps/web/src/services/query-client.ts": {
@@ -370,13 +370,13 @@
     "semantic_hash": ""
   },
   "packages/integrations/src/evolution.test.ts": {
-    "mtime": 1786395094.691474,
-    "ast_hash": "2d0158303feb3c442ddb4a2a1ae09574",
+    "mtime": 1787026853.7380066,
+    "ast_hash": "b03eb269d7d35e475fe0af96c1ba964d",
     "semantic_hash": ""
   },
   "packages/integrations/src/evolution.ts": {
-    "mtime": 1786394610.548542,
-    "ast_hash": "4e79e5a6bf864ddcc7460e49a0730e5f",
+    "mtime": 1787026867.6153853,
+    "ast_hash": "47d85e58d2f5be9fec002efc4e997a38",
     "semantic_hash": ""
   },
   "packages/integrations/src/groq.ts": {
@@ -625,8 +625,8 @@
     "semantic_hash": ""
   },
   "docs/ENVIRONMENT.md": {
-    "mtime": 1785795268.8725977,
-    "ast_hash": "18c873755fbb15a9151a9444692f165a",
+    "mtime": 1787026955.301815,
+    "ast_hash": "1748fadd10fe71f0d88518630509d27d",
     "semantic_hash": ""
   },
   "docs/EVOLUTION_INTEGRATION.md": {
@@ -1602,6 +1602,36 @@
   "vercel.json": {
     "mtime": 1787018150.2930422,
     "ast_hash": "44b90a18f7404470a6171ed2077549aa",
+    "semantic_hash": ""
+  },
+  "tmp-redis-copy.mjs": {
+    "mtime": 1787025173.8662665,
+    "ast_hash": "b435c466de33691e04e030e17bf69e3d",
+    "semantic_hash": ""
+  },
+  "tmp-redis-migrate.sh": {
+    "mtime": 1787024819.9451303,
+    "ast_hash": "aa8458726d062cd9772480c1d6c46e21",
+    "semantic_hash": ""
+  },
+  "tmp-restart-evolution.sh": {
+    "mtime": 1787025388.7471697,
+    "ast_hash": "1c3d022040c74f708bf9909b7233c44c",
+    "semantic_hash": ""
+  },
+  "tmp-restore-redis.sh": {
+    "mtime": 1787025402.805616,
+    "ast_hash": "864c6fa79695dbdc290ac9824405ff9f",
+    "semantic_hash": ""
+  },
+  "tmp-run-copy.sh": {
+    "mtime": 1787025103.8563364,
+    "ast_hash": "da49aa80697bff743c88fae1f8198ef8",
+    "semantic_hash": ""
+  },
+  "renova123-francisco-qr.png": {
+    "mtime": 1787026265.2315936,
+    "ast_hash": "86b926ce2a3ae3c5ae6187764b2fc3b7",
     "semantic_hash": ""
   }
 }

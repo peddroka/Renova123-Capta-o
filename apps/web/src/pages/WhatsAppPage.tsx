@@ -89,7 +89,7 @@ export function WhatsAppPage() {
   const state = setupBlocked ? "unavailable" : pairing?.state ?? "unavailable";
   const connected = state === "open";
   const connecting = state === "connecting";
-  const canConnect = !setupBlocked && !connected && !connecting;
+  const canConnect = !setupBlocked && !connected;
 
   return <div className="page-stack">
     <PageHeader pageKey="whatsapp" actions={<button className="hero-button" onClick={() => void refresh()}><RefreshCw /> Atualizar</button>} />
@@ -109,7 +109,7 @@ export function WhatsAppPage() {
           <div><span>Credencial no navegador</span><strong>Nunca exposta</strong></div>
         </div>
         <div className="whatsapp-actions">
-          <button className="primary-button" onClick={() => void connect()} disabled={Boolean(loading) || !canConnect} title={setupBlocked ? "Preencha a URL/chave da Evolution e a URL do webhook no servidor." : undefined}><Link2 /> {setupBlocked ? "WhatsApp não configurado" : loading === "connect" ? "Preparando..." : connected ? "WhatsApp conectado" : connecting ? "Aguardando leitura" : "Conectar WhatsApp"}</button>
+          <button className="primary-button" onClick={() => void connect()} disabled={Boolean(loading) || !canConnect} title={setupBlocked ? "Preencha a URL/chave da Evolution e a URL do webhook no servidor." : undefined}><Link2 /> {setupBlocked ? "WhatsApp não configurado" : loading === "connect" ? "Preparando..." : connected ? "WhatsApp conectado" : "Conectar WhatsApp"}</button>
           <button className="secondary-button" onClick={() => void action("create", "/whatsapp/instance", "POST", "Instância criada.")} disabled={Boolean(loading) || setupBlocked}><PlugZap /> Criar instância</button>
           <button className="secondary-button" onClick={() => void action("webhook", "/whatsapp/webhook/configure", "POST", "Webhook configurado.")} disabled={Boolean(loading) || setupBlocked}><Webhook /> Configurar webhook</button>
           <button className="secondary-button" onClick={() => void action("restart", "/whatsapp/restart", "POST", "Instância reiniciada.")} disabled={Boolean(loading) || setupBlocked}><RotateCw /> Reiniciar</button>
