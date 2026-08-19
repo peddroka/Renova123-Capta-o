@@ -375,7 +375,9 @@ export async function buildApp(
     let worker: { status: string; lastHeartbeatAt?: string } = {
       status: config.MOCK_MODE ? "mock" : "unknown",
     };
-    let scheduler: { status: string; lastHeartbeatAt?: string } = { status: config.MOCK_MODE ? "mock" : "unknown" };
+    let scheduler: { status: string; lastHeartbeatAt?: string } = {
+      status: config.MOCK_MODE ? "mock" : "unknown",
+    };
     let queue = { pending: 0, failed: 0 };
     let messages = { lastInboundAt: null as string | null, lastOutboundAt: null as string | null };
     if (serviceDb) {
@@ -429,10 +431,16 @@ export async function buildApp(
         path.resolve(process.cwd(), "../..", configuredHeartbeat),
         path.resolve(process.cwd(), "../../..", configuredHeartbeat),
       ];
-      const heartbeatPath = heartbeatCandidates.find((candidate) => existsSync(candidate)) ?? heartbeatCandidates[0]!;
+      const heartbeatPath =
+        heartbeatCandidates.find((candidate) => existsSync(candidate)) ?? heartbeatCandidates[0]!;
       try {
-        const local = JSON.parse(readFileSync(heartbeatPath, "utf8")) as { status?: string; lastHeartbeatAt?: string };
-        const ageMs = local.lastHeartbeatAt ? Date.now() - Date.parse(local.lastHeartbeatAt) : Number.POSITIVE_INFINITY;
+        const local = JSON.parse(readFileSync(heartbeatPath, "utf8")) as {
+          status?: string;
+          lastHeartbeatAt?: string;
+        };
+        const ageMs = local.lastHeartbeatAt
+          ? Date.now() - Date.parse(local.lastHeartbeatAt)
+          : Number.POSITIVE_INFINITY;
         const status = ageMs <= 30_000 ? "online" : "stale";
         worker = { status, ...(local.lastHeartbeatAt ? { lastHeartbeatAt: local.lastHeartbeatAt } : {}) };
         scheduler = worker;
@@ -475,7 +483,11 @@ export async function buildApp(
     };
   });
 
-  app.get("/health/live", { config: { rateLimit: false } }, async () => ({ ok: true, service: "api", uptime: process.uptime() }));
+  app.get("/health/live", { config: { rateLimit: false } }, async () => ({
+    ok: true,
+    service: "api",
+    uptime: process.uptime(),
+  }));
 
   app.post(
     "/auth/login",
@@ -912,31 +924,25 @@ export async function buildApp(
       }
     }
     if (!serverReady)
-      return reply
-        .code(503)
-        .send({
-          message: "Ollama não iniciou. Verifique se está instalado e acessível.",
-          state: "error",
-          startedMs: Date.now() - startedAt,
-        });
+      return reply.code(503).send({
+        message: "Ollama não iniciou. Verifique se está instalado e acessível.",
+        state: "error",
+        startedMs: Date.now() - startedAt,
+      });
     const tags = await ollamaTags();
     if (!tags.some((model) => model.split(":")[0] === config.WOLF_OLLAMA_MODEL.split(":")[0]))
-      return reply
-        .code(409)
-        .send({
-          message: `Modelo ${config.WOLF_OLLAMA_MODEL} não instalado.`,
-          state: "model_missing",
-          startedMs: Date.now() - startedAt,
-        });
+      return reply.code(409).send({
+        message: `Modelo ${config.WOLF_OLLAMA_MODEL} não instalado.`,
+        state: "model_missing",
+        startedMs: Date.now() - startedAt,
+      });
     const warm = await warmQwen();
     if (!warm)
-      return reply
-        .code(503)
-        .send({
-          message: "Ollama respondeu, mas o Qwen não aqueceu.",
-          state: "error",
-          startedMs: Date.now() - startedAt,
-        });
+      return reply.code(503).send({
+        message: "Ollama respondeu, mas o Qwen não aqueceu.",
+        state: "error",
+        startedMs: Date.now() - startedAt,
+      });
     return { ...(await getWolfAiStatus()), startedMs: Date.now() - startedAt };
   });
   app.post("/wolf/ai/stop", { preHandler: requireWolfAuth(authClient) }, async () => {
@@ -1106,9 +1112,10 @@ export async function buildApp(
     >();
     for (const event of events.rows) {
       const at = new Date(String(event.occurredAt ?? event.createdAt));
-      const day = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: "America/Sao_Paulo" }).format(
-        at,
-      );
+      const day = new Intl.DateTimeFormat("en-US", {
+        weekday: "short",
+        timeZone: "America/Sao_Paulo",
+      }).format(at);
       const hour = new Intl.DateTimeFormat("en-US", {
         hour: "2-digit",
         hour12: false,
@@ -1588,15 +1595,48 @@ export async function buildApp(
 
   app.get("/dashboard", { preHandler: requireAuth(authClient) }, async () => {
     const stats = await repository.dashboard();
+    const general = await repository.getSettings("general");
+    const outreach = await repository.getSettings("outreach");
+    const simulationMode =
+      config.MOCK_MODE || config.MOCK_EVOLUTION || config.SIMULATION_MODE || !config.REAL_SENDING_ENABLED;
+    const paused =
+      general.globalPause === true ||
+      general.automationEnabled !== true ||
+      outreach.enabled !== true ||
+      !config.OUTREACH_ENABLED;
+    const sendMode = simulationMode ? "MOCK / BLOQUEADO" : paused ? "REAL / PAUSADO" : "REAL / ATIVO";
     return {
       ...stats,
-      dailyLimit: Number((await repository.getSettings("outreach")).dailyProactiveLimit ?? stats.dailyLimit ?? 50),
-      simulationMode: config.MOCK_MODE || config.MOCK_EVOLUTION || config.SIMULATION_MODE || !config.REAL_SENDING_ENABLED,
+      dailyLimit: Number(
+        outreach.newLeadsDailyLimit ?? outreach.dailyProactiveLimit ?? stats.dailyLimit ?? 50,
+      ),
+      newLeadsDailyLimit: Number(outreach.newLeadsDailyLimit ?? outreach.dailyProactiveLimit ?? 50),
+      simulationMode,
+      sendMode,
+      sendModeReason: simulationMode
+        ? "REAL_SENDING_ENABLED está desligado."
+        : paused
+          ? "Pausa global, automação ou outreach desativado."
+          : "Configuração real ativa.",
     };
   });
-  app.get("/flow", { preHandler: requireAuth(authClient) }, async () => {
+  app.get("/flow", { preHandler: requireAuth(authClient) }, async (request) => {
     const outreach = await repository.getSettings("outreach");
-    const dailyBudget = Number(outreach.dailyProactiveLimit ?? outreach.dailyLimit ?? 50);
+    const query = z
+      .object({
+        page: z.coerce.number().int().min(1).default(1),
+        pageSize: z.coerce.number().int().min(1).max(50).default(20),
+        step: z.coerce.number().int().min(1).max(6).optional(),
+        status: z.string().optional(),
+        search: z.string().trim().max(100).optional(),
+      })
+      .parse(request.query);
+    const dailyBudget = Number(
+      outreach.newLeadsDailyLimit ?? outreach.dailyProactiveLimit ?? outreach.dailyLimit ?? 50,
+    );
+    const stageLimits = Array.isArray(outreach.stageDailyLimits)
+      ? outreach.stageDailyLimits.map(Number)
+      : [500, 500, 100, 100, 100, 100];
     const delays = Array.isArray(outreach.cadenceDelaysDays)
       ? outreach.cadenceDelaysDays
       : [0, 1, 2, 4, 8, 16];
@@ -1631,6 +1671,8 @@ export async function buildApp(
           dailyBudget,
           usedBudget: 0,
           remainingBudget: dailyBudget,
+          followUpPolicy: "unlimited_due",
+          stageLimits,
         },
       };
     }
@@ -1673,8 +1715,22 @@ export async function buildApp(
         label: `Fluxo ${index + 1}`,
         delayDays: Number(delays[index] ?? 0),
         count: bucket.length,
+        currentLeads: bucket.length,
         dueToday: bucket.filter((row) => row.dueToday).length,
         overdue: bucket.filter((row) => row.overdue).length,
+        processedToday: bucket.filter(
+          (row) => row.last_attempt_at && Date.parse(row.last_attempt_at) >= startToday.getTime(),
+        ).length,
+        awaiting: bucket.filter((row) => !row.next_attempt_at || Date.parse(row.next_attempt_at) > now)
+          .length,
+        quota: index === 0 ? dailyBudget : (stageLimits[index] ?? 500),
+        remaining: Math.max(
+          0,
+          (index === 0 ? dailyBudget : (stageLimits[index] ?? 500)) -
+            bucket.filter(
+              (row) => row.last_attempt_at && Date.parse(row.last_attempt_at) >= startToday.getTime(),
+            ).length,
+        ),
         responseRate:
           bucket.length + responded ? Math.round((responded / (bucket.length + responded)) * 100) : 0,
         lastExecution:
@@ -1718,6 +1774,26 @@ export async function buildApp(
           : rows.filter((row) => row.status === status)
       ).slice(0, 100),
     }));
+    const selectedRows = query.step
+      ? active.filter((row) => Number(row.flow_step) === query.step)
+      : query.status
+        ? query.status === "uses_system"
+          ? rows.filter(
+              (row) => (row.lead?.metadata as Record<string, unknown> | undefined)?.usesSystem === true,
+            )
+          : query.status === "handed_off"
+            ? rows.filter((row) => row.status === "qualified" || row.status === "handed_off")
+            : rows.filter((row) => row.status === query.status)
+        : active;
+    const searchedRows = query.search
+      ? selectedRows.filter((row) =>
+          `${row.lead?.name ?? ""} ${row.lead?.phone ?? ""} ${row.lead?.company ?? ""}`
+            .toLowerCase()
+            .includes(query.search!.toLowerCase()),
+        )
+      : selectedRows;
+    const rowStart = (query.page - 1) * query.pageSize;
+    const pageRows = searchedRows.slice(rowStart, rowStart + query.pageSize);
     return {
       summary: {
         inFlow: active.length,
@@ -1729,14 +1805,21 @@ export async function buildApp(
       },
       steps,
       exits,
-      rows: active.slice(0, 500),
       budget: {
         dueFollowups: due.length,
-        newLeadSlots: Math.max(0, dailyBudget - due.length),
+        newLeadSlots: dailyBudget,
         dailyBudget,
-        usedBudget: Math.min(dailyBudget, due.length),
-        remainingBudget: Math.max(0, dailyBudget - due.length),
+        usedBudget: Math.min(dailyBudget, steps[0]?.processedToday ?? 0),
+        remainingBudget: Math.max(0, dailyBudget - (steps[0]?.processedToday ?? 0)),
+        followUpPolicy: "unlimited_due",
+        stageLimits,
       },
+      settings: { newLeadsDailyLimit: dailyBudget, stageDailyLimits: stageLimits, cadenceDelaysDays: delays },
+      rowsTotal: searchedRows.length,
+      page: query.page,
+      pageSize: query.pageSize,
+      filter: { step: query.step ?? null, status: query.status ?? null, search: query.search ?? "" },
+      rows: pageRows,
     };
   });
   app.get("/analytics/outreach-hours", { preHandler: requireAuth(authClient) }, async () =>
@@ -2610,7 +2693,9 @@ export async function buildApp(
       if (current.globalPause === true) {
         throw new Error("Francisco não pôde ser ligado: parada global ativa.");
       }
-      const whatsappState = await connectionWhatsapp.getConnectionStatus().catch(() => ({ state: "unavailable" }));
+      const whatsappState = await connectionWhatsapp
+        .getConnectionStatus()
+        .catch(() => ({ state: "unavailable" }));
       if (!config.MOCK_EVOLUTION && whatsappState.state !== "open") {
         throw new Error(`Francisco não pôde ser ligado: WhatsApp ${whatsappState.state}.`);
       }
@@ -2629,12 +2714,18 @@ export async function buildApp(
         );
       } else if (config.MOCK_MODE) {
         const configuredHeartbeat = `${process.env.MOCK_DB_PATH ?? ".runtime/mock-db.json"}.worker-heartbeat.json`;
-        const candidates = [path.resolve(configuredHeartbeat), path.resolve(process.cwd(), "../..", configuredHeartbeat), path.resolve(process.cwd(), "../../..", configuredHeartbeat)];
+        const candidates = [
+          path.resolve(configuredHeartbeat),
+          path.resolve(process.cwd(), "../..", configuredHeartbeat),
+          path.resolve(process.cwd(), "../../..", configuredHeartbeat),
+        ];
         const heartbeatPath = candidates.find((candidate) => existsSync(candidate));
         if (heartbeatPath) {
           try {
             const heartbeat = JSON.parse(readFileSync(heartbeatPath, "utf8")) as { lastHeartbeatAt?: string };
-            workerOnline = Boolean(heartbeat.lastHeartbeatAt && Date.now() - Date.parse(heartbeat.lastHeartbeatAt) <= 30_000);
+            workerOnline = Boolean(
+              heartbeat.lastHeartbeatAt && Date.now() - Date.parse(heartbeat.lastHeartbeatAt) <= 30_000,
+            );
           } catch {
             workerOnline = false;
           }

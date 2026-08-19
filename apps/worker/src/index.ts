@@ -122,7 +122,9 @@ const whatsapp: WhatsAppProvider = workerConfig.MOCK_EVOLUTION
       webhookSecret: workerConfig.EVOLUTION_WEBHOOK_SECRET ?? "development-only-secret-change-me",
     });
 const instanceId = `${process.env.COMPUTERNAME ?? "local"}:${process.pid}:${crypto.randomUUID()}`;
-const localHeartbeatPath = path.resolve(`${workerConfig.MOCK_DB_PATH ?? ".runtime/mock-db.json"}.worker-heartbeat.json`);
+const localHeartbeatPath = path.resolve(
+  `${workerConfig.MOCK_DB_PATH ?? ".runtime/mock-db.json"}.worker-heartbeat.json`,
+);
 const groqCircuit = new ProviderCircuitBreaker({ failureThreshold: 3, cooldownMs: 60_000 });
 const openRouter1Circuit = new ProviderCircuitBreaker({ failureThreshold: 3, cooldownMs: 1_000 });
 const geminiCircuit = new ProviderCircuitBreaker({ failureThreshold: 3, cooldownMs: 60_000 });
@@ -167,12 +169,22 @@ async function ensureDailyCadencePlan(outreach: Record<string, unknown>) {
   if (lastDailyPlanKey === planKey) return;
   const startTime = String(outreach.startTime ?? "08:00");
   if (`${get("hour")}:${get("minute")}` < startTime) return;
-  const budget = Number(outreach.dailyProactiveLimit ?? 50);
+  const budget = Number(outreach.newLeadsDailyLimit ?? outreach.dailyProactiveLimit ?? 50);
   if (!serviceDb) {
     const queue = await repository.page("queue", { page: 1, pageSize: 5000 });
     const today = planDate;
-    const completedToday = queue.rows.filter((row) => ["outreach", "follow_up"].includes(String(row.type)) && String(row.status) === "completed" && String(row.completedAt ?? "").startsWith(today)).length;
-    const reservedToday = queue.rows.filter((row) => ["outreach", "follow_up"].includes(String(row.type)) && ["pending", "processing", "retry", "scheduled"].includes(String(row.status)) && String((row.payload as Record<string, unknown> | undefined)?.proactivePlanDate ?? "") === planKey).length;
+    const completedToday = queue.rows.filter(
+      (row) =>
+        ["outreach", "follow_up"].includes(String(row.type)) &&
+        String(row.status) === "completed" &&
+        String(row.completedAt ?? "").startsWith(today),
+    ).length;
+    const reservedToday = queue.rows.filter(
+      (row) =>
+        ["outreach", "follow_up"].includes(String(row.type)) &&
+        ["pending", "processing", "retry", "scheduled"].includes(String(row.status)) &&
+        String((row.payload as Record<string, unknown> | undefined)?.proactivePlanDate ?? "") === planKey,
+    ).length;
     const remaining = Math.max(0, budget - completedToday - reservedToday);
     if (remaining === 0) {
       lastDailyPlanKey = planKey;
@@ -181,17 +193,47 @@ async function ensureDailyCadencePlan(outreach: Record<string, unknown>) {
     const openers = await repository.page("openers", { page: 1, pageSize: 1 });
     const text = String(openers.rows[0]?.content ?? "").trim();
     if (!text) {
-      await repository.audit("cadence.daily_plan.blocked", "system", null, { planKey, reason: "opening_template_missing", budget });
+      await repository.audit("cadence.daily_plan.blocked", "system", null, {
+        planKey,
+        reason: "opening_template_missing",
+        budget,
+      });
       lastDailyPlanKey = planKey;
       return;
     }
     const leads = await repository.leads({ page: 1, pageSize: 5000 });
-    const activeLeadIds = new Set(queue.rows.filter((row) => ["outreach", "follow_up"].includes(String(row.type)) && ["pending", "processing", "retry", "scheduled"].includes(String(row.status))).map((row) => String((row.payload as Record<string, unknown> | undefined)?.leadId ?? "")));
-    const candidates = leads.rows.filter((lead) => ["new", "queued"].includes(String(lead.stage)) && !activeLeadIds.has(String(lead.id))).slice(0, remaining);
+    const activeLeadIds = new Set(
+      queue.rows
+        .filter(
+          (row) =>
+            ["outreach", "follow_up"].includes(String(row.type)) &&
+            ["pending", "processing", "retry", "scheduled"].includes(String(row.status)),
+        )
+        .map((row) => String((row.payload as Record<string, unknown> | undefined)?.leadId ?? "")),
+    );
+    const candidates = leads.rows
+      .filter((lead) => ["new", "queued"].includes(String(lead.stage)) && !activeLeadIds.has(String(lead.id)))
+      .slice(0, remaining);
     for (const lead of candidates) {
-      await repository.enqueue("outreach", { leadId: String(lead.id), phone: String(lead.phone), text, templateStrategy: "daily_plan", proactivePlanDate: planKey }, new Date(), `daily:${planKey}:${String(lead.id)}`);
+      await repository.enqueue(
+        "outreach",
+        {
+          leadId: String(lead.id),
+          phone: String(lead.phone),
+          text,
+          templateStrategy: "daily_plan",
+          proactivePlanDate: planKey,
+        },
+        new Date(),
+        `daily:${planKey}:${String(lead.id)}`,
+      );
     }
-    await repository.audit("cadence.daily_plan.created", "system", null, { planKey, budget, plannedNewLeadCount: candidates.length, completedToday });
+    await repository.audit("cadence.daily_plan.created", "system", null, {
+      planKey,
+      budget,
+      plannedNewLeadCount: candidates.length,
+      completedToday,
+    });
     lastDailyPlanKey = planKey;
     return;
   }
@@ -229,10 +271,11 @@ async function ensureDailyCadencePlan(outreach: Record<string, unknown>) {
       .lte("available_at", now)
       .order("priority", { ascending: true })
       .order("available_at", { ascending: true })
-      .limit(budget);
+      .limit(10000);
     if (dueFollowUps.error) throw dueFollowUps.error;
     const followUpCount = dueFollowUps.data?.length ?? 0;
-    const newSlots = Math.max(0, budget - followUpCount);
+    // Follow-ups are due work and must never consume the new-lead quota.
+    const newSlots = budget;
     const newLeads = newSlots
       ? await serviceDb
           .from("outreach_queue")
@@ -329,7 +372,20 @@ async function runWorker() {
   );
   await heartbeatLoop();
   await recoverStaleJobs();
-  log.info({ workerReady: true, workerPid: process.pid, databasePath: workerConfig.MOCK_DB_PATH ?? null, cwd: process.cwd(), nodeEnv: workerConfig.NODE_ENV, mockMode: workerConfig.MOCK_MODE, outreachEnabled: workerConfig.OUTREACH_ENABLED, simulationMode: workerConfig.SIMULATION_MODE, realSendingEnabled: workerConfig.REAL_SENDING_ENABLED }, "worker_ready");
+  log.info(
+    {
+      workerReady: true,
+      workerPid: process.pid,
+      databasePath: workerConfig.MOCK_DB_PATH ?? null,
+      cwd: process.cwd(),
+      nodeEnv: workerConfig.NODE_ENV,
+      mockMode: workerConfig.MOCK_MODE,
+      outreachEnabled: workerConfig.OUTREACH_ENABLED,
+      simulationMode: workerConfig.SIMULATION_MODE,
+      realSendingEnabled: workerConfig.REAL_SENDING_ENABLED,
+    },
+    "worker_ready",
+  );
   const heartbeatTimer = setInterval(() => {
     void heartbeatLoop();
   }, workerConfig.WORKER_HEARTBEAT_MS);
@@ -355,8 +411,25 @@ async function runWorker() {
           const capacity = Math.max(0, 10 - activeJobs.size);
           if (diagnosticTicks < 10) {
             const queueSnapshot = await repository.page("queue", { page: 1, pageSize: 5000 });
-            const pending = queueSnapshot.rows.filter((row) => ["pending", "scheduled", "retry"].includes(String(row.status)));
-            log.info({ tick: diagnosticTicks + 1, capacity, pendingJobs: pending.length, pendingAvailableNow: pending.filter((row) => Date.parse(String(row.availableAt ?? "")) <= Date.now()).length, claimRequested: capacity, activeJobs: activeJobs.size, activeUniqueConversations: activeKeys.size, automationEnabled, globalPause: general.globalPause === true }, "worker_poll_diagnostic");
+            const pending = queueSnapshot.rows.filter((row) =>
+              ["pending", "scheduled", "retry"].includes(String(row.status)),
+            );
+            log.info(
+              {
+                tick: diagnosticTicks + 1,
+                capacity,
+                pendingJobs: pending.length,
+                pendingAvailableNow: pending.filter(
+                  (row) => Date.parse(String(row.availableAt ?? "")) <= Date.now(),
+                ).length,
+                claimRequested: capacity,
+                activeJobs: activeJobs.size,
+                activeUniqueConversations: activeKeys.size,
+                automationEnabled,
+                globalPause: general.globalPause === true,
+              },
+              "worker_poll_diagnostic",
+            );
             diagnosticTicks += 1;
           }
           log.debug(
@@ -376,7 +449,15 @@ async function runWorker() {
                 ? { outboundPhoneAllowlist: [workerConfig.OUTREACH_ONLINE_TEST_PHONE] }
                 : {}),
             });
-            if (diagnosticTicks <= 10) log.info({ claimReturned: jobs.length, returnedJobIds: jobs.map((job) => job.id), returnedConversationKeys: jobs.map((job) => conversationKey(job)) }, "worker_claim_diagnostic");
+            if (diagnosticTicks <= 10)
+              log.info(
+                {
+                  claimReturned: jobs.length,
+                  returnedJobIds: jobs.map((job) => job.id),
+                  returnedConversationKeys: jobs.map((job) => conversationKey(job)),
+                },
+                "worker_claim_diagnostic",
+              );
             for (const job of jobs) {
               if (workerLeaseLost) break;
               const key = conversationKey(job);
@@ -393,9 +474,14 @@ async function runWorker() {
               log.info({ jobId: job.id, conversationKey: key }, laneEvent);
               const task = (async () => {
                 const leaseOwner = serviceDb ? instanceId : String(process.pid);
-                const leaseTimer = setInterval(() => {
-                  void repository.renewJobLease(job.id, leaseOwner).catch((error) => log.warn({ err: error, jobId: job.id }, "job_lease_renew_failed"));
-                }, Math.max(1_000, Math.floor(workerConfig.JOB_LEASE_TIMEOUT_MS / 3)));
+                const leaseTimer = setInterval(
+                  () => {
+                    void repository
+                      .renewJobLease(job.id, leaseOwner)
+                      .catch((error) => log.warn({ err: error, jobId: job.id }, "job_lease_renew_failed"));
+                  },
+                  Math.max(1_000, Math.floor(workerConfig.JOB_LEASE_TIMEOUT_MS / 3)),
+                );
                 try {
                   await processSafely(job);
                 } finally {
@@ -430,7 +516,15 @@ async function runWorker() {
 async function recoverStaleJobs() {
   try {
     const result = await repository.recoverStaleJobs(workerConfig.JOB_LEASE_TIMEOUT_MS);
-    if (result.found || result.recovered) log.info({ stale_jobs_found: result.found, stale_jobs_recovered: result.recovered, leaseTimeoutMs: workerConfig.JOB_LEASE_TIMEOUT_MS }, "stale_jobs_reconciled");
+    if (result.found || result.recovered)
+      log.info(
+        {
+          stale_jobs_found: result.found,
+          stale_jobs_recovered: result.recovered,
+          leaseTimeoutMs: workerConfig.JOB_LEASE_TIMEOUT_MS,
+        },
+        "stale_jobs_reconciled",
+      );
   } catch (error) {
     log.warn({ err: error }, "stale_jobs_reconciliation_failed");
   }
@@ -615,17 +709,15 @@ async function flagInboundForReview(job: QueueJob, reason: string, rawOutput: st
       .eq("lead_id", leadId);
     if (conversation.error) throw conversation.error;
   }
-  const notification = await serviceDb
-    .from("notifications")
-    .insert({
-      owner_id: ownerId,
-      type: "groq_error",
-      level: "critical",
-      title,
-      body,
-      lead_id: leadId,
-      dedup_key: `ai-review:${job.id}`,
-    });
+  const notification = await serviceDb.from("notifications").insert({
+    owner_id: ownerId,
+    type: "groq_error",
+    level: "critical",
+    title,
+    body,
+    lead_id: leadId,
+    dedup_key: `ai-review:${job.id}`,
+  });
   if (notification.error && notification.error.code !== "23505") throw notification.error;
   await repository.audit("agent.structured_output.review_required", "job", job.id, {
     providerFailure: reason.slice(0, 1_000),
@@ -657,17 +749,15 @@ async function reportInboundFailure(job: QueueJob, reason: string, retryAt: Date
       ? { data: { id: leadId }, error: null }
       : await serviceDb.from("leads").select("id").eq("owner_id", ownerId).eq("phone", phone).maybeSingle();
     if (resolvedLead.error) throw resolvedLead.error;
-    const notification = await serviceDb
-      .from("notifications")
-      .insert({
-        owner_id: ownerId,
-        type: "queue_failed",
-        level: retryAt ? "warning" : "critical",
-        title,
-        body,
-        lead_id: resolvedLead.data?.id ?? null,
-        dedup_key: `inbound-failure:${job.id}`,
-      });
+    const notification = await serviceDb.from("notifications").insert({
+      owner_id: ownerId,
+      type: "queue_failed",
+      level: retryAt ? "warning" : "critical",
+      title,
+      body,
+      lead_id: resolvedLead.data?.id ?? null,
+      dedup_key: `inbound-failure:${job.id}`,
+    });
     if (notification.error && notification.error.code !== "23505") throw notification.error;
   }
   await repository.audit("agent.inbound_reply.failure_visible", "job", job.id, {
@@ -682,17 +772,15 @@ async function processInboundEvent(job: QueueJob) {
   const event = (job.payload.event ?? {}) as NormalizedWhatsAppEvent;
   if (!event.eventType || !event.relevant) return;
   if (serviceDb)
-    await serviceDb
-      .from("integration_events")
-      .insert({
-        owner_id: await getOwnerId(),
-        provider: "evolution",
-        external_event_id: event.eventId,
-        event_type: event.eventType,
-        status: "processed",
-        payload: event.raw,
-        processed_at: new Date().toISOString(),
-      });
+    await serviceDb.from("integration_events").insert({
+      owner_id: await getOwnerId(),
+      provider: "evolution",
+      external_event_id: event.eventId,
+      event_type: event.eventType,
+      status: "processed",
+      payload: event.raw,
+      processed_at: new Date().toISOString(),
+    });
   else
     await repository.audit("evolution.event.processed", "integration", event.eventId, {
       eventType: event.eventType,
@@ -710,17 +798,15 @@ async function processInboundEvent(job: QueueJob) {
       .eq("external_id", event.externalMessageId)
       .maybeSingle();
     if (!message.data?.id) return;
-    await serviceDb
-      .from("delivery_receipts")
-      .upsert(
-        {
-          message_id: message.data.id,
-          external_id: event.externalMessageId,
-          status: event.status,
-          payload: event.raw,
-        },
-        { onConflict: "external_id,status" },
-      );
+    await serviceDb.from("delivery_receipts").upsert(
+      {
+        message_id: message.data.id,
+        external_id: event.externalMessageId,
+        status: event.status,
+        payload: event.raw,
+      },
+      { onConflict: "external_id,status" },
+    );
     await serviceDb
       .from("messages")
       .update({
@@ -742,20 +828,18 @@ async function processInboundEvent(job: QueueJob) {
             ? "failed"
             : "disconnected";
     if (serviceDb)
-      await serviceDb
-        .from("integration_connections")
-        .upsert(
-          {
-            owner_id: await getOwnerId(),
-            provider: "evolution",
-            instance_name: event.instanceName,
-            status: integrationStatus,
-            connected_at: integrationStatus === "connected" ? event.occurredAt : null,
-            last_seen_at: event.occurredAt,
-            last_error: integrationStatus === "failed" ? "Evolution indisponível" : null,
-          },
-          { onConflict: "owner_id,provider,instance_name" },
-        );
+      await serviceDb.from("integration_connections").upsert(
+        {
+          owner_id: await getOwnerId(),
+          provider: "evolution",
+          instance_name: event.instanceName,
+          status: integrationStatus,
+          connected_at: integrationStatus === "connected" ? event.occurredAt : null,
+          last_seen_at: event.occurredAt,
+          last_error: integrationStatus === "failed" ? "Evolution indisponível" : null,
+        },
+        { onConflict: "owner_id,provider,instance_name" },
+      );
     if (!simulation && integrationStatus === "disconnected")
       await repository.enqueue(
         "maintenance",
@@ -1490,7 +1574,7 @@ async function processOutbound(job: QueueJob) {
   if (!job.payload.capacityReservedAt) {
     const capacity = await repository.outreachCapacity(
       leadId,
-      settings.dailyProactiveLimit,
+      Number(settings.newLeadsDailyLimit ?? settings.dailyProactiveLimit),
       settings.hourlyLimit,
       allowTestWindow,
     );
@@ -1549,30 +1633,29 @@ async function processOutbound(job: QueueJob) {
     const cadence = outreachSettingsSchema.parse(await repository.getSettings("outreach"));
     const currentCadence = await serviceDb
       .from("outreach_cadence_state")
-      .select("flow_step")
+      .select("flow_step,attempt_count")
       .eq("owner_id", ownerId)
       .eq("lead_id", leadId)
       .maybeSingle();
     const flowStep = Math.min(6, Math.max(1, Number(currentCadence.data?.flow_step ?? 1)));
+    const nextFlowStep = Math.min(6, flowStep + 1);
     const nextAttemptAt =
       flowStep < 6
         ? nextCadenceAttempt(new Date(sentAt), flowStep, cadence.cadenceDelaysDays).toISOString()
         : null;
-    await serviceDb
-      .from("outreach_cadence_state")
-      .upsert(
-        {
-          owner_id: ownerId,
-          lead_id: leadId,
-          status: "active",
-          flow_step: flowStep,
-          attempt_count: Number(currentCadence.data?.flow_step ?? 1),
-          last_attempt_at: sentAt,
-          next_attempt_at: nextAttemptAt,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "lead_id" },
-      );
+    await serviceDb.from("outreach_cadence_state").upsert(
+      {
+        owner_id: ownerId,
+        lead_id: leadId,
+        status: "active",
+        flow_step: nextFlowStep,
+        attempt_count: Number(currentCadence.data?.attempt_count ?? 0) + 1,
+        last_attempt_at: sentAt,
+        next_attempt_at: nextAttemptAt,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "lead_id" },
+    );
     await serviceDb
       .from("conversations")
       .upsert({ owner_id: ownerId, lead_id: leadId }, { onConflict: "lead_id" });
@@ -1619,20 +1702,18 @@ async function finalizeCadence(
   if (!serviceDb || !leadId) return;
   const ownerId = await getOwnerId();
   const now = new Date().toISOString();
-  const updated = await serviceDb
-    .from("outreach_cadence_state")
-    .upsert(
-      {
-        owner_id: ownerId,
-        lead_id: leadId,
-        status,
-        next_attempt_at: null,
-        exited_at: now,
-        exit_reason: reason.slice(0, 500),
-        updated_at: now,
-      },
-      { onConflict: "lead_id" },
-    );
+  const updated = await serviceDb.from("outreach_cadence_state").upsert(
+    {
+      owner_id: ownerId,
+      lead_id: leadId,
+      status,
+      next_attempt_at: null,
+      exited_at: now,
+      exit_reason: reason.slice(0, 500),
+      updated_at: now,
+    },
+    { onConflict: "lead_id" },
+  );
   if (updated.error) throw updated.error;
   const cancellations = await Promise.all([
     serviceDb
@@ -1682,6 +1763,36 @@ async function processFollowUp(job: QueueJob) {
     terminal.includes(context.snapshot.stage)
   )
     return;
+  // Flow 2 is unlimited due follow-up work. Flows 3-6 have independent
+  // per-stage daily caps and are checked immediately before AI/send work.
+  const currentCadence = serviceDb
+    ? await serviceDb
+        .from("outreach_cadence_state")
+        .select("flow_step,last_attempt_at")
+        .eq("owner_id", context.ownerId)
+        .eq("lead_id", context.leadId)
+        .maybeSingle()
+    : { data: null, error: null };
+  if (currentCadence.error) throw currentCadence.error;
+  const stage = Math.min(6, Math.max(1, Number(currentCadence.data?.flow_step ?? 2)));
+  const stageLimit = Number((settings.stageDailyLimits as number[] | undefined)?.[stage - 1] ?? 500);
+  if (serviceDb && stage >= 3) {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const used = await serviceDb
+      .from("outreach_cadence_state")
+      .select("lead_id", { count: "exact", head: true })
+      .eq("owner_id", context.ownerId)
+      .eq("flow_step", stage)
+      .gte("last_attempt_at", start.toISOString());
+    if (used.error) throw used.error;
+    if ((used.count ?? 0) >= stageLimit && !currentCadence.data?.last_attempt_at) {
+      throw new DeferredJobError(
+        `Limite diário do Fluxo ${stage} atingido.`,
+        nextCommercialSlot(new Date(), settings),
+      );
+    }
+  }
   const prompt =
     "Escreva uma retomada breve e natural, sem repetir a abertura, sem inventar informações e respeitando o histórico.";
   const execution = await executeAgent(context.snapshot, prompt);
@@ -1738,18 +1849,16 @@ async function processMaterial(job: QueueJob) {
     conversationResult.data?.human_active ||
     ["human_requested", "human_active", "ai_paused"].includes(takeoverState)
   ) {
-    await serviceDb
-      .from("material_send_history")
-      .insert({
-        owner_id: ownerId,
-        material_id: materialId,
-        material_name: material.name,
-        lead_id: leadId,
-        conversation_id: conversationResult.data?.id ?? null,
-        mode: "automatic",
-        status: "blocked",
-        reason: `takeover:${takeoverState}`,
-      });
+    await serviceDb.from("material_send_history").insert({
+      owner_id: ownerId,
+      material_id: materialId,
+      material_name: material.name,
+      lead_id: leadId,
+      conversation_id: conversationResult.data?.id ?? null,
+      mode: "automatic",
+      status: "blocked",
+      reason: `takeover:${takeoverState}`,
+    });
     throw new NonRetryableJobError("Envio automatico de material bloqueado por atendimento humano.");
   }
   const mimeType = String(material.mime_type ?? "").toLowerCase();
@@ -1796,17 +1905,15 @@ async function processMaterial(job: QueueJob) {
   else if (mimeType.startsWith("video/")) await sendMediaSafely("sendVideo", input);
   else if (mimeType.startsWith("audio/")) await sendMediaSafely("sendAudio", input);
   else await sendMediaSafely("sendDocument", input);
-  await serviceDb
-    .from("material_send_history")
-    .insert({
-      owner_id: ownerId,
-      material_id: materialId,
-      material_name: material.name,
-      lead_id: leadId,
-      conversation_id: conversationResult.data?.id ?? null,
-      mode: simulation ? "simulation" : "automatic",
-      status: "sent",
-    });
+  await serviceDb.from("material_send_history").insert({
+    owner_id: ownerId,
+    material_id: materialId,
+    material_name: material.name,
+    lead_id: leadId,
+    conversation_id: conversationResult.data?.id ?? null,
+    mode: simulation ? "simulation" : "automatic",
+    status: "sent",
+  });
 }
 
 async function processAppointment(job: QueueJob) {
@@ -1991,15 +2098,13 @@ async function loadContext(phone: string, latestText: string, latestMessageId?: 
     relatedIntent: material.related_intent ? String(material.related_intent) : null,
     alreadySent: sent.includes(String(material.id)),
   }));
-  const persistedHistory = [...(messages.data ?? [])]
-    .reverse()
-    .map((message: any) => ({
-      id: String(message.id ?? ""),
-      externalId: String(message.external_id ?? ""),
-      role: roleFromStoredMessage(message.direction, message.sender_type),
-      text: String(message.content ?? ""),
-      createdAt: String(message.created_at ?? ""),
-    }));
+  const persistedHistory = [...(messages.data ?? [])].reverse().map((message: any) => ({
+    id: String(message.id ?? ""),
+    externalId: String(message.external_id ?? ""),
+    role: roleFromStoredMessage(message.direction, message.sender_type),
+    text: String(message.content ?? ""),
+    createdAt: String(message.created_at ?? ""),
+  }));
   const history = appendLatestLeadMessageIfMissing(
     persistedHistory,
     latestText,
@@ -2204,22 +2309,20 @@ async function persistInboundDecision(
     .select("id")
     .single();
   if (conversation.error) throw conversation.error;
-  await serviceDb
-    .from("messages")
-    .upsert(
-      {
-        owner_id: ownerId,
-        lead_id: leadId,
-        conversation_id: conversation.data.id,
-        direction: "inbound",
-        sender_type: "lead",
-        content: text,
-        external_id: externalId,
-        status: "received",
-        raw_data: {},
-      },
-      { onConflict: "external_id" },
-    );
+  await serviceDb.from("messages").upsert(
+    {
+      owner_id: ownerId,
+      lead_id: leadId,
+      conversation_id: conversation.data.id,
+      direction: "inbound",
+      sender_type: "lead",
+      content: text,
+      external_id: externalId,
+      status: "received",
+      raw_data: {},
+    },
+    { onConflict: "external_id" },
+  );
   const qualificationAt = decision.qualificationStatus === "qualified" ? new Date().toISOString() : null;
   const stalledAt = decision.qualificationStatus === "stalled" ? new Date().toISOString() : null;
   await serviceDb
@@ -2281,40 +2384,34 @@ async function persistInboundDecision(
       .maybeSingle();
     if (prior.error) throw prior.error;
     if (!prior.data)
-      await serviceDb
-        .from("handoffs")
-        .insert({
-          owner_id: ownerId,
-          lead_id: leadId,
-          reason: decision.handoffReason ?? "Recomendação da IA",
-          status: "pending",
-        });
+      await serviceDb.from("handoffs").insert({
+        owner_id: ownerId,
+        lead_id: leadId,
+        reason: decision.handoffReason ?? "Recomendação da IA",
+        status: "pending",
+      });
     if (pausesAutomation)
-      await serviceDb
-        .from("conversation_takeovers")
-        .insert({
-          owner_id: ownerId,
-          lead_id: leadId,
-          conversation_id: conversation.data.id,
-          state: "human_requested",
-          reason: decision.handoffReason ?? "Recomendação da IA",
-        });
-  }
-  if (decision.shouldScheduleDemo && decision.appointmentData) {
-    const calendar = await repository.getSettings("outreach");
-    await serviceDb
-      .from("appointments")
-      .insert({
+      await serviceDb.from("conversation_takeovers").insert({
         owner_id: ownerId,
         lead_id: leadId,
         conversation_id: conversation.data.id,
-        starts_at: decision.appointmentData.startsAt,
-        ends_at: decision.appointmentData.endsAt,
-        status: "pending",
-        origin: "ai",
-        assignee: String(calendar.salesCloserName ?? calendar.demoCloser ?? workerConfig.SALES_CLOSER_NAME),
-        notes: decision.appointmentData.notes,
+        state: "human_requested",
+        reason: decision.handoffReason ?? "Recomendação da IA",
       });
+  }
+  if (decision.shouldScheduleDemo && decision.appointmentData) {
+    const calendar = await repository.getSettings("outreach");
+    await serviceDb.from("appointments").insert({
+      owner_id: ownerId,
+      lead_id: leadId,
+      conversation_id: conversation.data.id,
+      starts_at: decision.appointmentData.startsAt,
+      ends_at: decision.appointmentData.endsAt,
+      status: "pending",
+      origin: "ai",
+      assignee: String(calendar.salesCloserName ?? calendar.demoCloser ?? workerConfig.SALES_CLOSER_NAME),
+      notes: decision.appointmentData.notes,
+    });
     await serviceDb
       .from("leads")
       .update({ stage: "demo_requested" })
@@ -3242,31 +3339,29 @@ async function persistAgentExecution(
       .update({ ai_provider: metrics?.provider ?? "groq", ai_model: metrics?.model ?? runtime.model })
       .eq("owner_id", context.ownerId)
       .eq("id", context.leadId);
-  const saved = await serviceDb
-    .from("agent_executions")
-    .insert({
-      owner_id: context.ownerId,
-      lead_id: context.leadId,
-      conversation_id: conversation.data?.id ?? null,
-      provider: metrics?.provider ?? "groq",
-      model: metrics?.model ?? runtime.model,
-      status,
-      detected_intent: execution.decision.detectedIntent,
-      lead_stage: execution.decision.leadStage,
-      confidence: execution.decision.confidence,
-      operational_summary: execution.decision.internalReasoningSummary,
-      context_tokens_estimate: execution.context.estimatedTokens,
-      context_was_summarized: execution.context.summarized,
-      input_tokens: metrics?.inputTokens ?? execution.context.estimatedTokens,
-      output_tokens: metrics?.outputTokens ?? 0,
-      total_tokens: metrics?.totalTokens ?? execution.context.estimatedTokens,
-      latency_ms: metrics?.latencyMs ?? null,
-      success: metrics?.success ?? true,
-      rate_limited: metrics?.rateLimited ?? false,
-      fallback_reason: metrics?.fallbackReason ?? null,
-      fallback_count: metrics?.fallbackCount ?? 0,
-      rate_limits: execution.rateLimits ?? {},
-    });
+  const saved = await serviceDb.from("agent_executions").insert({
+    owner_id: context.ownerId,
+    lead_id: context.leadId,
+    conversation_id: conversation.data?.id ?? null,
+    provider: metrics?.provider ?? "groq",
+    model: metrics?.model ?? runtime.model,
+    status,
+    detected_intent: execution.decision.detectedIntent,
+    lead_stage: execution.decision.leadStage,
+    confidence: execution.decision.confidence,
+    operational_summary: execution.decision.internalReasoningSummary,
+    context_tokens_estimate: execution.context.estimatedTokens,
+    context_was_summarized: execution.context.summarized,
+    input_tokens: metrics?.inputTokens ?? execution.context.estimatedTokens,
+    output_tokens: metrics?.outputTokens ?? 0,
+    total_tokens: metrics?.totalTokens ?? execution.context.estimatedTokens,
+    latency_ms: metrics?.latencyMs ?? null,
+    success: metrics?.success ?? true,
+    rate_limited: metrics?.rateLimited ?? false,
+    fallback_reason: metrics?.fallbackReason ?? null,
+    fallback_count: metrics?.fallbackCount ?? 0,
+    rate_limits: execution.rateLimits ?? {},
+  });
   if (saved.error) throw saved.error;
   await auditTokenUsage(context, execution, jobId, conversation.data?.id ?? null);
 }
@@ -3340,21 +3435,19 @@ async function recordGroqFailure(message: string, pause: boolean, rateLimits: un
     { message: message.slice(0, 500), rateLimits },
   );
   if (serviceDb)
-    await serviceDb
-      .from("agent_executions")
-      .insert({
-        owner_id: await getOwnerId(),
-        provider: "groq",
-        model: String(current.model ?? workerConfig.GROQ_MODEL),
-        status: pause ? "model_unavailable" : "rate_limited",
-        operational_summary: pause
-          ? "Modelo selecionado indisponível; IA pausada."
-          : "Execução devolvida à fila conforme Retry-After.",
-        rate_limits: rateLimits ?? {},
-        error_message: message.slice(0, 2000),
-        success: false,
-        rate_limited: !pause,
-      });
+    await serviceDb.from("agent_executions").insert({
+      owner_id: await getOwnerId(),
+      provider: "groq",
+      model: String(current.model ?? workerConfig.GROQ_MODEL),
+      status: pause ? "model_unavailable" : "rate_limited",
+      operational_summary: pause
+        ? "Modelo selecionado indisponível; IA pausada."
+        : "Execução devolvida à fila conforme Retry-After.",
+      rate_limits: rateLimits ?? {},
+      error_message: message.slice(0, 2000),
+      success: false,
+      rate_limited: !pause,
+    });
 }
 
 async function recordProviderCooldown(section: "gemini", retryAfterSeconds: number, message: string) {
@@ -3921,16 +4014,14 @@ async function sendTextOnce(
     .eq("usage_date", usageDate)
     .maybeSingle();
   if (!usage.error && !idempotencyKey.startsWith("outbound:"))
-    await serviceDb
-      .from("daily_usage")
-      .upsert(
-        {
-          owner_id: ownerId,
-          usage_date: usageDate,
-          [usageField]: Number((usage.data as any)?.[usageField] ?? 0) + 1,
-        },
-        { onConflict: "owner_id,usage_date" },
-      );
+    await serviceDb.from("daily_usage").upsert(
+      {
+        owner_id: ownerId,
+        usage_date: usageDate,
+        [usageField]: Number((usage.data as any)?.[usageField] ?? 0) + 1,
+      },
+      { onConflict: "owner_id,usage_date" },
+    );
   await repository.audit("message.sent", "lead", leadId, { phoneSuffix: phone.slice(-4), simulation });
 }
 
@@ -4147,7 +4238,16 @@ async function acquireInstanceLock() {
 async function heartbeat() {
   if (!serviceDb) {
     fs.mkdirSync(path.dirname(localHeartbeatPath), { recursive: true });
-    fs.writeFileSync(localHeartbeatPath, JSON.stringify({ instanceId, pid: process.pid, status: "online", lastHeartbeatAt: new Date().toISOString() }), "utf8");
+    fs.writeFileSync(
+      localHeartbeatPath,
+      JSON.stringify({
+        instanceId,
+        pid: process.pid,
+        status: "online",
+        lastHeartbeatAt: new Date().toISOString(),
+      }),
+      "utf8",
+    );
     log.debug({ instanceId }, "worker_heartbeat_mock");
     return;
   }
@@ -4172,7 +4272,11 @@ async function releaseInstanceLock() {
         /* lock já removido */
       }
     }
-    try { fs.unlinkSync(localHeartbeatPath); } catch { /* heartbeat já removido */ }
+    try {
+      fs.unlinkSync(localHeartbeatPath);
+    } catch {
+      /* heartbeat já removido */
+    }
     return;
   }
   const { error } = await serviceDb.rpc("release_worker_lock", { p_instance_id: instanceId });
