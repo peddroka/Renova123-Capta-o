@@ -288,7 +288,7 @@ describe("API", () => {
       url: "/settings/outreach",
       headers: auth,
       payload: {
-        ...current.json(),
+        ...(current.json() as Record<string, unknown>),
         newLeadsDailyLimit: 37,
         dailyProactiveLimit: 37,
         stageDailyLimits: [500, 500, 12, 13, 14, 15],

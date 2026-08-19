@@ -1605,6 +1605,42 @@ export async function buildApp(
       outreach.enabled !== true ||
       !config.OUTREACH_ENABLED;
     const sendMode = simulationMode ? "MOCK / BLOQUEADO" : paused ? "REAL / PAUSADO" : "REAL / ATIVO";
+    let pendingUniqueLeads: number | undefined;
+    if (serviceDb) {
+      const owner = await serverOwnerId(serviceDb);
+      const statuses = ["pending", "scheduled", "retry", "processing"];
+      const queueResults = await Promise.all([
+        serviceDb
+          .from("outreach_queue")
+          .select("lead_id")
+          .eq("owner_id", owner)
+          .in("status", statuses)
+          .limit(10000),
+        serviceDb
+          .from("follow_up_queue")
+          .select("lead_id")
+          .eq("owner_id", owner)
+          .in("status", statuses)
+          .limit(10000),
+        serviceDb
+          .from("ai_response_queue")
+          .select("lead_id")
+          .eq("owner_id", owner)
+          .in("status", statuses)
+          .limit(10000),
+        serviceDb.from("jobs").select("payload").eq("owner_id", owner).in("status", statuses).limit(10000),
+      ]);
+      const unique = new Set<string>();
+      for (const result of queueResults) {
+        if (result.error) continue;
+        for (const row of result.data ?? []) {
+          const item = row as { lead_id?: unknown; payload?: { leadId?: unknown } };
+          const leadId = String(item.lead_id ?? item.payload?.leadId ?? "");
+          if (leadId) unique.add(leadId);
+        }
+      }
+      pendingUniqueLeads = unique.size;
+    }
     return {
       ...stats,
       dailyLimit: Number(
@@ -1618,6 +1654,8 @@ export async function buildApp(
         : paused
           ? "Pausa global, automação ou outreach desativado."
           : "Configuração real ativa.",
+      pendingTasks: Number(stats.queuePending ?? 0),
+      pendingUniqueLeads,
     };
   });
   app.get("/flow", { preHandler: requireAuth(authClient) }, async (request) => {

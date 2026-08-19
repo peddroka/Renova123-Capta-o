@@ -294,7 +294,7 @@ export function DashboardPage() {
           id: "queue",
           label: "Fila pendente",
           value: stats.queuePending,
-          note: "tarefas aguardando",
+          note: `${stats.pendingUniqueLeads ?? "—"} leads únicos · tarefas aguardando`,
           icon: ListChecks,
           tone: stats.queuePending ? "warning" : "positive",
         },
