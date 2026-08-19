@@ -96,7 +96,7 @@ export function WhatsAppPage() {
     if (!phone) return;
     setLoading("test"); setError("");
     try {
-      await api("/whatsapp/test", { method: "POST", body: JSON.stringify({ phone, text: "Teste manual da integração Renova123 Captação", confirmation: pairing?.simulation ? undefined : "ENVIAR TESTE MANUAL", idempotencyKey: crypto.randomUUID() }) });
+      await api("/whatsapp/test", { method: "POST", body: JSON.stringify({ phone, text: "Teste controlado Francisco - Renova123. Pode responder OK.", confirmation: pairing?.simulation ? undefined : "ENVIAR TESTE MANUAL", idempotencyKey: crypto.randomUUID() }) });
       setNotice(pairing?.simulation ? "Teste simulado com sucesso; nenhuma mensagem real foi enviada." : "Teste manual enviado.");
     } catch (reason) { setError(message(reason, "Falha no teste manual.")); }
     finally { setLoading(""); }
