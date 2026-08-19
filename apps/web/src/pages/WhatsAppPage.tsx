@@ -92,7 +92,7 @@ export function WhatsAppPage() {
   }
 
   async function testMessage() {
-    const phone = "5582988543864";
+    const phone = window.prompt("Número brasileiro no formato 55 + DDD + número:", "5511999999999");
     if (!phone) return;
     setLoading("test"); setError("");
     try {
