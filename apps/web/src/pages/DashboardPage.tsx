@@ -246,9 +246,14 @@ export function DashboardPage() {
   const { data, error, loading, reload } = useAppQuery("dashboard-real", loadDashboard);
   const stats = data?.stats;
   const [newLeadLimit, setNewLeadLimit] = useState(50);
+  const [savedLimit, setSavedLimit] = useState(50);
   const [savingLimit, setSavingLimit] = useState(false);
+  const [limitFeedback, setLimitFeedback] = useState("");
   useEffect(() => {
-    if (stats?.newLeadsDailyLimit) setNewLeadLimit(stats.newLeadsDailyLimit);
+    if (stats?.newLeadsDailyLimit) {
+      setNewLeadLimit(stats.newLeadsDailyLimit);
+      setSavedLimit(stats.newLeadsDailyLimit);
+    }
   }, [stats?.newLeadsDailyLimit]);
   async function saveNewLeadLimit() {
     if (!data) return;
@@ -262,6 +267,9 @@ export function DashboardPage() {
           dailyProactiveLimit: Math.max(1, Math.min(500, newLeadLimit)),
         }),
       });
+      setSavedLimit(newLeadLimit);
+      setLimitFeedback("Limite salvo");
+      window.setTimeout(() => setLimitFeedback(""), 2200);
       await reload();
     } finally {
       setSavingLimit(false);
@@ -382,37 +390,70 @@ export function DashboardPage() {
           title="Novos contatos por dia"
           description="Limite exclusivo para primeiras abordagens. Follow-ups vencidos não consomem esta cota."
         >
-          <div className="limit-control">
-            <div className="limit-control__value">
-              <strong>{newLeadLimit}</strong>
-              <span>leads/dia · máximo 500</span>
+          <div className="limit-control" data-dirty={newLeadLimit !== savedLimit}>
+            <div className="limit-control__headline">
+              <div className="limit-control__value">
+                <strong>{newLeadLimit}</strong>
+                <span>leads / dia</span>
+              </div>
+              <span className="limit-control__max">Máximo 500</span>
             </div>
-            <input
-              aria-label="Limite de novos contatos por dia"
-              type="range"
-              min="1"
-              max="500"
-              value={newLeadLimit}
-              onChange={(event) => setNewLeadLimit(Number(event.target.value))}
-            />
-            <div className="limit-control__actions">
+            <div className="limit-control__range">
               <input
-                aria-label="Valor numérico de novos contatos por dia"
-                type="number"
+                aria-label="Limite de novos contatos por dia"
+                type="range"
                 min="1"
                 max="500"
                 value={newLeadLimit}
-                onChange={(event) =>
-                  setNewLeadLimit(Math.max(1, Math.min(500, Number(event.target.value) || 1)))
-                }
+                style={{
+                  background: `linear-gradient(90deg, var(--primary) 0%, var(--primary) ${((newLeadLimit - 1) / 499) * 100}%, var(--limit-track) ${((newLeadLimit - 1) / 499) * 100}%, var(--limit-track) 100%)`,
+                }}
+                onChange={(event) => setNewLeadLimit(Number(event.target.value))}
               />
+              <div className="limit-control__range-labels">
+                <span>Mín. 1</span>
+                <span>Máx. 500</span>
+              </div>
+            </div>
+            <div className="limit-control__actions">
+              <div className="limit-control__stepper">
+                <button
+                  type="button"
+                  aria-label="Diminuir limite"
+                  onClick={() => setNewLeadLimit(Math.max(1, newLeadLimit - 1))}
+                >
+                  −
+                </button>
+                <input
+                  aria-label="Valor numérico de novos contatos por dia"
+                  type="number"
+                  min="1"
+                  max="500"
+                  value={newLeadLimit}
+                  onChange={(event) =>
+                    setNewLeadLimit(Math.max(1, Math.min(500, Number(event.target.value) || 1)))
+                  }
+                />
+                <button
+                  type="button"
+                  aria-label="Aumentar limite"
+                  onClick={() => setNewLeadLimit(Math.min(500, newLeadLimit + 1))}
+                >
+                  +
+                </button>
+              </div>
               <button
-                className="secondary-button"
-                disabled={savingLimit}
+                className="primary-button limit-control__save"
+                disabled={savingLimit || newLeadLimit === savedLimit}
                 onClick={() => void saveNewLeadLimit()}
               >
                 {savingLimit ? "Salvando…" : "Salvar limite"}
               </button>
+              {limitFeedback ? (
+                <span className="limit-control__feedback" role="status">
+                  {limitFeedback}
+                </span>
+              ) : null}
             </div>
           </div>
         </DataCard>
