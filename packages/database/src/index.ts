@@ -1340,10 +1340,20 @@ class SupabaseRepository implements Repository {
     };
   }
   async recordMessage(values: Record<string, unknown>) {
-    const payload = { ...toSnakeRecord(values), owner_id: await this.ownerId() };
+    const owner = await this.ownerId();
+    const payload: Record<string, unknown> = { ...toSnakeRecord(values), owner_id: owner };
     const result = await this.db.from("messages").insert(payload).select("*").single();
-    if (result.error) throw result.error;
-    return toCamelRecord(result.data as Record<string, unknown>);
+    if (!result.error) return toCamelRecord(result.data as Record<string, unknown>);
+    if (result.error.code !== "23505" || !payload.idempotency_key) throw result.error;
+    const updated = await this.db
+      .from("messages")
+      .update(payload)
+      .eq("owner_id", owner)
+      .eq("idempotency_key", payload.idempotency_key)
+      .select("*")
+      .single();
+    if (updated.error) throw updated.error;
+    return toCamelRecord(updated.data as Record<string, unknown>);
   }
   async ensureManualTestContext(phone: string): Promise<ManualTestContext> {
     const owner = await this.ownerId();
