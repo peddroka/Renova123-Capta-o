@@ -2803,7 +2803,7 @@ export async function buildApp(
     await repository.recordMessage({
       direction: "outbound",
       senderType: "human",
-      origin: "manual_test",
+      origin: "manual",
       messageType: "text",
       content: body.text,
       idempotencyKey: messageKey,
@@ -2817,7 +2817,7 @@ export async function buildApp(
       await repository.recordMessage({
         direction: "outbound",
         senderType: "human",
-        origin: "manual_test",
+        origin: "manual",
         messageType: "text",
         content: body.text,
         idempotencyKey: messageKey,
@@ -2829,7 +2829,7 @@ export async function buildApp(
     await repository.recordMessage({
       direction: "outbound",
       senderType: "human",
-      origin: "manual_test",
+      origin: "manual",
       messageType: "text",
       content: body.text,
       idempotencyKey: messageKey,

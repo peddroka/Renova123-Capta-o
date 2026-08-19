@@ -53,6 +53,28 @@ describe("API", () => {
     expect(performance.now() - started).toBeLessThan(250);
   });
 
+  it("usa uma origem válida no teste manual do WhatsApp", async () => {
+    const repository = createRepository({ mock: true, supabaseUrl: undefined, serviceRoleKey: undefined, mockFilePath: null });
+    const recorded: Array<Record<string, unknown>> = [];
+    const recordMessage = repository.recordMessage.bind(repository);
+    repository.recordMessage = async (values) => {
+      recorded.push(values);
+      return recordMessage(values);
+    };
+    const provider = new MockWhatsAppProvider({ instanceName: "renova123-francisco", webhookSecret: "test-secret-with-more-than-16" });
+    const app = await buildApp({ repository, whatsappProvider: provider }); apps.push(app);
+    const response = await app.inject({
+      method: "POST",
+      url: "/whatsapp/test",
+      headers: auth,
+      payload: { phone: "5582988543864", text: "Teste controlado", idempotencyKey: "11111111-1111-4111-8111-111111111111" },
+    });
+    expect(response.statusCode).toBe(200);
+    expect(response.json().status).toBe("simulated");
+    expect(recorded.length).toBe(2);
+    expect(recorded.every((message) => message.origin === "manual")).toBe(true);
+  });
+
   it("protege o dashboard", async () => {
     const app = await buildApp(); apps.push(app);
     expect((await app.inject({ method: "GET", url: "/dashboard" })).statusCode).toBe(401);
