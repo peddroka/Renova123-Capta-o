@@ -2799,12 +2799,15 @@ export async function buildApp(
       phoneSuffix: body.phone.slice(-4),
     });
     if (!reserved) return { duplicate: true, status: "already_reserved" };
+    const manualContext = await repository.ensureManualTestContext(normalized.normalized ?? body.phone);
     const messageKey = `manual:${body.idempotencyKey}`;
     await repository.recordMessage({
       direction: "outbound",
       senderType: "human",
       origin: "manual",
       messageType: "text",
+      leadId: manualContext.leadId,
+      conversationId: manualContext.conversationId,
       content: body.text,
       idempotencyKey: messageKey,
       status: "queued",
@@ -2819,6 +2822,8 @@ export async function buildApp(
         senderType: "human",
         origin: "manual",
         messageType: "text",
+        leadId: manualContext.leadId,
+        conversationId: manualContext.conversationId,
         content: body.text,
         idempotencyKey: messageKey,
         status: "review_required",
@@ -2831,6 +2836,8 @@ export async function buildApp(
       senderType: "human",
       origin: "manual",
       messageType: "text",
+      leadId: manualContext.leadId,
+      conversationId: manualContext.conversationId,
       content: body.text,
       idempotencyKey: messageKey,
       externalId: result.externalMessageId,

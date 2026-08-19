@@ -73,6 +73,38 @@ describe("API", () => {
     expect(response.json().status).toBe("simulated");
     expect(recorded.length).toBe(2);
     expect(recorded.every((message) => message.origin === "manual")).toBe(true);
+    expect(recorded.every((message) => typeof message.leadId === "string" && message.leadId.length > 0)).toBe(true);
+    expect(recorded.every((message) => typeof message.conversationId === "string" && message.conversationId.length > 0)).toBe(true);
+  });
+
+  it("cria contexto completo para número sem lead e reutiliza no mesmo teste", async () => {
+    const repository = createRepository({ mock: true, supabaseUrl: undefined, serviceRoleKey: undefined, mockFilePath: null });
+    const app = await buildApp({ repository, whatsappProvider: new MockWhatsAppProvider({ instanceName: "renova123-francisco", webhookSecret: "test-secret-with-more-than-16" }) }); apps.push(app);
+    const payload = (idempotencyKey: string) => ({ phone: "5511999999999", text: "Teste controlado", idempotencyKey });
+    for (const idempotencyKey of ["22222222-2222-4222-8222-222222222222", "33333333-3333-4333-8333-333333333333"]) {
+      const response = await app.inject({ method: "POST", url: "/whatsapp/test", headers: auth, payload: payload(idempotencyKey) });
+      expect(response.statusCode).toBe(200);
+    }
+    const leads = await repository.leads({ page: 1, pageSize: 100, search: "5511999999999" });
+    const conversations = await repository.page("conversations", { page: 1, pageSize: 100 });
+    expect(leads.rows).toHaveLength(1);
+    expect(conversations.rows.filter((row) => row.leadId === leads.rows[0]?.id)).toHaveLength(1);
+    const messages = await repository.messages({ page: 1, pageSize: 100 });
+    expect(messages.rows).toHaveLength(2);
+    expect(messages.rows.every((row) => row.leadId === leads.rows[0]?.id && row.origin === "manual")).toBe(true);
+  });
+
+  it("reutiliza lead existente no teste manual sem criar outro registro", async () => {
+    const repository = createRepository({ mock: true, supabaseUrl: undefined, serviceRoleKey: undefined, mockFilePath: null });
+    const existing = await repository.createResource("leads", { phone: "5511988888888", name: "Lead existente", company: null, stage: "new", source: "import" });
+    const app = await buildApp({ repository, whatsappProvider: new MockWhatsAppProvider({ instanceName: "renova123-francisco", webhookSecret: "test-secret-with-more-than-16" }) }); apps.push(app);
+    const response = await app.inject({ method: "POST", url: "/whatsapp/test", headers: auth, payload: { phone: "5511988888888", text: "Teste controlado", idempotencyKey: "44444444-4444-4444-8444-444444444444" } });
+    expect(response.statusCode).toBe(200);
+    const leads = await repository.leads({ page: 1, pageSize: 100, search: "5511988888888" });
+    expect(leads.rows).toHaveLength(1);
+    expect(leads.rows[0]?.id).toBe(existing.id);
+    const messages = await repository.messages({ page: 1, pageSize: 100 });
+    expect(messages.rows[0]).toMatchObject({ leadId: existing.id, origin: "manual" });
   });
 
   it("protege o dashboard", async () => {

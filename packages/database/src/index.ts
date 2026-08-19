@@ -48,6 +48,12 @@ export type PhoneInspectionStatus =
   "duplicate_existing" | "blocked" | "already_approached" | "in_conversation";
 export type OutreachCapacity = { allowed: boolean; reason: string | null; retryAt: string };
 export type PresenceState = "online" | "offline" | "unavailable_to_detect";
+export type ManualTestContext = {
+  leadId: string;
+  conversationId: string;
+  createdLead: boolean;
+  createdConversation: boolean;
+};
 
 export interface Repository {
   dashboard(): Promise<DashboardStats>;
@@ -79,6 +85,7 @@ export interface Repository {
   recordWebhook(eventId: string, eventType: string, payload: unknown): Promise<boolean>;
   messages(input: { page: number; pageSize: number }): Promise<PageResult>;
   recordMessage(values: Record<string, unknown>): Promise<Record<string, unknown>>;
+  ensureManualTestContext(phone: string): Promise<ManualTestContext>;
   resetLeadSession(
     phone: string,
   ): Promise<{ leads: number; conversations: number; messages: number; jobs: number }>;
@@ -665,6 +672,43 @@ class MemoryRepository implements Repository {
       };
       this.messageRows.unshift(row);
       return structuredClone(row);
+    });
+  }
+  async ensureManualTestContext(phone: string): Promise<ManualTestContext> {
+    return this.mutate(() => {
+      let lead = this.mockLeads.find((row) => row.phone === phone);
+      const createdLead = !lead;
+      if (!lead) {
+        lead = {
+          id: crypto.randomUUID(),
+          phone,
+          name: "Teste manual WhatsApp",
+          company: null,
+          stage: "engaged",
+          source: "manual_test",
+          lastContactAt: null,
+          createdAt: new Date().toISOString(),
+        };
+        this.mockLeads.unshift(lead);
+      }
+      const resolvedLead = lead;
+      if (!resolvedLead) throw new Error("Não foi possível resolver o lead do teste manual.");
+      const conversations = (this.resources.conversations ??= []);
+      let conversation = conversations.find((row) => String(row.leadId) === String(resolvedLead.id));
+      const createdConversation = !conversation;
+      if (!conversation) {
+        conversation = {
+          id: crypto.randomUUID(),
+          leadId: resolvedLead.id,
+          status: "active",
+          stage: resolvedLead.stage,
+          humanActive: false,
+          summary: "Teste manual da integração WhatsApp",
+          createdAt: new Date().toISOString(),
+        };
+        conversations.unshift(conversation);
+      }
+      return { leadId: String(resolvedLead.id), conversationId: String(conversation.id), createdLead, createdConversation };
     });
   }
   async resetLeadSession(phone: string) {
@@ -1300,6 +1344,52 @@ class SupabaseRepository implements Repository {
     const result = await this.db.from("messages").insert(payload).select("*").single();
     if (result.error) throw result.error;
     return toCamelRecord(result.data as Record<string, unknown>);
+  }
+  async ensureManualTestContext(phone: string): Promise<ManualTestContext> {
+    const owner = await this.ownerId();
+    let leadResult = await this.db
+      .from("leads")
+      .select("id")
+      .eq("owner_id", owner)
+      .eq("phone", phone)
+      .maybeSingle();
+    if (leadResult.error) throw leadResult.error;
+    let createdLead = false;
+    if (!leadResult.data) {
+      const inserted = await this.db
+        .from("leads")
+        .insert({ owner_id: owner, phone, name: "Teste manual WhatsApp", stage: "engaged", source: "manual_test" })
+        .select("id")
+        .maybeSingle();
+      if (inserted.error && inserted.error.code !== "23505") throw inserted.error;
+      leadResult = inserted.data ? inserted : await this.db.from("leads").select("id").eq("owner_id", owner).eq("phone", phone).maybeSingle();
+      if (leadResult.error) throw leadResult.error;
+      createdLead = Boolean(inserted.data);
+    }
+    const leadId = String(leadResult.data?.id ?? "");
+    if (!leadId) throw new Error("Não foi possível resolver o lead do teste manual.");
+    let conversationResult = await this.db
+      .from("conversations")
+      .select("id,lead_id")
+      .eq("owner_id", owner)
+      .eq("lead_id", leadId)
+      .maybeSingle();
+    if (conversationResult.error) throw conversationResult.error;
+    let createdConversation = false;
+    if (!conversationResult.data) {
+      const inserted = await this.db
+        .from("conversations")
+        .insert({ owner_id: owner, lead_id: leadId, status: "active", stage: "engaged", summary: "Teste manual da integração WhatsApp" })
+        .select("id,lead_id")
+        .maybeSingle();
+      if (inserted.error && inserted.error.code !== "23505") throw inserted.error;
+      conversationResult = inserted.data ? inserted : await this.db.from("conversations").select("id,lead_id").eq("owner_id", owner).eq("lead_id", leadId).maybeSingle();
+      if (conversationResult.error) throw conversationResult.error;
+      createdConversation = Boolean(inserted.data);
+    }
+    const conversationId = String(conversationResult.data?.id ?? "");
+    if (!conversationId) throw new Error("Não foi possível resolver a conversa do teste manual.");
+    return { leadId, conversationId, createdLead, createdConversation };
   }
   async resetLeadSession(phone: string) {
     const owner = await this.ownerId();
