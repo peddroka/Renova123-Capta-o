@@ -1573,7 +1573,7 @@ class SupabaseRepository implements Repository {
   ) {
     const jobs: QueueJob[] = [];
     const workerId = `${process.env.COMPUTERNAME ?? "local"}:${process.pid}`;
-    for (const queue of ["ai_response_queue"] as const) {
+    for (const queue of (options.includeOutbound === false ? [] : ["ai_response_queue"] as const)) {
       if (jobs.length >= limit) break;
       const { data, error } = await this.db.rpc("claim_queue_items", {
         p_queue: queue,

@@ -407,7 +407,10 @@ async function runWorker() {
           workerConfig.OUTREACH_ONLINE_TEST_PHONE,
         );
         const automationEnabled = general.automationEnabled !== false;
-        if (automationEnabled && (!general.globalPause || testMode)) {
+        // Inbound qualification must continue while the global pause is on so
+        // that safe inbound state is persisted. claimJobs excludes outbound
+        // queues in this mode; commercial automation remains paused.
+        if (general.globalPause === true || (automationEnabled && (!general.globalPause || testMode))) {
           const capacity = Math.max(0, 10 - activeJobs.size);
           if (diagnosticTicks < 10) {
             const queueSnapshot = await repository.page("queue", { page: 1, pageSize: 5000 });
