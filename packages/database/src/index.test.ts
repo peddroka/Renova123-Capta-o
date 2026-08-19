@@ -94,6 +94,12 @@ describe("repositório mock persistente", () => {
     expect(pacing.intervalSeconds).toBe(45);
   });
 
+  it("separa a reserva de quota do pacing", async () => {
+    const repository = createRepository({ mock: true, supabaseUrl: undefined, serviceRoleKey: undefined, mockFilePath: null });
+    expect((await repository.reserveOutreachQuota(0, 0)).allowed).toBe(false);
+    expect((await repository.reserveOutreachQuota(0, 0, true)).allowed).toBe(true);
+  });
+
   it("persiste evento inbound duplicado sem duplicar mensagem nem conversa", async () => {
     const repository = createRepository({ mock: true, supabaseUrl: undefined, serviceRoleKey: undefined, mockFilePath: null });
     const event = { phone: "5511912345678", externalMessageId: "wamid-final-1", eventId: "evt-final-1", text: "Oi", occurredAt: new Date().toISOString(), messageType: "text" };

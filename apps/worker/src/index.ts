@@ -1613,8 +1613,7 @@ async function processOutbound(job: QueueJob) {
     }
   }
   if (!job.payload.capacityReservedAt) {
-    const capacity = await repository.outreachCapacity(
-      leadId,
+    const capacity = await repository.reserveOutreachQuota(
       Number(settings.newLeadsDailyLimit ?? settings.dailyProactiveLimit),
       settings.hourlyLimit,
       allowTestWindow,

@@ -144,6 +144,7 @@ export interface Repository {
   ): Promise<void>;
   markOutreachCapacityReserved(id: string, reservedAt: string): Promise<void>;
   reserveOutreachPacing(minIntervalSeconds: number, maxIntervalSeconds: number): Promise<{ allowed: boolean; retryAt: string; intervalSeconds?: number }>;
+  reserveOutreachQuota(dailyLimit: number, hourlyLimit: number, allowControlledTestBypass?: boolean): Promise<{ allowed: boolean; reason: string | null; retryAt: string }>;
   cancelJob(id: string, reason: string): Promise<void>;
   outreachCapacity(
     leadId: string,
@@ -1060,6 +1061,11 @@ class MemoryRepository implements Repository {
   async reserveOutreachPacing(minIntervalSeconds: number, _maxIntervalSeconds: number) {
     return { allowed: true, retryAt: new Date(Date.now() + minIntervalSeconds * 1000).toISOString(), intervalSeconds: minIntervalSeconds };
   }
+  async reserveOutreachQuota(dailyLimit: number, hourlyLimit: number, allowControlledTestBypass = false) {
+    return allowControlledTestBypass
+      ? { allowed: true, reason: null, retryAt: new Date().toISOString() }
+      : this.outreachCapacity("", dailyLimit, hourlyLimit, false);
+  }
   async cancelJob(id: string, reason: string) {
     this.mutate(() => {
       const job = this.jobs.find((item) => item.id === id);
@@ -1744,6 +1750,16 @@ class SupabaseRepository implements Repository {
     });
     if (error) throw error;
     return data as { allowed: boolean; retryAt: string; intervalSeconds?: number };
+  }
+  async reserveOutreachQuota(dailyLimit: number, hourlyLimit: number, allowControlledTestBypass = false) {
+    if (allowControlledTestBypass) return { allowed: true, reason: null, retryAt: new Date().toISOString() };
+    const { data, error } = await this.db.rpc("reserve_outreach_quota", {
+      p_owner: await this.ownerId(),
+      p_daily_limit: dailyLimit,
+      p_hourly_limit: hourlyLimit,
+    });
+    if (error) throw error;
+    return data as { allowed: boolean; reason: string | null; retryAt: string };
   }
   async cancelJob(id: string, reason: string) {
     const queue = this.claimedQueues.get(id) ?? "jobs";
