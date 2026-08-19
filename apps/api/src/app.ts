@@ -371,7 +371,7 @@ export async function buildApp(
     wolfAudioServer.close();
   });
 
-  app.get("/health", async () => {
+  app.get("/health", { config: { rateLimit: false } }, async () => {
     let worker: { status: string; lastHeartbeatAt?: string } = {
       status: config.MOCK_MODE ? "mock" : "unknown",
     };
@@ -475,7 +475,7 @@ export async function buildApp(
     };
   });
 
-  app.get("/health/live", async () => ({ ok: true, service: "api", uptime: process.uptime() }));
+  app.get("/health/live", { config: { rateLimit: false } }, async () => ({ ok: true, service: "api", uptime: process.uptime() }));
 
   app.post(
     "/auth/login",

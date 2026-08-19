@@ -73,6 +73,17 @@ describe("API", () => {
     ]);
     expect(responses.every((response) => response.statusCode === 204 || response.statusCode === 200)).toBe(true);
   });
+  it("mantém CORS em 429 de uma rota protegida", async () => {
+    const app = await buildApp(); apps.push(app);
+    const responses = await Promise.all(Array.from({ length: 205 }, () => app.inject({
+      method: "POST", url: "/auth/login",
+      headers: { origin: "http://127.0.0.1:5173" },
+      payload: { email: "invalid@example.com", password: "invalid-password" },
+    })));
+    const limited = responses.find((response) => response.statusCode === 429);
+    expect(limited?.statusCode).toBe(429);
+    expect(limited?.headers["access-control-allow-origin"]).toBe("http://127.0.0.1:5173");
+  });
 
   it("entra em modo mock e lista dados", async () => {
     const app = await buildApp(); apps.push(app);

@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CheckCircle2, Link2, LogOut, MessageSquareText, PlugZap, RefreshCw, RotateCw, Smartphone, Trash2, Webhook, WifiOff } from "lucide-react";
 import { api } from "../api";
 import { Feedback } from "../components/Feedback";
 import { PageHeader } from "../components/PageHeader";
+import { createWhatsAppPoller } from "../whatsapp-polling";
 
 type ConnectionState = "not_created" | "close" | "connecting" | "open" | "unavailable";
 type PairingStatus = {
@@ -30,31 +31,51 @@ export function WhatsAppPage() {
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState("");
   const [diagnostics, setDiagnostics] = useState<Diagnostics | null>(null);
+  const pollerRef = useRef<ReturnType<typeof createWhatsAppPoller> | null>(null);
 
   const refresh = useCallback(async () => {
     try {
-      setPairing(await api<PairingStatus>("/whatsapp/pairing"));
+      const next = await api<PairingStatus>("/whatsapp/pairing");
+      setPairing(next);
       setError("");
+      return next;
     } catch (reason) {
       setError(message(reason, "Falha ao consultar a Evolution API."));
+      throw reason;
     }
   }, []);
 
   useEffect(() => {
-    let active = true;
-    let timer = 0;
-    const poll = async () => {
-      await refresh();
-      if (active) timer = window.setTimeout(() => void poll(), 3_000);
+    const poller = createWhatsAppPoller({
+      readPairing: async () => {
+        const next = await refresh();
+        return { state: next.state };
+      },
+      readDiagnostics: async () => {
+        const next = await api<Diagnostics>("/whatsapp/diagnostics");
+        setDiagnostics(next);
+      },
+      onPairing: (next) => setPairing((current) => current ? { ...current, state: next.state } : current),
+      onDiagnostics: () => undefined,
+      isVisible: () => document.visibilityState === "visible",
+    });
+    pollerRef.current = poller;
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") poller.refresh();
+      else poller.stop();
     };
-    void poll();
-    void api<Diagnostics>("/whatsapp/diagnostics").then(setDiagnostics).catch(() => undefined);
-    return () => { active = false; window.clearTimeout(timer); };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    poller.start();
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      poller.stop();
+      pollerRef.current = null;
+    };
   }, [refresh]);
 
   async function action(name: string, path: string, method = "POST", success = "Operação concluída.") {
     setLoading(name); setError(""); setNotice("");
-    try { await api(path, { method }); setNotice(success); await refresh(); }
+    try { await api(path, { method }); setNotice(success); await refresh(); pollerRef.current?.refresh(); }
     catch (reason) { setError(message(reason, "Falha na operação.")); }
     finally { setLoading(""); }
   }
