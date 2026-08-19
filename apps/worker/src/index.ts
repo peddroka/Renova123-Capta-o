@@ -29,7 +29,7 @@ import {
   type AgentExecutionResult,
   type AgentSnapshot,
 } from "@renova123/core";
-import { createRepository, type QueueJob } from "@renova123/database";
+import { createRepository, supabaseFetchWithRetry, type QueueJob } from "@renova123/database";
 import {
   AiStructuredOutputError,
   EvolutionWhatsAppProvider,
@@ -107,6 +107,7 @@ const serviceDb =
   !mock && workerConfig.SUPABASE_URL && workerConfig.SUPABASE_SERVICE_ROLE_KEY
     ? createClient(workerConfig.SUPABASE_URL, workerConfig.SUPABASE_SERVICE_ROLE_KEY, {
         auth: { persistSession: false },
+        global: { fetch: supabaseFetchWithRetry },
       })
     : null;
 const whatsapp: WhatsAppProvider = workerConfig.MOCK_EVOLUTION

@@ -2,13 +2,29 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createRepository, shouldMirrorLegacySettings } from "./index.js";
+import { createRepository, shouldMirrorLegacySettings, supabaseFetchWithRetry } from "./index.js";
 
 const directories: string[] = [];
 beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(new Date("2026-08-09T12:00:00-03:00")); });
 afterEach(() => { vi.useRealTimers(); for (const directory of directories.splice(0)) fs.rmSync(directory, { recursive: true, force: true }); });
 
 describe("repositório mock persistente", () => {
+  it("repete somente leitura após reset de socket e nunca repete POST", async () => {
+    vi.useRealTimers();
+    const originalFetch = globalThis.fetch;
+    let readAttempts = 0;
+    let postAttempts = 0;
+    globalThis.fetch = (async (_input, init) => {
+      if (String(init?.method ?? "GET").toUpperCase() === "GET" && readAttempts++ === 0)
+        throw new TypeError("fetch failed: ECONNRESET");
+      if (String(init?.method ?? "GET").toUpperCase() === "POST" && postAttempts++ === 0)
+        throw new TypeError("fetch failed: ECONNRESET");
+      return new Response("ok", { status: 200 });
+    }) as typeof fetch;
+    await expect(supabaseFetchWithRetry("https://supabase.test/rest/v1/leads")).resolves.toMatchObject({ status: 200 });
+    await expect(supabaseFetchWithRetry("https://supabase.test/rest/v1/rpc/send", { method: "POST" })).rejects.toThrow("ECONNRESET");
+    globalThis.fetch = originalFetch;
+  });
   it("persiste cooldown Gemini apenas no armazenamento canônico compatível", () => {
     expect(shouldMirrorLegacySettings("gemini")).toBe(false);
     expect(shouldMirrorLegacySettings("openrouter_1")).toBe(false);

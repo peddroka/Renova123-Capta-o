@@ -10,6 +10,25 @@ export type PageResult = {
   page: number;
   pageSize: number;
 };
+
+/** Retries only read-only Supabase requests after a transient socket reset. */
+export async function supabaseFetchWithRetry(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+): Promise<Response> {
+  const method = String(init?.method ?? "GET").toUpperCase();
+  const readOnly = method === "GET" || method === "HEAD" || method === "OPTIONS";
+  const attempts = readOnly ? 2 : 1;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return await fetch(input, init);
+    } catch (error) {
+      if (attempt >= attempts || !readOnly) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 120 + Math.round(Math.random() * 180)));
+    }
+  }
+  throw new Error("Supabase request failed without a response.");
+}
 export type PersistentQueueName = "outreach_queue" | "ai_response_queue" | "follow_up_queue" | "jobs";
 export type QueueJob = {
   id: string;
@@ -151,7 +170,10 @@ export function createRepository(config: {
       config.mockFilePath === undefined ? path.resolve(".runtime", "mock-db.json") : config.mockFilePath,
     );
   return new SupabaseRepository(
-    createClient(config.supabaseUrl, config.serviceRoleKey, { auth: { persistSession: false } }),
+    createClient(config.supabaseUrl, config.serviceRoleKey, {
+      auth: { persistSession: false },
+      global: { fetch: supabaseFetchWithRetry },
+    }),
   );
 }
 
