@@ -165,9 +165,9 @@ async function start(profile) {
     process.env.REAL_SENDING_ENABLED === "true" &&
     process.env.SIMULATION_MODE === "false" &&
     process.env.MOCK_EVOLUTION === "false";
-  if (profile === "francisco" && realFranciscoOutreach)
+  if (profile === "francisco" && realFranciscoOutreach && process.env.ALLOW_REAL_OUTREACH_DEV !== "true")
     throw new Error(
-      "FRANCISCO inicia bloqueado enquanto envio real estiver ativo sem autorização explícita.",
+      "FRANCISCO inicia bloqueado enquanto envio real estiver ativo sem ALLOW_REAL_OUTREACH_DEV=true.",
     );
   const existing = readState();
   if (existing?.managerPid && processExists(existing.managerPid)) {
