@@ -1239,6 +1239,17 @@ async function processInboundTurn(job: QueueJob) {
     changedByBubbleTransport: finalBubbles.length > 1,
   });
   await persistAgentExecution(context, adjustedExecution, "completed", job.id);
+  // Persist the inbound classification before creating any outbound work.
+  // With globalPause enabled, ai_send is intentionally not claimed; the
+  // qualification/cadence state must not depend on an outbound reply.
+  await persistInboundDecision(
+    phone,
+    turnText,
+    String(job.payload.messageId ?? job.id),
+    decisionWithSalesContact,
+    context,
+    execution.selectedMaterial?.id ?? null,
+  );
   if (job.payload.messageId && serviceDb) {
     const source = await serviceDb
       .from("messages")
@@ -1322,7 +1333,6 @@ async function processDelayedReply(job: QueueJob) {
       sendStartedAt,
       new Date().toISOString(),
     );
-    await persistInboundDecision(phone, inputText, sourceMessageId, decision, context, materialId);
     if (decision.handoffType === "sales_qualified") {
       await notifySalesQualified(context, decision);
     }
@@ -1346,7 +1356,6 @@ async function processDelayedReply(job: QueueJob) {
     await ensureLatestInboundProcessing(phone, leadId, context.snapshot);
     return;
   }
-  await persistInboundDecision(phone, inputText, sourceMessageId, decision, context, materialId);
   await recordInboundLatency(job, leadId, sourceMessageId, context, sendStartedAt, new Date().toISOString());
   await recordInboundLifecycle(job, "responded", { sourceMessageId });
   if (serviceDb) {
