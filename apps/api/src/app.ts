@@ -1029,6 +1029,7 @@ export async function buildApp(
     const now = Date.now();
     const terminal = new Set([
       "interested",
+      "qualified",
       "converted",
       "not_interested",
       "closed",

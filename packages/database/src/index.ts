@@ -449,6 +449,10 @@ class MemoryRepository implements Repository {
         rows = rows.filter((row) => JSON.stringify(row).toLowerCase().includes(input.search!.toLowerCase()));
       return paginate(rows, input.page, input.pageSize);
     }
+    if (key === "qualified") {
+      const rows = this.mockLeads.filter((lead) => Boolean((lead as any).qualifiedAt) || lead.stage === "human_handoff");
+      return paginate(rows as unknown as Array<Record<string, unknown>>, input.page, input.pageSize);
+    }
     if (["leads", "interested", "lost", "unanswered"].includes(key)) {
       const stages: Partial<Record<PageKey, string>> = {
         interested: "interested",
@@ -1157,6 +1161,23 @@ class SupabaseRepository implements Repository {
     input: { page: number; pageSize: number; search?: string | undefined; stage?: string | undefined },
   ): Promise<PageResult> {
     if (key === "queue") return this.queuePage(input);
+    if (key === "qualified") {
+      let query = this.db
+        .from("leads")
+        .select("id,phone,name,company,source,stage,qualified_at,updated_at", { count: "exact" })
+        .eq("owner_id", await this.ownerId())
+        .or("qualified_at.not.is.null,stage.eq.human_handoff");
+      if (input.search)
+        query = query.or(
+          `phone.ilike.%${safeSearch(input.search)}%,name.ilike.%${safeSearch(input.search)}%,company.ilike.%${safeSearch(input.search)}%`,
+        );
+      const from = (input.page - 1) * input.pageSize;
+      const { data, count, error } = await query
+        .order("qualified_at", { ascending: false, nullsFirst: false })
+        .range(from, from + input.pageSize - 1);
+      if (error) throw error;
+      return { rows: (data ?? []).map(toCamelRecord), total: count ?? 0, page: input.page, pageSize: input.pageSize };
+    }
     const config = pageTable[key];
     if (!config) {
       const stage =

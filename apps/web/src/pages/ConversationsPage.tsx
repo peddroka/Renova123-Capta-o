@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { ArrowLeft, Bot, ExternalLink, FileAudio, RefreshCw, Search, Send, UserRoundCheck } from "lucide-react";
 import { Button, DataCard, EmptyState, ErrorState, LoadingSkeleton, SearchInput, StatusBadge, Toast, ToastViewport } from "@renova123/ui";
+import { useSearchParams } from "react-router-dom";
 import { api } from "../api";
 import { PageHeader } from "../components/PageHeader";
 
@@ -14,7 +15,8 @@ const date = (value?: string | null) => value ? new Date(value).toLocaleDateStri
 const initials = (name?: string | null) => (name || "Lead").split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
 
 export function ConversationsPage() {
-  const [inbox, setInbox] = useState<InboxResult | null>(null); const [selectedId, setSelectedId] = useState(""); const [messages, setMessages] = useState<Message[]>([]); const [cursor, setCursor] = useState<string | null>(null); const [hasOlder, setHasOlder] = useState(false); const [search, setSearch] = useState(""); const [loading, setLoading] = useState(true); const [messagesLoading, setMessagesLoading] = useState(false); const [error, setError] = useState(""); const [reply, setReply] = useState(""); const [busy, setBusy] = useState(false); const [toast, setToast] = useState(""); const [infoOpen, setInfoOpen] = useState(true); const panel = useRef<HTMLDivElement>(null); const atBottom = useRef(true);
+  const [params] = useSearchParams();
+  const [inbox, setInbox] = useState<InboxResult | null>(null); const [selectedId, setSelectedId] = useState(""); const [messages, setMessages] = useState<Message[]>([]); const [cursor, setCursor] = useState<string | null>(null); const [hasOlder, setHasOlder] = useState(false); const [search, setSearch] = useState(() => params.get("search") ?? ""); const [loading, setLoading] = useState(true); const [messagesLoading, setMessagesLoading] = useState(false); const [error, setError] = useState(""); const [reply, setReply] = useState(""); const [busy, setBusy] = useState(false); const [toast, setToast] = useState(""); const [infoOpen, setInfoOpen] = useState(true); const panel = useRef<HTMLDivElement>(null); const atBottom = useRef(true);
   const loadInbox = useCallback(async () => { setLoading(true); try { const result = await api<InboxResult>(`/conversations/inbox?page=1&pageSize=30&search=${encodeURIComponent(search)}`); setInbox(result); if (!selectedId && result.rows[0]) setSelectedId(result.rows[0].conversationId); } catch (reason) { setError(reason instanceof Error ? reason.message : "Falha ao carregar a caixa de entrada."); } finally { setLoading(false); } }, [search, selectedId]);
   const loadMessages = useCallback(async (id: string, before?: string | null) => { setMessagesLoading(true); try { const result = await api<MessageResult>(`/conversations/${id}/messages?limit=50${before ? `&before=${encodeURIComponent(before)}` : ""}`); if (before) setMessages((current) => [...result.rows, ...current]); else setMessages(result.rows); setCursor(result.nextBefore); setHasOlder(result.hasOlder); requestAnimationFrame(() => { if (!before && atBottom.current && panel.current) panel.current.scrollTop = panel.current.scrollHeight; }); } catch (reason) { setToast(reason instanceof Error ? reason.message : "Falha ao carregar mensagens."); } finally { setMessagesLoading(false); } }, []);
   useEffect(() => { const timer = window.setTimeout(() => void loadInbox(), 250); return () => window.clearTimeout(timer); }, [loadInbox]);

@@ -54,6 +54,7 @@ type DashboardData = {
   logs: LogRow[];
   appointments: Appointment[];
   hotLeads: Lead[];
+  qualifiedLeads: Lead[];
   outreach: Record<string, unknown>;
 };
 
@@ -67,13 +68,14 @@ type Metric = {
 };
 
 async function loadDashboard(): Promise<DashboardData> {
-  const [stats, outreachAnalytics, health, logs, appointments, hotLeads, outreach] = await Promise.all([
+  const [stats, outreachAnalytics, health, logs, appointments, hotLeads, qualifiedLeads, outreach] = await Promise.all([
     api<DashboardStats>("/dashboard"),
     api<OutreachAnalytics>("/analytics/outreach-hours"),
     api<Health>("/health"),
     api<PageResult<LogRow>>("/logs?page=1&pageSize=5"),
     api<PageResult<Appointment>>("/appointments?page=1&pageSize=5"),
     api<PageResult<Lead>>("/pages/interested?page=1&pageSize=5"),
+    api<PageResult<Lead>>("/pages/qualified?page=1&pageSize=5"),
     api<Record<string, unknown>>("/settings/outreach"),
   ]);
   return {
@@ -83,6 +85,7 @@ async function loadDashboard(): Promise<DashboardData> {
     logs: logs.rows,
     appointments: appointments.rows,
     hotLeads: hotLeads.rows,
+    qualifiedLeads: qualifiedLeads.rows,
     outreach,
   };
 }
@@ -319,6 +322,14 @@ export function DashboardPage() {
           value: stats.interested,
           note: "oportunidades",
           icon: HeartHandshake,
+        },
+        {
+          id: "qualified",
+          label: "Qualificados",
+          value: data?.qualifiedLeads.length ?? 0,
+          note: "prontos para atendimento humano",
+          icon: HeartHandshake,
+          tone: "positive",
         },
         {
           id: "demos",
@@ -596,32 +607,32 @@ export function DashboardPage() {
           )}
         </DataCard>
         <DataCard
-          eyebrow="Oportunidades"
-          title="Leads interessados"
+          eyebrow="Oportunidades qualificadas"
+          title="Leads qualificados"
           action={
-            <Link className="inline-link" to="/interessados">
+            <Link className="inline-link" to="/qualificados">
               Ver todos
             </Link>
           }
         >
           {loading ? (
             <LoadingSkeleton lines={3} />
-          ) : data?.hotLeads.length ? (
+          ) : data?.qualifiedLeads.length ? (
             <div className="simple-list">
-              {data.hotLeads.map((lead) => (
+              {data.qualifiedLeads.map((lead) => (
                 <div key={lead.id}>
                   <span>
                     <strong>{lead.name ?? lead.phone ?? "Lead sem nome"}</strong>
                     <small>{lead.company ?? lead.source ?? "Sem empresa"}</small>
                   </span>
-                  <StatusBadge tone="positive">Interessado</StatusBadge>
+                  <StatusBadge tone="positive">Qualificado</StatusBadge>
                 </div>
               ))}
             </div>
           ) : (
             <EmptyState
-              title="Nenhum interessado"
-              description="As oportunidades reais aparecerão após as conversas."
+              title="Nenhum qualificado"
+              description="Leads qualificados aparecerão após as conversas."
             />
           )}
         </DataCard>

@@ -57,6 +57,7 @@ export const navigation: NavigationItem[] = [
     icon: HeartHandshake,
     group: "Relacionamento",
   },
+  { key: "qualified", path: "/qualificados", label: "Qualificados", icon: HeartHandshake, group: "Relacionamento" },
   {
     key: "demos",
     path: "/demonstracoes",
@@ -185,6 +186,12 @@ export const pageMeta: Record<
     eyebrow: "Oportunidades",
     title: "Interessados",
     description: "Leads que demonstraram aderência ao Renova 123.",
+    icon: HeartHandshake,
+  },
+  qualified: {
+    eyebrow: "Oportunidades qualificadas",
+    title: "Qualificados",
+    description: "Leads qualificados pelo Francisco e prontos para atendimento humano.",
     icon: HeartHandshake,
   },
   demos: {

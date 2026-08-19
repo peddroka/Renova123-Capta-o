@@ -21,7 +21,7 @@ import { FlowPage } from "./pages/FlowPage";
 
 const resourceRoutes: Array<[string, PageKey]> = [
   ["leads", "leads"], ["lotes", "batches"], ["fila", "queue"],
-  ["interessados", "interested"], ["nao-responderam", "unanswered"],
+  ["interessados", "interested"], ["qualificados", "qualified"], ["nao-responderam", "unanswered"],
   ["follow-ups", "followups"], ["perdidos", "lost"],
   ["opt-outs", "optouts"], ["mensagens-iniciais", "openers"],
 ];

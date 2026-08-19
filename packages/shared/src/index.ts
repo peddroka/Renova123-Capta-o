@@ -234,6 +234,7 @@ export type PageKey =
   | "queue"
   | "conversations"
   | "interested"
+  | "qualified"
   | "demos"
   | "unanswered"
   | "followups"
