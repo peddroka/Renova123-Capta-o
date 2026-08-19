@@ -55,6 +55,7 @@ type DashboardData = {
   appointments: Appointment[];
   hotLeads: Lead[];
   qualifiedLeads: Lead[];
+  qualifiedCount: number;
   outreach: Record<string, unknown>;
 };
 
@@ -86,6 +87,7 @@ async function loadDashboard(): Promise<DashboardData> {
     appointments: appointments.rows,
     hotLeads: hotLeads.rows,
     qualifiedLeads: qualifiedLeads.rows,
+    qualifiedCount: qualifiedLeads.total,
     outreach,
   };
 }
@@ -326,7 +328,7 @@ export function DashboardPage() {
         {
           id: "qualified",
           label: "Qualificados",
-          value: data?.qualifiedLeads.length ?? 0,
+          value: data?.qualifiedCount ?? 0,
           note: "prontos para atendimento humano",
           icon: HeartHandshake,
           tone: "positive",
