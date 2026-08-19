@@ -62,6 +62,22 @@ describe("repositório mock persistente", () => {
     expect(result.imported).toBe(1);
   });
 
+  it("mantém o cancelamento de um job quando a conclusão chega depois do pre-send recheck", async () => {
+    const repository = createRepository({ mock: true, supabaseUrl: undefined, serviceRoleKey: undefined, mockFilePath: null });
+    const id = await repository.enqueue("follow_up", { leadId: "lead-replied" }, new Date(), "followup:replied");
+    expect((await repository.claimJobs(1))[0]?.id).toBe(id);
+    await repository.cancelJob(id, "follow_up_invalidated_by_inbound_or_terminal_state");
+    await repository.completeJob(id);
+    expect((await repository.page("queue", { page: 1, pageSize: 10 })).rows[0]?.status).toBe("cancelled");
+  });
+
+  it("reserva pacing mock sem permitir intervalo nulo", async () => {
+    const repository = createRepository({ mock: true, supabaseUrl: undefined, serviceRoleKey: undefined, mockFilePath: null });
+    const pacing = await repository.reserveOutreachPacing(45, 90);
+    expect(pacing.allowed).toBe(true);
+    expect(pacing.intervalSeconds).toBe(45);
+  });
+
   it("persiste evento inbound duplicado sem duplicar mensagem nem conversa", async () => {
     const repository = createRepository({ mock: true, supabaseUrl: undefined, serviceRoleKey: undefined, mockFilePath: null });
     const event = { phone: "5511912345678", externalMessageId: "wamid-final-1", eventId: "evt-final-1", text: "Oi", occurredAt: new Date().toISOString(), messageType: "text" };

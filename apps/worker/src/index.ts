@@ -1583,6 +1583,34 @@ async function processOutbound(job: QueueJob) {
       "Outreach bloqueado imediatamente antes da reserva.",
       new Date(Date.now() + 5 * 60_000),
     );
+  if (serviceDb) {
+    const owner = await getOwnerId();
+    const [current, leadCurrent] = await Promise.all([
+      serviceDb
+        .from("conversations")
+        .select("last_inbound_at,human_active,stage")
+        .eq("owner_id", owner)
+        .eq("lead_id", leadId)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      serviceDb.from("leads").select("stage,human_active,automation_paused").eq("owner_id", owner).eq("id", leadId).maybeSingle(),
+    ]);
+    if (current.error) throw current.error;
+    if (leadCurrent.error) throw leadCurrent.error;
+    const state = current.data as Record<string, unknown> | null;
+    const leadState = leadCurrent.data as Record<string, unknown> | null;
+    if (
+      state?.last_inbound_at ||
+      state?.human_active === true ||
+      leadState?.human_active === true ||
+      leadState?.automation_paused === true ||
+      ["engaged", "handoff", "human_handoff", "no_interest", "opted_out", "blocked", "converted", "won"].includes(String(state?.stage ?? leadState?.stage ?? ""))
+    ) {
+      await repository.cancelJob(job.id, "pre_send_recheck_inbound_or_terminal_state");
+      return;
+    }
+  }
   if (!job.payload.capacityReservedAt) {
     const capacity = await repository.outreachCapacity(
       leadId,
@@ -1602,6 +1630,14 @@ async function processOutbound(job: QueueJob) {
         `Reserva de limite criada, mas não foi possível persistir o marcador local: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
+  }
+  if (!allowTestWindow) {
+    const pacing = await repository.reserveOutreachPacing(45, 90);
+    if (!pacing.allowed)
+      throw new DeferredJobError(
+        "Pacing global ativo; aguardando próximo envio permitido.",
+        new Date(pacing.retryAt),
+      );
   }
   await sendTextSequence(leadId, phone, text, `outbound:${job.id}`);
   const sentAt = new Date().toISOString();
@@ -1754,6 +1790,35 @@ async function processFollowUp(job: QueueJob) {
   const phone = requiredString(job.payload.phone, "phone");
   const context = await loadContext(phone, "Follow-up programado pelo sistema.");
   if (!context.leadId) return;
+  if (serviceDb) {
+    const [current, leadCurrent] = await Promise.all([
+      serviceDb
+        .from("conversations")
+        .select("last_inbound_at,human_active,stage")
+        .eq("owner_id", context.ownerId)
+        .eq("lead_id", context.leadId)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      serviceDb.from("leads").select("stage,human_active,automation_paused").eq("owner_id", context.ownerId).eq("id", context.leadId).maybeSingle(),
+    ]);
+    if (current.error) throw current.error;
+    if (leadCurrent.error) throw leadCurrent.error;
+    const state = current.data as Record<string, unknown> | null;
+    const leadState = leadCurrent.data as Record<string, unknown> | null;
+    if (
+      state?.last_inbound_at ||
+      state?.human_active === true ||
+      leadState?.human_active === true ||
+      leadState?.automation_paused === true ||
+      ["engaged", "handoff", "human_handoff", "no_interest", "opted_out", "blocked", "converted", "won"].includes(String(state?.stage ?? leadState?.stage ?? ""))
+    ) {
+      await repository.cancelJob(job.id, "follow_up_invalidated_by_inbound_or_terminal_state");
+      if (job.payload.followUpId)
+        await serviceDb.from("follow_ups").update({ status: "cancelled" }).eq("owner_id", context.ownerId).eq("id", String(job.payload.followUpId));
+      return;
+    }
+  }
   const settings = outreachSettingsSchema.parse(await repository.getSettings("outreach"));
   const terminal = [
     "opted_out",
@@ -1806,7 +1871,7 @@ async function processFollowUp(job: QueueJob) {
     }
   }
   const prompt =
-    "Escreva uma retomada breve e natural, sem repetir a abertura, sem inventar informações e respeitando o histórico.";
+    "Escreva uma retomada breve e natural, sem repetir a abertura, usando somente fatos explícitos no histórico ou dados estruturados confiáveis. Nunca atribua ao lead sistema, função, processo, dor, uso de estoque/follow-up ou preferência que ele não declarou. Se algo for ambíguo, faça uma pergunta curta em vez de afirmar.";
   const execution = await executeAgent(context.snapshot, prompt);
   const decision = execution.decision;
   await persistAgentExecution(context, execution, "completed", job.id);

@@ -124,6 +124,8 @@ export interface Repository {
     payload: Record<string, unknown>,
   ): Promise<void>;
   markOutreachCapacityReserved(id: string, reservedAt: string): Promise<void>;
+  reserveOutreachPacing(minIntervalSeconds: number, maxIntervalSeconds: number): Promise<{ allowed: boolean; retryAt: string; intervalSeconds?: number }>;
+  cancelJob(id: string, reason: string): Promise<void>;
   outreachCapacity(
     leadId: string,
     dailyLimit: number,
@@ -935,7 +937,7 @@ class MemoryRepository implements Repository {
   }
   async completeJob(id: string) {
     this.mutate(() => {
-      const job = this.jobs.find((item) => item.id === id);
+      const job = this.jobs.find((item) => item.id === id && item.status === "processing");
       if (job) {
         job.status = "completed";
         job.completedAt = new Date();
@@ -1031,6 +1033,15 @@ class MemoryRepository implements Repository {
     this.mutate(() => {
       const job = this.jobs.find((item) => item.id === id);
       if (job) job.payload = { ...job.payload, capacityReservedAt: reservedAt };
+    });
+  }
+  async reserveOutreachPacing(minIntervalSeconds: number, _maxIntervalSeconds: number) {
+    return { allowed: true, retryAt: new Date(Date.now() + minIntervalSeconds * 1000).toISOString(), intervalSeconds: minIntervalSeconds };
+  }
+  async cancelJob(id: string, reason: string) {
+    this.mutate(() => {
+      const job = this.jobs.find((item) => item.id === id);
+      if (job) { job.status = "cancelled"; job.lastError = reason; job.lockedAt = undefined; job.lockedBy = undefined; }
     });
   }
   async outreachCapacity(
@@ -1699,7 +1710,26 @@ class SupabaseRepository implements Repository {
       locked_at: null,
       locked_by: null,
     };
-    const { error } = await this.db.from(queue).update(values).eq("id", id);
+    const { error } = await this.db.from(queue).update(values).eq("id", id).eq("status", "processing");
+    if (error) throw error;
+    this.claimedQueues.delete(id);
+  }
+  async reserveOutreachPacing(minIntervalSeconds: number, maxIntervalSeconds: number) {
+    const { data, error } = await this.db.rpc("reserve_outreach_pacing", {
+      p_owner: await this.ownerId(),
+      p_min_interval_seconds: minIntervalSeconds,
+      p_max_interval_seconds: maxIntervalSeconds,
+    });
+    if (error) throw error;
+    return data as { allowed: boolean; retryAt: string; intervalSeconds?: number };
+  }
+  async cancelJob(id: string, reason: string) {
+    const queue = this.claimedQueues.get(id) ?? "jobs";
+    const { error } = await this.db
+      .from(queue)
+      .update({ status: "cancelled", last_error: reason, locked_at: null, locked_by: null })
+      .eq("id", id)
+      .eq("status", "processing");
     if (error) throw error;
     this.claimedQueues.delete(id);
   }
