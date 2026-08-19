@@ -106,7 +106,7 @@ export function WhatsAppPage() {
     if (window.confirm("Excluir a instância e encerrar a sessão atual?")) await action("delete", "/whatsapp/instance", "DELETE", "Instância excluída.");
   }
 
-  const setupBlocked = diagnostics?.connectionMode !== "evolution" || !diagnostics?.apiKeyConfigured || !diagnostics.webhookConfigured;
+  const setupBlocked = !isEvolutionConfigured(pairing, diagnostics);
   const state = setupBlocked ? "unavailable" : pairing?.state ?? "unavailable";
   const connected = state === "open";
   const connecting = state === "connecting";
@@ -148,6 +148,13 @@ export function WhatsAppPage() {
 }
 
 function labelState(state: ConnectionState) { return ({ not_created: "Não criada", close: "Desconectada", connecting: "Conectando", open: "Conectada", unavailable: "Indisponível" } as const)[state]; }
+export function isEvolutionConfigured(
+  pairing: PairingStatus | null,
+  diagnostics: Diagnostics | null,
+) {
+  if (diagnostics) return diagnostics.connectionMode === "evolution" && diagnostics.apiKeyConfigured && diagnostics.webhookConfigured;
+  return pairing?.evolution === "online" && pairing.webhook === "ok";
+}
 function formatDate(value: string | null | undefined) { return value ? new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(new Date(value)) : "Sem registro"; }
 function formatTime(value: string | null | undefined) { return value ? new Intl.DateTimeFormat("pt-BR", { timeStyle: "medium" }).format(new Date(value)) : "—"; }
 function message(reason: unknown, fallback: string) { return reason instanceof Error ? reason.message : fallback; }
