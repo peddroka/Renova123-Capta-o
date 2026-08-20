@@ -122,6 +122,10 @@ const whatsapp: WhatsAppProvider = workerConfig.MOCK_EVOLUTION
       webhookUrl: workerConfig.EVOLUTION_WEBHOOK_URL,
       webhookSecret: workerConfig.EVOLUTION_WEBHOOK_SECRET ?? "development-only-secret-change-me",
     });
+const pedroWhatsapp: WhatsAppProvider = workerConfig.MOCK_EVOLUTION
+  ? new MockWhatsAppProvider({ instanceName: workerConfig.EVOLUTION_PEDRO_INSTANCE_NAME, webhookSecret: workerConfig.EVOLUTION_PEDRO_WEBHOOK_SECRET ?? workerConfig.EVOLUTION_WEBHOOK_SECRET ?? "development-only-secret-change-me" })
+  : new EvolutionWhatsAppProvider({ baseUrl: workerConfig.EVOLUTION_BASE_URL, apiKey: workerConfig.EVOLUTION_API_KEY, instanceName: workerConfig.EVOLUTION_PEDRO_INSTANCE_NAME, webhookUrl: workerConfig.EVOLUTION_WEBHOOK_URL, webhookSecret: workerConfig.EVOLUTION_PEDRO_WEBHOOK_SECRET ?? workerConfig.EVOLUTION_WEBHOOK_SECRET ?? "development-only-secret-change-me" });
+const whatsappForInstance = (instanceName: string) => instanceName === workerConfig.EVOLUTION_PEDRO_INSTANCE_NAME ? pedroWhatsapp : whatsapp;
 const instanceId = `${process.env.COMPUTERNAME ?? "local"}:${process.pid}:${crypto.randomUUID()}`;
 const localHeartbeatPath = path.resolve(
   `${workerConfig.MOCK_DB_PATH ?? ".runtime/mock-db.json"}.worker-heartbeat.json`,
@@ -789,6 +793,10 @@ async function processInboundEvent(job: QueueJob) {
     await repository.audit("evolution.event.processed", "integration", event.eventId, {
       eventType: event.eventType,
     });
+  if (event.instanceName === workerConfig.EVOLUTION_PEDRO_INSTANCE_NAME && (!workerConfig.PEDRO_AUTOMATION_ENABLED || workerConfig.PEDRO_GLOBAL_PAUSE || !workerConfig.PEDRO_OUTREACH_ENABLED)) {
+    await repository.audit("pedro.inbound.paused", "integration", event.eventId, { instanceName: event.instanceName, automationEnabled: workerConfig.PEDRO_AUTOMATION_ENABLED, globalPause: workerConfig.PEDRO_GLOBAL_PAUSE, outreachEnabled: workerConfig.PEDRO_OUTREACH_ENABLED });
+    return;
+  }
   if (
     event.eventType === "message.delivered" ||
     event.eventType === "message.read" ||
@@ -898,7 +906,7 @@ async function processInboundEvent(job: QueueJob) {
     await repository.audit("audio_download_started", "message", audioId, { messageId: audioId });
     let media: Awaited<ReturnType<WhatsAppProvider["downloadMedia"]>>;
     try {
-      media = await whatsapp.downloadMedia(
+      media = await whatsappForInstance(event.instanceName).downloadMedia(
         (event.raw as Record<string, unknown>).data as Record<string, unknown>,
       );
     } catch (error) {

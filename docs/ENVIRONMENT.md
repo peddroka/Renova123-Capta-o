@@ -14,6 +14,7 @@ Copie `.env.example` para `.env`. Nunca versione `.env`.
 - `SUPABASE_DATABASE_URL`
 - `GROQ_API_KEY`
 - `EVOLUTION_API_KEY`
+- `EVOLUTION_INSTANCE_NAME` e `EVOLUTION_PEDRO_INSTANCE_NAME`
 - `WEBHOOK_SECRET`
 - `ENCRYPTION_KEY`
 
@@ -21,7 +22,7 @@ Qualquer variável secreta com prefixo `VITE_` é uma configuração inválida.
 
 ## Produção Vercel → Francisco AWS
 
-`VITE_API_URL` deve apontar para uma origem HTTPS pública do reverse proxy da AWS, por exemplo `https://api.seu-dominio.com`, nunca para `127.0.0.1`, `localhost` ou a porta 3333. O reverse proxy deve encaminhar somente para `127.0.0.1:3333`; Evolution (8080), PostgreSQL (5432) e Redis (6379) permanecem privados.
+`VITE_API_URL` deve apontar para uma origem HTTPS pública do reverse proxy da AWS, por exemplo `https://api.seu-dominio.com`, nunca para `127.0.0.1`, `localhost` ou a porta 3333. O reverse proxy deve encaminhar somente para `127.0.0.1:3333`; Evolution (8080), PostgreSQL (5432) e Redis (6379) permanecem privados. Francisco e Pedro usam a mesma Evolution API em 8080, com sessões distintas por instância.
 
 O build de produção falha deliberadamente quando `VITE_API_URL` está ausente ou local, evitando publicar um painel que não consegue alcançar o Francisco AWS.
 

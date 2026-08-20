@@ -485,6 +485,21 @@ describe("API", () => {
     expect(response.body).not.toContain("server-only-key");
   });
 
+  it("mantém pairing, diagnóstico e teste manual do Pedro em escopo próprio", async () => {
+    const repository = createRepository({ mock: true, supabaseUrl: undefined, serviceRoleKey: undefined, mockFilePath: null });
+    const app = await buildApp({ repository });
+    apps.push(app);
+    const pairing = await app.inject({ method: "GET", url: "/agents/pedro/whatsapp/pairing", headers: auth });
+    expect(pairing.statusCode).toBe(200);
+    expect(pairing.json()).toMatchObject({ agent: "pedro", instanceName: "renova123-pedro", state: "not_created", simulation: true });
+    const diagnostics = await app.inject({ method: "GET", url: "/agents/pedro/whatsapp/diagnostics", headers: auth });
+    expect(diagnostics.statusCode).toBe(200);
+    expect(diagnostics.json()).toMatchObject({ agent: "pedro", instanceName: "renova123-pedro", globalPause: true, automationEnabled: false, outreachEnabled: false, realSendingEnabled: false });
+    const manual = await app.inject({ method: "POST", url: "/agents/pedro/whatsapp/test", headers: auth, payload: { phone: "5511999999999", text: "teste", idempotencyKey: "33333333-3333-4333-8333-333333333333" } });
+    expect(manual.statusCode).toBe(200);
+    expect(manual.json()).toMatchObject({ status: "simulated", agent: "pedro", instanceName: "renova123-pedro", realMessageSent: false });
+  });
+
   it("aplica allowlist ao teste de WhatsApp durante pausa operacional", async () => {
     const repository = createRepository({
       mock: true,

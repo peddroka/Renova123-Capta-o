@@ -73,7 +73,7 @@ export class EvolutionWhatsAppProvider implements WhatsAppProvider {
   async connect(): Promise<WhatsAppQrCode> {
     const status = await this.getConnectionStatus();
     if (status.state === "not_created") {
-      throw new IntegrationError("A instância renova123-francisco não existe; criação automática está desabilitada.", 409);
+      throw new IntegrationError(`A instância ${this.config.instanceName} não existe; criação automática está desabilitada.`, 409);
     }
     if (status.state === "open") {
       return { code: null, pairingCode: null, expiresAt: null, status: "open", count: null };

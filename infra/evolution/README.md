@@ -1,6 +1,6 @@
 # Evolution API local
 
-Ambiente isolado para a única instância `renova123-francisco`. A imagem está fixada em `evoapicloud/evolution-api:v2.3.6`; nunca troque por `latest` sem auditoria do contrato e da licença.
+Ambiente compartilhado para as instâncias independentes `renova123-francisco` e `renova123-pedro`. A imagem está fixada em `evoapicloud/evolution-api:v2.3.6`; nunca troque por `latest` sem auditoria do contrato e da licença. Não é necessário subir uma segunda Evolution API: cada sessão é separada pelo nome da instância.
 
 ## Primeiro uso
 

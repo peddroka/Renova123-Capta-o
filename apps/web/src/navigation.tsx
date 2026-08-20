@@ -275,7 +275,7 @@ export const pageMeta: Record<
   whatsapp: {
     eyebrow: "Evolution API",
     title: "Configuração do WhatsApp",
-    description: "Conecte a única instância com QR Code e acompanhe o estado.",
+    description: "Acompanhe Francisco e Pedro em instâncias WhatsApp independentes.",
     icon: Wifi,
   },
   health: {

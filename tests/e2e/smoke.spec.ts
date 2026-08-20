@@ -15,6 +15,11 @@ test.beforeEach(async ({ page }) => {
   await page.route("**/imports/preview", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ rows: [{ line: 1, input: "11987654321", phone: "5511987654321", status: "valid", reason: null }], summary: { total: 1, valid: 1, invalid: 0, duplicateFile: 0, duplicateExisting: 0, blocked: 0, alreadyApproached: 0, inConversation: 0 } }) }));
   await page.route("**/whatsapp/pairing", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ evolution: "offline", instanceName: "renova123-francisco", state: "unavailable", number: null, available: false, circuit: "closed", simulation: true, webhook: "ok", qr: null, pairingCode: null, qrCount: null, qrExpiresAt: null, updatedAt: new Date().toISOString(), lastConnectionAt: null, lastEventAt: null }) }));
   await page.route("**/whatsapp/diagnostics", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ connectionMode: "not_configured", webhookConfigured: true, apiKeyConfigured: false, apiKeyExposed: false }) }));
+  await page.route("**/agents/*/whatsapp/pairing", (route) => {
+    const agent = route.request().url().includes("/pedro/") ? "pedro" : "francisco";
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ agent, name: agent === "pedro" ? "Pedro" : "Francisco", evolution: "offline", instanceName: `renova123-${agent}`, state: "unavailable", number: null, available: false, circuit: "closed", simulation: true, webhook: "ok", qr: null, pairingCode: null, qrCount: null, qrExpiresAt: null, updatedAt: new Date().toISOString(), lastConnectionAt: null, lastEventAt: null }) });
+  });
+  await page.route("**/agents/*/whatsapp/diagnostics", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ connectionMode: "not_configured", webhookConfigured: true, apiKeyConfigured: false, apiKeyExposed: false, globalPause: true, automationEnabled: false, outreachEnabled: false, realSendingEnabled: false }) }));
 });
 
 async function login(page: Page) {
@@ -134,9 +139,9 @@ test("configurações carregam controles editáveis", async ({ page }) => {
 test("WhatsApp mock gera QR, mostra contagem e mantém a chave no servidor", async ({ page }) => {
   await login(page);
   await page.goto("/integracoes/whatsapp");
-  await expect(page.getByRole("button", { name: "WhatsApp não configurado" })).toBeDisabled();
-  await expect(page.getByText("Evolution API não configurada")).toBeVisible();
-  await expect(page.getByText("Nunca exposta", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Conectar WhatsApp" }).first()).toBeDisabled();
+  await expect(page.getByText("Evolution API não configurada").first()).toBeVisible();
+  await expect(page.getByText("Nunca exposta", { exact: true }).first()).toBeVisible();
   await expect(page.locator("body")).not.toContainText("development-only-secret");
 });
 
