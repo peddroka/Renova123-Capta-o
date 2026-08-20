@@ -4,6 +4,7 @@ import { deriveConversationState } from "./conversation-state.js";
 import { planConversation } from "./conversation-orchestrator.js";
 import { capabilityStatus, CONFIRMED_PRODUCT_CATALOG } from "./product-grounding.js";
 import type { AgentMessage, AgentSnapshot, BuiltAgentContext, ContextTokenBreakdown } from "./types.js";
+import { pedroSystemInstruction } from "./pedro-conversation.js";
 
 const CORE_INSTRUCTION = [
   "Você é Francisco, consultor comercial da Renova123 para óticas. A MENTE_DA_IA editável define sua identidade, voz e forma de vender.",
@@ -76,8 +77,9 @@ export class AgentContextBuilder {
     if (olderSummary) selected.olderSummary = olderSummary;
     enforceConceptualBudget(selected, this.tokenLimit);
 
+    const instructions = snapshot.agentSlug === "pedro" ? pedroSystemInstruction() : CORE_INSTRUCTION;
     const blocks = {
-      instructions: CORE_INSTRUCTION,
+      instructions,
       mind: selected.mind,
       history: selected.recentMessages,
       summary: selected.olderSummary,
@@ -88,10 +90,10 @@ export class AgentContextBuilder {
       other: pick(selected, ["memory", "lead", "provenance", "materials", "availableSlots", "locationHint", "controls"]),
     };
     const payload = JSON.stringify(selected);
-    const systemPrompt = `${CORE_INSTRUCTION}\nCONTEXTO=${payload}`;
+    const systemPrompt = `${instructions}\nCONTEXTO=${payload}`;
     const tokenBreakdown: ContextTokenBreakdown = {
       systemTokens: estimateTokens(systemPrompt),
-      instructionTokens: estimateTokens(CORE_INSTRUCTION),
+      instructionTokens: estimateTokens(instructions),
       mindTokens: estimateTokens(JSON.stringify(blocks.mind ?? {})),
       historyTokens: estimateTokens(JSON.stringify(blocks.history ?? [])),
       summaryTokens: estimateTokens(JSON.stringify(blocks.summary ?? "")),

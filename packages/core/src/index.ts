@@ -25,3 +25,4 @@ export * from "./cadence-planner.js";
 export * from "./opener-policy.js";
 export * from "./agent/agent-execution-service.js";
 export * from "./agent/agent-config.js";
+export * from "./agent/pedro-conversation.js";

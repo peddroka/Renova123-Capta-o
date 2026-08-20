@@ -4,6 +4,8 @@ export type AgentMessage = { role: "lead" | "agent" | "human"; text: string; cre
 export type AgentMemory = { key: string; value: string; evidenceType?: "explicit" | "inference" | "hypothesis"; confidence?: number };
 export type AgentMaterial = { id: string; name: string; description?: string; category?: string; instruction?: string; active: boolean; allowedStages?: string[]; relatedIntent?: string | null; alreadySent?: boolean };
 export type AgentSnapshot = {
+  /** Roteia o contexto para uma identidade operacional sem alterar o default Francisco. */
+  agentSlug?: "francisco" | "pedro";
   mind: Record<string, unknown>; commercial: Record<string, unknown>; lead: Record<string, unknown>; batch: Record<string, unknown>;
   knowledgeItems?: Array<Record<string, unknown>>;
   stage: LeadStage; summary: string; messages: AgentMessage[]; memories: AgentMemory[]; materials: AgentMaterial[]; availableSlots: string[];
