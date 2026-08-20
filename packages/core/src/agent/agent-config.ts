@@ -17,6 +17,12 @@ export type AgentConfig = {
   realSendingEnabled: boolean;
 };
 
+export const franciscoInitialConfig: Omit<AgentConfig, "agentId"> = {
+  slug: "francisco", name: "Francisco", dailyLimit: 50, operationalStart: "08:00", operationalEnd: "23:00",
+  timezone: "America/Sao_Paulo", automationEnabled: true, globalPause: false,
+  outreachEnabled: true, realSendingEnabled: true,
+};
+
 export const pedroInitialConfig: Omit<AgentConfig, "agentId"> = {
   slug: "pedro", name: "Pedro", dailyLimit: 50, operationalStart: "08:00", operationalEnd: "17:00",
   timezone: "America/Sao_Paulo", automationEnabled: false, globalPause: true,

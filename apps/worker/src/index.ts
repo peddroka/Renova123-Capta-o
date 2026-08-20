@@ -7,6 +7,8 @@ import {
   AgentExecutionService,
   canAttemptGroupDelivery,
   canStartOutreach,
+  FRANCISCO_HOURS,
+  PEDRO_HOURS,
   ConversationMemoryService,
   decryptSecret,
   deriveConversationState,
@@ -17,6 +19,7 @@ import {
   groupNotificationDedupKey,
   interpretBrazilianContext,
   isExplicitNoInterestText,
+  isProactiveWindow,
   isOptOutText,
   isOwnerRoleAnswer,
   normalizeBrazilianPhone,
@@ -793,10 +796,6 @@ async function processInboundEvent(job: QueueJob) {
     await repository.audit("evolution.event.processed", "integration", event.eventId, {
       eventType: event.eventType,
     });
-  if (event.instanceName === workerConfig.EVOLUTION_PEDRO_INSTANCE_NAME && (!workerConfig.PEDRO_AUTOMATION_ENABLED || workerConfig.PEDRO_GLOBAL_PAUSE || !workerConfig.PEDRO_OUTREACH_ENABLED)) {
-    await repository.audit("pedro.inbound.paused", "integration", event.eventId, { instanceName: event.instanceName, automationEnabled: workerConfig.PEDRO_AUTOMATION_ENABLED, globalPause: workerConfig.PEDRO_GLOBAL_PAUSE, outreachEnabled: workerConfig.PEDRO_OUTREACH_ENABLED });
-    return;
-  }
   if (
     event.eventType === "message.delivered" ||
     event.eventType === "message.read" ||
@@ -1016,6 +1015,13 @@ async function processInboundEvent(job: QueueJob) {
       externalId: event.externalMessageId,
       eventId: event.eventId,
     });
+    return;
+  }
+  // Pedro permanece fail-closed, mas inbound ainda é persistido e auditado.
+  // A janela de prospecção nunca participa desta decisão; quando habilitado,
+  // a autorização da conversa será verificada pelo escopo agent-aware.
+  if (event.instanceName === workerConfig.EVOLUTION_PEDRO_INSTANCE_NAME && (!workerConfig.PEDRO_AUTOMATION_ENABLED || workerConfig.PEDRO_GLOBAL_PAUSE || !workerConfig.PEDRO_OUTREACH_ENABLED)) {
+    await repository.audit("pedro.inbound.paused", "integration", event.eventId, { instanceName: event.instanceName, automationEnabled: workerConfig.PEDRO_AUTOMATION_ENABLED, globalPause: workerConfig.PEDRO_GLOBAL_PAUSE, outreachEnabled: workerConfig.PEDRO_OUTREACH_ENABLED, persisted: true });
     return;
   }
   await markCadenceResponded(leadId, inboundAt);
@@ -1467,6 +1473,7 @@ async function processOptOut(job: QueueJob) {
 }
 
 async function processOutbound(job: QueueJob) {
+  const agentHours = job.payload.agentSlug === "pedro" ? PEDRO_HOURS : FRANCISCO_HOURS;
   const settings = outreachSettingsSchema.parse(await repository.getSettings("outreach"));
   const presenceState = String(job.payload.presenceState ?? "unknown");
   const fallbackReady = presenceState === "unavailable_to_detect";
@@ -1478,7 +1485,7 @@ async function processOutbound(job: QueueJob) {
       );
     const attempts = Number(job.payload.presenceProbeAttempts ?? 0);
     if (attempts >= workerConfig.OUTREACH_PRESENCE_PROBE_ATTEMPTS) {
-      const fallbackAt = nextCommercialSlot(new Date(), settings);
+      const fallbackAt = nextAgentProactiveSlot(new Date(), agentHours);
       await repository.audit("outreach.presence_unavailable", "lead", null, {
         phoneSuffix: String(job.payload.phone).slice(-4),
         attempts,
@@ -1524,8 +1531,8 @@ async function processOutbound(job: QueueJob) {
       "Campanha ainda não iniciou.",
       new Date(Date.parse(String(settings.campaignStartAt))),
     );
-  if (!allowTestWindow && !canStartOutreach(new Date(), settings))
-    throw new DeferredJobError("Fora do horário configurado.", new Date(Date.now() + 30 * 60_000));
+  if (!allowTestWindow && !isProactiveWindow(agentHours))
+    throw new DeferredJobError("Fora do horário de prospecção do agente.", nextAgentProactiveSlot(new Date(), agentHours));
   const phone = requiredString(job.payload.phone, "phone");
   const text = requiredString(job.payload.text, "text");
   const leadId = requiredString(job.payload.leadId, "leadId");
@@ -1795,6 +1802,7 @@ async function finalizeCadence(
 }
 
 async function processFollowUp(job: QueueJob) {
+  const agentHours = job.payload.agentSlug === "pedro" ? PEDRO_HOURS : FRANCISCO_HOURS;
   const phone = requiredString(job.payload.phone, "phone");
   const context = await loadContext(phone, "Follow-up programado pelo sistema.");
   if (!context.leadId) return;
@@ -1828,6 +1836,8 @@ async function processFollowUp(job: QueueJob) {
     }
   }
   const settings = outreachSettingsSchema.parse(await repository.getSettings("outreach"));
+  if (!isProactiveWindow(agentHours))
+    throw new DeferredJobError("Fora do horário de follow-up proativo do agente.", nextAgentProactiveSlot(new Date(), agentHours));
   const terminal = [
     "opted_out",
     "no_interest",
@@ -1874,7 +1884,7 @@ async function processFollowUp(job: QueueJob) {
     if ((used.count ?? 0) >= stageLimit && !currentCadence.data?.last_attempt_at) {
       throw new DeferredJobError(
         `Limite diário do Fluxo ${stage} atingido.`,
-        nextCommercialSlot(new Date(), settings),
+        nextAgentProactiveSlot(new Date(), agentHours),
       );
     }
   }
@@ -4437,6 +4447,18 @@ function nextCommercialSlot(
   const candidate = new Date(from.getTime() + 60_000);
   for (let index = 0; index < 7 * 24 * 2; index += 1) {
     if (canStartOutreach(candidate, settings as any)) return candidate;
+    candidate.setMinutes(candidate.getMinutes() + 30);
+  }
+  return new Date(from.getTime() + 24 * 60 * 60_000);
+}
+
+function nextAgentProactiveSlot(
+  from: Date,
+  agent: typeof FRANCISCO_HOURS | typeof PEDRO_HOURS,
+) {
+  const candidate = new Date(from.getTime() + 60_000);
+  for (let index = 0; index < 7 * 24 * 2; index += 1) {
+    if (isProactiveWindow(agent, candidate)) return candidate;
     candidate.setMinutes(candidate.getMinutes() + 30);
   }
   return new Date(from.getTime() + 24 * 60 * 60_000);
