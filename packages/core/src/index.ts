@@ -24,3 +24,4 @@ export * from "./outreach-analytics.js";
 export * from "./cadence-planner.js";
 export * from "./opener-policy.js";
 export * from "./agent/agent-execution-service.js";
+export * from "./agent/agent-config.js";

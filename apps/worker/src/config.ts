@@ -24,6 +24,15 @@ function optionalHttpUrl(value: string | undefined, name: string, allowInvalid: 
 
 const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  AGENT_SLUG: z.enum(["francisco", "pedro"]).default("francisco"),
+  PEDRO_TIMEZONE: z.string().default("America/Sao_Paulo"),
+  PEDRO_OPERATIONAL_START: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).default("08:00"),
+  PEDRO_OPERATIONAL_END: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).default("17:00"),
+  PEDRO_GLOBAL_PAUSE: bool(true),
+  PEDRO_AUTOMATION_ENABLED: bool(false),
+  PEDRO_OUTREACH_ENABLED: bool(false),
+  PEDRO_REAL_SENDING_ENABLED: bool(false),
+  PEDRO_DAILY_LIMIT: z.coerce.number().int().positive().default(50),
   BUILD_VERSION: z.string().default("local"),
   SUPABASE_URL: z.string().optional(),
   SUPABASE_ANON_KEY: z.string().optional(),
