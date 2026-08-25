@@ -131,6 +131,8 @@ describe("API", () => {
     const response = await app.inject({ method: "GET", url: "/health" });
     expect(response.statusCode).toBe(200);
     expect(response.json().status).toBe("ok");
+    expect(response.json().usage).toMatchObject({ dailyLimit: expect.any(Number), today: expect.any(Number), remaining: expect.any(Number) });
+    expect(response.json().proactive).toMatchObject({ state: expect.any(String), windowOpen: expect.any(Boolean), timezone: "America/Sao_Paulo" });
   });
   it("responde health live sem tocar em dependências profundas", async () => {
     const app = await buildApp();

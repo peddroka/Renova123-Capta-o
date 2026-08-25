@@ -1,0 +1,21 @@
+[Unit]
+Description=Renova123 Captação API
+After=network-online.target evolution-api.service
+Wants=network-online.target evolution-api.service
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/Renova123-Capta-o
+Environment=NODE_ENV=production
+EnvironmentFile=-/home/ubuntu/Renova123-Capta-o/.env
+ExecStart=/usr/bin/pnpm --filter @renova123/api start
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+KillSignal=SIGTERM
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

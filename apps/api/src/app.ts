@@ -14,6 +14,8 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import {
   decryptSecret,
   encryptSecret,
+  FRANCISCO_HOURS,
+  isProactiveWindow,
   maskSecret,
   normalizeBrazilianPhone,
   parsePhoneList,
@@ -425,6 +427,7 @@ export async function buildApp(
     };
     let queue = { pending: 0, failed: 0 };
     let messages = { lastInboundAt: null as string | null, lastOutboundAt: null as string | null };
+    let dailyUsageToday = 0;
     if (serviceDb) {
       const heartbeat = await serviceDb
         .from("worker_heartbeats")
@@ -468,6 +471,30 @@ export async function buildApp(
         lastInboundAt: inbound.data?.received_at ?? inbound.data?.created_at ?? null,
         lastOutboundAt: outbound.data?.sent_at ?? outbound.data?.created_at ?? null,
       };
+      const localDate = new Intl.DateTimeFormat("en-CA", {
+        timeZone: FRANCISCO_HOURS.timezone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(new Date());
+      const agent = await serviceDb
+        .from("agents")
+        .select("agent_id")
+        .eq("owner_id", owner)
+        .eq("slug", "francisco")
+        .maybeSingle();
+      const usageRows = await serviceDb
+        .from("daily_usage")
+        .select("outreach_count,agent_id")
+        .eq("owner_id", owner)
+        .eq("usage_date", localDate);
+      if (!usageRows.error) {
+        const rows = usageRows.data ?? [];
+        const scoped = agent.data?.agent_id
+          ? rows.filter((row) => row.agent_id === agent.data?.agent_id)
+          : rows;
+        dailyUsageToday = scoped.reduce((sum, row) => sum + Number(row.outreach_count ?? 0), 0);
+      }
       scheduler = worker;
     } else if (config.MOCK_MODE) {
       const configuredHeartbeat = `${process.env.MOCK_DB_PATH ?? ".runtime/mock-db.json"}.worker-heartbeat.json`;
@@ -502,6 +529,28 @@ export async function buildApp(
     const whatsappState = await connectionWhatsapp
       .getConnectionStatus()
       .catch(() => ({ state: "unavailable" }));
+    const dailyLimit = Number(
+      outreach.newLeadsDailyLimit ?? outreach.dailyProactiveLimit ?? outreach.dailyLimit ?? 50,
+    );
+    const proactiveWindowOpen = isProactiveWindow(FRANCISCO_HOURS);
+    const workerHealthy = ["online", "running", "mock"].includes(worker.status);
+    const proactiveState = !workerHealthy
+      ? "worker_offline"
+      : whatsappState.state !== "open" && whatsappState.state !== "mock"
+        ? "whatsapp_not_open"
+        : config.SIMULATION_MODE || !config.REAL_SENDING_ENABLED
+          ? "real_sending_blocked"
+          : !config.OUTREACH_ENABLED || outreach.enabled !== true
+            ? "outreach_disabled"
+            : general.globalPause === true
+              ? "global_pause"
+              : general.automationEnabled === false
+                ? "automation_disabled"
+                : !proactiveWindowOpen
+                  ? "outside_proactive_window"
+                  : dailyUsageToday >= dailyLimit
+                    ? "daily_quota_exhausted"
+                    : "active";
     return {
       status: "ok",
       time: new Date().toISOString(),
@@ -511,7 +560,17 @@ export async function buildApp(
       outreachEnabled: config.OUTREACH_ENABLED,
       automationActive:
         config.OUTREACH_ENABLED && general.globalPause !== true && general.automationEnabled !== false,
-      usage: { dailyLimit: Number(outreach.dailyProactiveLimit ?? outreach.dailyLimit ?? 50), today: 0 },
+      usage: {
+        dailyLimit,
+        today: dailyUsageToday,
+        remaining: Math.max(0, dailyLimit - dailyUsageToday),
+      },
+      proactive: {
+        state: proactiveState,
+        windowOpen: proactiveWindowOpen,
+        window: `${FRANCISCO_HOURS.outreachStart}-${FRANCISCO_HOURS.outreachEnd}`,
+        timezone: FRANCISCO_HOURS.timezone,
+      },
       queue,
       messages,
       services: {

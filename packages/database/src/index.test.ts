@@ -192,6 +192,16 @@ describe("repositório mock persistente", () => {
     expect((await repository.claimJobs(1))[0]?.type).toBe("outreach");
   });
 
+  it("continua priorizando inbound quando prospecção está pausada", async () => {
+    const repository = createRepository({ mock: true, supabaseUrl: undefined, serviceRoleKey: undefined, mockFilePath: null });
+    await repository.enqueue("outreach", { phone: "5511992468815", leadId: "real" }, new Date(), "outreach:paused-proactive");
+    await repository.enqueue("inbound_reply", { phone: "5511992468816", text: "Oi", messageId: "inbound-24h" }, new Date(), "inbound:24h");
+    const claimed = await repository.claimJobs(10, { includeOutbound: false });
+    expect(claimed).toHaveLength(1);
+    expect(claimed[0]?.type).toBe("inbound_reply");
+    expect((await repository.claimJobs(1))[0]?.type).toBe("outreach");
+  });
+
   it("inbound já respondido não reaparece como recovery", async () => {
     const repository = createRepository({ mock: true, supabaseUrl: undefined, serviceRoleKey: undefined, mockFilePath: null });
     const id = await repository.enqueueInboundDebounced({ phone: "5511974442893", text: "Sim", messageId: "inbound-2893" }, new Date());

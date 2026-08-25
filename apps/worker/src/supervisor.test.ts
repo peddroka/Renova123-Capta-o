@@ -20,4 +20,10 @@ describe("worker supervisor", () => {
     expect(shouldRecoverWorker(null)).toBe(true);
     expect(canStartWorker(null)).toBe(true);
   });
+  it("reinicia imediatamente quando o worker marcou o lock como stopped", () => {
+    const stopped = heartbeat({ status: "stopped", last_heartbeat_at: "2026-08-10T04:00:09.000Z", lock_expires_at: "2026-08-10T04:00:09.000Z" });
+    const now = Date.parse("2026-08-10T04:00:10.000Z");
+    expect(shouldRecoverWorker(stopped, now)).toBe(true);
+    expect(canStartWorker(stopped, now)).toBe(true);
+  });
 });

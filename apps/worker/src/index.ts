@@ -88,6 +88,7 @@ import { structuredOutputFailurePlan } from "./structured-output-policy.js";
 import { groqAttemptModels, isSharedGroqQuotaError, providerPoolRetrySeconds } from "./ai-fallback-policy.js";
 import { compareOutboundText, materializeOutreachTemplate } from "./outbound-text-integrity.js";
 import { ConversationLanes } from "./conversation-lanes.js";
+import { WorkerLeaseLostError, heartbeatRetryDelaysMs, isTransientHeartbeatError, shouldStopAfterHeartbeatFailure } from "./heartbeat-policy.js";
 import {
   isControlledOutreachTestJob,
   isOperationalTestMode,
@@ -341,12 +342,25 @@ async function runWorker() {
     if (heartbeatInFlight) return;
     heartbeatInFlight = true;
     try {
-      await heartbeat();
+      await heartbeatWithRetry();
       lastHeartbeatAtMs = Date.now();
     } catch (error) {
-      workerLeaseLost = true;
-      stopping = true;
-      log.fatal({ err: error, instanceId, pid: process.pid }, "worker_lock_lost_stopping");
+      const shouldStop = shouldStopAfterHeartbeatFailure({
+        error,
+        lastSuccessAtMs: lastHeartbeatAtMs,
+        nowMs: Date.now(),
+        heartbeatIntervalMs: workerConfig.WORKER_HEARTBEAT_MS,
+      });
+      if (shouldStop) {
+        workerLeaseLost = true;
+        stopping = true;
+        log.fatal({ err: error, instanceId, pid: process.pid, lastHeartbeatAtMs }, "worker_lock_lost_stopping");
+      } else {
+        log.warn(
+          { err: error, instanceId, pid: process.pid, lastHeartbeatAtMs },
+          "worker_heartbeat_transient_failure",
+        );
+      }
     } finally {
       heartbeatInFlight = false;
     }
@@ -415,98 +429,99 @@ async function runWorker() {
           workerConfig.OUTREACH_ONLINE_TEST_PHONE,
         );
         const automationEnabled = general.automationEnabled !== false;
-        // Inbound qualification must continue while the global pause is on so
-        // that safe inbound state is persisted. claimJobs excludes outbound
-        // queues in this mode; commercial automation remains paused.
-        if (general.globalPause === true || (automationEnabled && (!general.globalPause || testMode))) {
-          const capacity = Math.max(0, 10 - activeJobs.size);
-          if (diagnosticTicks < 10) {
-            const queueSnapshot = await repository.page("queue", { page: 1, pageSize: 5000 });
-            const pending = queueSnapshot.rows.filter((row) =>
-              ["pending", "scheduled", "retry"].includes(String(row.status)),
-            );
-            log.info(
-              {
-                tick: diagnosticTicks + 1,
-                capacity,
-                pendingJobs: pending.length,
-                pendingAvailableNow: pending.filter(
-                  (row) => Date.parse(String(row.availableAt ?? "")) <= Date.now(),
-                ).length,
-                claimRequested: capacity,
-                activeJobs: activeJobs.size,
-                activeUniqueConversations: activeKeys.size,
-                automationEnabled,
-                globalPause: general.globalPause === true,
-              },
-              "worker_poll_diagnostic",
-            );
-            diagnosticTicks += 1;
-          }
-          log.debug(
+        // Conversation replies are a 24/7 transport path. Global pause and
+        // automationEnabled only gate proactive outreach/follow-up; they must
+        // never make the worker stop claiming inbound/AI response work.
+        const proactiveEnabled = testMode || (automationEnabled && general.globalPause !== true);
+        const capacity = Math.max(0, 10 - activeJobs.size);
+        if (diagnosticTicks < 10) {
+          const queueSnapshot = await repository.page("queue", { page: 1, pageSize: 5000 });
+          const pending = queueSnapshot.rows.filter((row) =>
+            ["pending", "scheduled", "retry"].includes(String(row.status)),
+          );
+          log.info(
             {
-              activeUniqueConversations: activeKeys.size(),
-              activeJobs: activeJobs.size,
+              tick: diagnosticTicks + 1,
               capacity,
+              pendingJobs: pending.length,
+              pendingAvailableNow: pending.filter(
+                (row) => Date.parse(String(row.availableAt ?? "")) <= Date.now(),
+              ).length,
+              claimRequested: capacity,
+              activeJobs: activeJobs.size,
+              activeUniqueConversations: activeKeys.size,
               automationEnabled,
               globalPause: general.globalPause === true,
+              proactiveEnabled,
             },
-            "worker_capacity",
+            "worker_poll_diagnostic",
           );
-          if (capacity > 0) {
-            const jobs = await repository.claimJobs(capacity, {
-              includeOutbound: !general.globalPause || testMode,
-              ...(testMode && workerConfig.OUTREACH_ONLINE_TEST_PHONE
-                ? { outboundPhoneAllowlist: [workerConfig.OUTREACH_ONLINE_TEST_PHONE] }
-                : {}),
-            });
-            if (diagnosticTicks <= 10)
-              log.info(
-                {
-                  claimReturned: jobs.length,
-                  returnedJobIds: jobs.map((job) => job.id),
-                  returnedConversationKeys: jobs.map((job) => conversationKey(job)),
-                },
-                "worker_claim_diagnostic",
-              );
-            for (const job of jobs) {
-              if (workerLeaseLost) break;
-              const key = conversationKey(job);
-              if (!activeKeys.tryStart(key)) {
-                await repository.deferJob(job.id, new Date(Date.now() + 1_000), "conversation_lane_busy");
-                log.info({ jobId: job.id, conversationKey: key }, "conversation_lane_busy_requeued");
-                continue;
-              }
-              const laneEvent =
-                key && seenConversationKeys.has(key)
-                  ? "conversation_lane_reused"
-                  : "conversation_lane_started";
-              if (key) seenConversationKeys.add(key);
-              log.info({ jobId: job.id, conversationKey: key }, laneEvent);
-              const task = (async () => {
-                const leaseOwner = serviceDb ? instanceId : String(process.pid);
-                const leaseTimer = setInterval(
-                  () => {
-                    void repository
-                      .renewJobLease(job.id, leaseOwner)
-                      .catch((error) => log.warn({ err: error, jobId: job.id }, "job_lease_renew_failed"));
-                  },
-                  Math.max(1_000, Math.floor(workerConfig.JOB_LEASE_TIMEOUT_MS / 3)),
-                );
-                try {
-                  await processSafely(job);
-                } finally {
-                  clearInterval(leaseTimer);
-                }
-              })();
-              activeJobs.add(task);
-              const cleanup = () => {
-                activeJobs.delete(task);
-                activeKeys.finish(key);
-                log.info({ jobId: job.id, conversationKey: key }, "conversation_lane_finished");
-              };
-              void task.then(cleanup, cleanup);
+          diagnosticTicks += 1;
+        }
+        log.debug(
+          {
+            activeUniqueConversations: activeKeys.size(),
+            activeJobs: activeJobs.size,
+            capacity,
+            automationEnabled,
+            globalPause: general.globalPause === true,
+            proactiveEnabled,
+          },
+          "worker_capacity",
+        );
+        if (capacity > 0) {
+          const jobs = await repository.claimJobs(capacity, {
+            includeOutbound: proactiveEnabled,
+            ...(testMode && workerConfig.OUTREACH_ONLINE_TEST_PHONE
+              ? { outboundPhoneAllowlist: [workerConfig.OUTREACH_ONLINE_TEST_PHONE] }
+              : {}),
+          });
+          if (diagnosticTicks <= 10)
+            log.info(
+              {
+                claimReturned: jobs.length,
+                returnedJobIds: jobs.map((job) => job.id),
+                returnedConversationKeys: jobs.map((job) => conversationKey(job)),
+              },
+              "worker_claim_diagnostic",
+            );
+          for (const job of jobs) {
+            if (workerLeaseLost) break;
+            const key = conversationKey(job);
+            if (!activeKeys.tryStart(key)) {
+              await repository.deferJob(job.id, new Date(Date.now() + 1_000), "conversation_lane_busy");
+              log.info({ jobId: job.id, conversationKey: key }, "conversation_lane_busy_requeued");
+              continue;
             }
+            const laneEvent =
+              key && seenConversationKeys.has(key)
+                ? "conversation_lane_reused"
+                : "conversation_lane_started";
+            if (key) seenConversationKeys.add(key);
+            log.info({ jobId: job.id, conversationKey: key }, laneEvent);
+            const task = (async () => {
+              const leaseOwner = serviceDb ? instanceId : String(process.pid);
+              const leaseTimer = setInterval(
+                () => {
+                  void repository
+                    .renewJobLease(job.id, leaseOwner)
+                    .catch((error) => log.warn({ err: error, jobId: job.id }, "job_lease_renew_failed"));
+                },
+                Math.max(1_000, Math.floor(workerConfig.JOB_LEASE_TIMEOUT_MS / 3)),
+              );
+              try {
+                await processSafely(job);
+              } finally {
+                clearInterval(leaseTimer);
+              }
+            })();
+            activeJobs.add(task);
+            const cleanup = () => {
+              activeJobs.delete(task);
+              activeKeys.finish(key);
+              log.info({ jobId: job.id, conversationKey: key }, "conversation_lane_finished");
+            };
+            void task.then(cleanup, cleanup);
           }
         }
       } catch (error) {
@@ -4350,7 +4365,25 @@ async function heartbeat() {
     p_instance_id: instanceId,
     p_ttl_seconds: Math.ceil(workerConfig.WORKER_HEARTBEAT_MS / 1000) * 3,
   });
-  if (error || !data) throw error ?? new Error("Lock do worker expirou.");
+  if (error) throw error;
+  if (!data) throw new WorkerLeaseLostError();
+}
+async function heartbeatWithRetry() {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= heartbeatRetryDelaysMs.length; attempt += 1) {
+    try {
+      await heartbeat();
+      return;
+    } catch (error) {
+      lastError = error;
+      if (error instanceof WorkerLeaseLostError || !isTransientHeartbeatError(error)) throw error;
+      const delay = heartbeatRetryDelaysMs[attempt];
+      if (delay === undefined) break;
+      log.warn({ err: error, attempt: attempt + 1, retryInMs: delay }, "worker_heartbeat_retry");
+      await sleep(delay);
+    }
+  }
+  throw lastError ?? new Error("Heartbeat do worker falhou sem detalhe.");
 }
 async function releaseInstanceLock() {
   if (!serviceDb) {

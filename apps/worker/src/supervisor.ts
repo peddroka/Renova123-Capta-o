@@ -9,7 +9,7 @@ const workerRoot = fileURLToPath(new URL("..", import.meta.url));
 const execFileAsync = promisify(execFile);
 
 export const supervisorTiming = {
-  startupGraceMs: workerConfig.WORKER_HEARTBEAT_MS * 3,
+  startupGraceMs: workerConfig.WORKER_HEARTBEAT_MS,
   staleAfterMs: workerConfig.WORKER_HEARTBEAT_MS * 4,
   restartBackoffMs: workerConfig.WORKER_HEARTBEAT_MS * 6,
   pollMs: workerConfig.WORKER_HEARTBEAT_MS,
@@ -29,12 +29,12 @@ export function heartbeatAgeMs(heartbeat: Pick<WorkerHeartbeat, "last_heartbeat_
 }
 
 export function shouldRecoverWorker(heartbeat: WorkerHeartbeat | null, now = Date.now()) {
-  if (!heartbeat) return true;
+  if (!heartbeat || heartbeat.status !== "running") return true;
   return heartbeatAgeMs(heartbeat, now) > supervisorTiming.staleAfterMs;
 }
 
 export function canStartWorker(heartbeat: WorkerHeartbeat | null, now = Date.now()) {
-  if (!heartbeat) return true;
+  if (!heartbeat || heartbeat.status !== "running") return true;
   const lockExpiresAt = Date.parse(heartbeat.lock_expires_at);
   return Number.isFinite(lockExpiresAt) && lockExpiresAt <= now;
 }
