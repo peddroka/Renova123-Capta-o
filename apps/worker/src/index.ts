@@ -88,7 +88,6 @@ import { structuredOutputFailurePlan } from "./structured-output-policy.js";
 import { groqAttemptModels, isSharedGroqQuotaError, providerPoolRetrySeconds } from "./ai-fallback-policy.js";
 import { compareOutboundText, materializeOutreachTemplate } from "./outbound-text-integrity.js";
 import { ConversationLanes } from "./conversation-lanes.js";
-import { WorkerLeaseLostError, heartbeatRetryDelaysMs, isTransientHeartbeatError, shouldStopAfterHeartbeatFailure } from "./heartbeat-policy.js";
 import {
   WorkerLeaseLostError,
   heartbeatRetryDelaysMs,
