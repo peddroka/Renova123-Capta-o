@@ -54,6 +54,51 @@ const paginationSchema = z.object({
   status: z.string().max(40).optional(),
 });
 
+type SupabaseErrorLike = { code?: string; message?: string } | null | undefined;
+
+function isMissingAgentSchema(error: SupabaseErrorLike) {
+  const message = String(error?.message ?? "").toLowerCase();
+  return (
+    error?.code === "42703" ||
+    error?.code === "42p01" ||
+    message.includes("agent_id") ||
+    message.includes('relation "agents" does not exist')
+  );
+}
+
+async function readFranciscoDailyUsage(client: SupabaseClient, ownerId: string, localDate: string) {
+  const agentResult = await client
+    .from("agents")
+    .select("agent_id")
+    .eq("owner_id", ownerId)
+    .eq("slug", "francisco")
+    .maybeSingle();
+
+  if (agentResult.error && !isMissingAgentSchema(agentResult.error)) throw agentResult.error;
+  const agentId = agentResult.data?.agent_id as string | undefined;
+
+  if (agentId) {
+    const scoped = await client
+      .from("daily_usage")
+      .select("outreach_count,agent_id")
+      .eq("owner_id", ownerId)
+      .eq("usage_date", localDate)
+      .eq("agent_id", agentId);
+    if (!scoped.error)
+      return (scoped.data ?? []).reduce((sum, row) => sum + Number(row.outreach_count ?? 0), 0);
+    if (!isMissingAgentSchema(scoped.error)) throw scoped.error;
+  }
+
+  // Compatibility path for production databases predating the agent_id migration.
+  const legacy = await client
+    .from("daily_usage")
+    .select("outreach_count")
+    .eq("owner_id", ownerId)
+    .eq("usage_date", localDate);
+  if (legacy.error) throw legacy.error;
+  return (legacy.data ?? []).reduce((sum, row) => sum + Number(row.outreach_count ?? 0), 0);
+}
+
 function buildWolfLiveContext(transcript: Array<Record<string, unknown>>) {
   const text = transcript.map((turn) => String(turn.text ?? "")).join(" ");
   const clientText = transcript
@@ -140,10 +185,13 @@ export async function buildApp(
           apiKey: config.EVOLUTION_API_KEY,
           instanceName: config.EVOLUTION_INSTANCE_NAME,
           webhookUrl: config.EVOLUTION_WEBHOOK_URL,
-        webhookSecret: config.WEBHOOK_SECRET,
-      }));
+          webhookSecret: config.WEBHOOK_SECRET,
+        }));
   const pedroWhatsapp: WhatsAppProvider = config.MOCK_EVOLUTION
-    ? new MockWhatsAppProvider({ instanceName: config.EVOLUTION_PEDRO_INSTANCE_NAME, webhookSecret: config.PEDRO_WEBHOOK_SECRET })
+    ? new MockWhatsAppProvider({
+        instanceName: config.EVOLUTION_PEDRO_INSTANCE_NAME,
+        webhookSecret: config.PEDRO_WEBHOOK_SECRET,
+      })
     : new EvolutionWhatsAppProvider({
         baseUrl: config.EVOLUTION_API_URL,
         apiKey: config.EVOLUTION_API_KEY,
@@ -152,8 +200,20 @@ export async function buildApp(
         webhookSecret: config.PEDRO_WEBHOOK_SECRET,
       });
   const whatsappAgents = {
-    francisco: { slug: "francisco", name: "Francisco", instanceName: config.EVOLUTION_INSTANCE_NAME, provider: connectionWhatsapp, webhookSecret: config.WEBHOOK_SECRET },
-    pedro: { slug: "pedro", name: "Pedro", instanceName: config.EVOLUTION_PEDRO_INSTANCE_NAME, provider: pedroWhatsapp, webhookSecret: config.PEDRO_WEBHOOK_SECRET },
+    francisco: {
+      slug: "francisco",
+      name: "Francisco",
+      instanceName: config.EVOLUTION_INSTANCE_NAME,
+      provider: connectionWhatsapp,
+      webhookSecret: config.WEBHOOK_SECRET,
+    },
+    pedro: {
+      slug: "pedro",
+      name: "Pedro",
+      instanceName: config.EVOLUTION_PEDRO_INSTANCE_NAME,
+      provider: pedroWhatsapp,
+      webhookSecret: config.PEDRO_WEBHOOK_SECRET,
+    },
   } as const;
   const agentSlugSchema = z.enum(["francisco", "pedro"]);
   const agentForRequest = (request: FastifyRequest) => {
@@ -176,7 +236,10 @@ export async function buildApp(
     ...(await agent.provider.getConnectionStatus()),
     simulation: agent.slug === "pedro" || config.SIMULATION_MODE || !config.REAL_SENDING_ENABLED,
   });
-  const agentPairing = async (agent: (typeof whatsappAgents)[keyof typeof whatsappAgents], includeQr = false) => {
+  const agentPairing = async (
+    agent: (typeof whatsappAgents)[keyof typeof whatsappAgents],
+    includeQr = false,
+  ) => {
     const status = await agentConnectionStatus(agent);
     const qr = includeQr && status.state === "connecting" ? await agent.provider.getQrCode() : null;
     return {
@@ -477,24 +540,7 @@ export async function buildApp(
         month: "2-digit",
         day: "2-digit",
       }).format(new Date());
-      const agent = await serviceDb
-        .from("agents")
-        .select("agent_id")
-        .eq("owner_id", owner)
-        .eq("slug", "francisco")
-        .maybeSingle();
-      const usageRows = await serviceDb
-        .from("daily_usage")
-        .select("outreach_count,agent_id")
-        .eq("owner_id", owner)
-        .eq("usage_date", localDate);
-      if (!usageRows.error) {
-        const rows = usageRows.data ?? [];
-        const scoped = agent.data?.agent_id
-          ? rows.filter((row) => row.agent_id === agent.data?.agent_id)
-          : rows;
-        dailyUsageToday = scoped.reduce((sum, row) => sum + Number(row.outreach_count ?? 0), 0);
-      }
+      dailyUsageToday = await readFranciscoDailyUsage(serviceDb, owner, localDate);
       scheduler = worker;
     } else if (config.MOCK_MODE) {
       const configuredHeartbeat = `${process.env.MOCK_DB_PATH ?? ".runtime/mock-db.json"}.worker-heartbeat.json`;
@@ -2407,6 +2453,7 @@ export async function buildApp(
       "queue",
       "conversations",
       "interested",
+      "qualified",
       "demos",
       "unanswered",
       "followups",
@@ -2932,47 +2979,88 @@ export async function buildApp(
   );
   app.get("/agents/:agentSlug/whatsapp/qr", { preHandler: requireAuth(authClient) }, async (request) => {
     const agent = agentForRequest(request);
-    if (config.MOCK_EVOLUTION) throw Object.assign(new Error("Evolution API real não configurada. Não existe QR para renovar."), { statusCode: 409 });
+    if (config.MOCK_EVOLUTION)
+      throw Object.assign(new Error("Evolution API real não configurada. Não existe QR para renovar."), {
+        statusCode: 409,
+      });
     return agentPairing(agent, true);
   });
-  app.get("/agents/:agentSlug/whatsapp/diagnostics", { preHandler: requireAuth(authClient) }, async (request) => {
-    const agent = agentForRequest(request);
-    return {
-      agent: agent.slug,
-      name: agent.name,
-      status: await agentConnectionStatus(agent),
-      instanceName: agent.instanceName,
-      connectionMode: config.MOCK_EVOLUTION ? "not_configured" : "evolution",
-      webhookConfigured: Boolean(config.EVOLUTION_WEBHOOK_URL),
-      apiKeyConfigured: Boolean(config.EVOLUTION_API_KEY),
-      apiKeyExposed: false,
-      automationEnabled: agent.slug === "pedro" ? config.PEDRO_AUTOMATION_ENABLED : false,
-      globalPause: agent.slug === "pedro" ? config.PEDRO_GLOBAL_PAUSE : false,
-      outreachEnabled: agent.slug === "pedro" ? config.PEDRO_OUTREACH_ENABLED : false,
-      realSendingEnabled: agent.slug === "pedro" ? config.PEDRO_REAL_SENDING_ENABLED : false,
-    };
-  });
-  app.post("/agents/:agentSlug/whatsapp/instance", { preHandler: requireAuth(authClient) }, async (request) => agentForRequest(request).provider.createInstance());
-  app.post("/agents/:agentSlug/whatsapp/connect", { preHandler: requireAuth(authClient) }, async (request) => {
-    const agent = agentForRequest(request);
-    if (config.MOCK_EVOLUTION) throw Object.assign(new Error("Evolution API real não configurada. O QR fictício foi removido."), { statusCode: 409 });
-    return agent.provider.connect();
-  });
-  app.post("/agents/:agentSlug/whatsapp/webhook/configure", { preHandler: requireAuth(authClient) }, async (request) => {
-    await agentForRequest(request).provider.configureWebhook();
-    return { success: true };
-  });
-  app.post("/agents/:agentSlug/whatsapp/restart", { preHandler: requireAuth(authClient) }, async (request) => agentForRequest(request).provider.restart());
+  app.get(
+    "/agents/:agentSlug/whatsapp/diagnostics",
+    { preHandler: requireAuth(authClient) },
+    async (request) => {
+      const agent = agentForRequest(request);
+      return {
+        agent: agent.slug,
+        name: agent.name,
+        status: await agentConnectionStatus(agent),
+        instanceName: agent.instanceName,
+        connectionMode: config.MOCK_EVOLUTION ? "not_configured" : "evolution",
+        webhookConfigured: Boolean(config.EVOLUTION_WEBHOOK_URL),
+        apiKeyConfigured: Boolean(config.EVOLUTION_API_KEY),
+        apiKeyExposed: false,
+        automationEnabled: agent.slug === "pedro" ? config.PEDRO_AUTOMATION_ENABLED : false,
+        globalPause: agent.slug === "pedro" ? config.PEDRO_GLOBAL_PAUSE : false,
+        outreachEnabled: agent.slug === "pedro" ? config.PEDRO_OUTREACH_ENABLED : false,
+        realSendingEnabled: agent.slug === "pedro" ? config.PEDRO_REAL_SENDING_ENABLED : false,
+      };
+    },
+  );
+  app.post("/agents/:agentSlug/whatsapp/instance", { preHandler: requireAuth(authClient) }, async (request) =>
+    agentForRequest(request).provider.createInstance(),
+  );
+  app.post(
+    "/agents/:agentSlug/whatsapp/connect",
+    { preHandler: requireAuth(authClient) },
+    async (request) => {
+      const agent = agentForRequest(request);
+      if (config.MOCK_EVOLUTION)
+        throw Object.assign(new Error("Evolution API real não configurada. O QR fictício foi removido."), {
+          statusCode: 409,
+        });
+      return agent.provider.connect();
+    },
+  );
+  app.post(
+    "/agents/:agentSlug/whatsapp/webhook/configure",
+    { preHandler: requireAuth(authClient) },
+    async (request) => {
+      await agentForRequest(request).provider.configureWebhook();
+      return { success: true };
+    },
+  );
+  app.post("/agents/:agentSlug/whatsapp/restart", { preHandler: requireAuth(authClient) }, async (request) =>
+    agentForRequest(request).provider.restart(),
+  );
   app.post("/agents/:agentSlug/whatsapp/logout", { preHandler: requireAuth(authClient) }, async (request) => {
     await agentForRequest(request).provider.logout();
     return { success: true };
   });
   app.post("/agents/:agentSlug/whatsapp/test", { preHandler: requireAuth(authClient) }, async (request) => {
     const agent = agentForRequest(request);
-    const body = z.object({ phone: z.string().regex(/^55\d{10,11}$/), text: z.string().min(1).max(1000), idempotencyKey: z.string().uuid() }).parse(request.body);
+    const body = z
+      .object({
+        phone: z.string().regex(/^55\d{10,11}$/),
+        text: z.string().min(1).max(1000),
+        idempotencyKey: z.string().uuid(),
+      })
+      .parse(request.body);
     const status = await agentConnectionStatus(agent);
-    await repository.audit("whatsapp.test", "whatsapp", null, { agent: agent.slug, instanceName: agent.instanceName, phoneSuffix: body.phone.slice(-4), simulation: true, idempotencyKey: body.idempotencyKey, connectionState: status.state });
-    return { status: "simulated", agent: agent.slug, instanceName: agent.instanceName, realMessageSent: false, externalMessageId: null };
+    await repository.audit("whatsapp.test", "whatsapp", null, {
+      agent: agent.slug,
+      instanceName: agent.instanceName,
+      phoneSuffix: body.phone.slice(-4),
+      simulation: true,
+      idempotencyKey: body.idempotencyKey,
+      connectionState: status.state,
+    });
+    return {
+      status: "simulated",
+      agent: agent.slug,
+      instanceName: agent.instanceName,
+      realMessageSent: false,
+      externalMessageId: null,
+    };
   });
 
   app.get("/whatsapp/status", { preHandler: requireAuth(authClient) }, async () => publicConnectionStatus());
@@ -3479,8 +3567,12 @@ export async function buildApp(
     { config: { rateLimit: { max: 600, timeWindow: "1 minute" } }, bodyLimit: 512 * 1024 },
     async (request, reply) => {
       const payload = z.record(z.unknown()).parse(request.body);
-      const instanceName = String(payload.instance ?? (payload.data as Record<string, unknown> | undefined)?.instance ?? "");
-      const agent = Object.values(whatsappAgents).find((candidate) => candidate.instanceName === instanceName);
+      const instanceName = String(
+        payload.instance ?? (payload.data as Record<string, unknown> | undefined)?.instance ?? "",
+      );
+      const agent = Object.values(whatsappAgents).find(
+        (candidate) => candidate.instanceName === instanceName,
+      );
       if (!agent) return reply.code(404).send({ message: "Instância Evolution desconhecida." });
       if (!agent.provider.validateWebhook(request.headers))
         return reply.code(401).send({ message: "Webhook não autorizado." });
@@ -3488,8 +3580,18 @@ export async function buildApp(
       if (!(await repository.recordWebhook(event.eventId, event.sourceEvent, event.raw)))
         return reply.code(200).send({ duplicate: true });
       if (!event.relevant) return reply.code(202).send({ accepted: true, ignored: event.ignoreReason });
-      await repository.enqueue("evolution_event", { event, agent: agent.slug, agentId: agent.slug }, new Date(), `evolution:${agent.slug}:${event.eventId}`);
-      return reply.code(202).send({ accepted: true, eventId: event.eventId, agent: agent.slug, instanceName: agent.instanceName });
+      await repository.enqueue(
+        "evolution_event",
+        { event, agent: agent.slug, agentId: agent.slug },
+        new Date(),
+        `evolution:${agent.slug}:${event.eventId}`,
+      );
+      return reply.code(202).send({
+        accepted: true,
+        eventId: event.eventId,
+        agent: agent.slug,
+        instanceName: agent.instanceName,
+      });
     },
   );
 

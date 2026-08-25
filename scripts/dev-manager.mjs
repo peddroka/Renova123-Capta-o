@@ -208,7 +208,9 @@ async function start(profile) {
     saveState(state);
     child.once("exit", (code, signal) => {
       if (stopping.value) return;
-      console.error(`Serviço gerenciado ${key} encerrou inesperadamente (code=${code ?? "null"}, signal=${signal ?? "none"}).`);
+      console.error(
+        `Serviço gerenciado ${key} encerrou inesperadamente (code=${code ?? "null"}, signal=${signal ?? "none"}).`,
+      );
       // Exit non-zero even when the child ended with code 0. This lets systemd
       // restart the whole managed profile instead of leaving a half-alive API.
       void stop(code && code !== 0 ? code : 1);

@@ -90,6 +90,12 @@ import { compareOutboundText, materializeOutreachTemplate } from "./outbound-tex
 import { ConversationLanes } from "./conversation-lanes.js";
 import { WorkerLeaseLostError, heartbeatRetryDelaysMs, isTransientHeartbeatError, shouldStopAfterHeartbeatFailure } from "./heartbeat-policy.js";
 import {
+  WorkerLeaseLostError,
+  heartbeatRetryDelaysMs,
+  isTransientHeartbeatError,
+  shouldStopAfterHeartbeatFailure,
+} from "./heartbeat-policy.js";
+import {
   isControlledOutreachTestJob,
   isOperationalTestMode,
   operationalTestDestination,
@@ -127,9 +133,25 @@ const whatsapp: WhatsAppProvider = workerConfig.MOCK_EVOLUTION
       webhookSecret: workerConfig.EVOLUTION_WEBHOOK_SECRET ?? "development-only-secret-change-me",
     });
 const pedroWhatsapp: WhatsAppProvider = workerConfig.MOCK_EVOLUTION
-  ? new MockWhatsAppProvider({ instanceName: workerConfig.EVOLUTION_PEDRO_INSTANCE_NAME, webhookSecret: workerConfig.EVOLUTION_PEDRO_WEBHOOK_SECRET ?? workerConfig.EVOLUTION_WEBHOOK_SECRET ?? "development-only-secret-change-me" })
-  : new EvolutionWhatsAppProvider({ baseUrl: workerConfig.EVOLUTION_BASE_URL, apiKey: workerConfig.EVOLUTION_API_KEY, instanceName: workerConfig.EVOLUTION_PEDRO_INSTANCE_NAME, webhookUrl: workerConfig.EVOLUTION_WEBHOOK_URL, webhookSecret: workerConfig.EVOLUTION_PEDRO_WEBHOOK_SECRET ?? workerConfig.EVOLUTION_WEBHOOK_SECRET ?? "development-only-secret-change-me" });
-const whatsappForInstance = (instanceName: string) => instanceName === workerConfig.EVOLUTION_PEDRO_INSTANCE_NAME ? pedroWhatsapp : whatsapp;
+  ? new MockWhatsAppProvider({
+      instanceName: workerConfig.EVOLUTION_PEDRO_INSTANCE_NAME,
+      webhookSecret:
+        workerConfig.EVOLUTION_PEDRO_WEBHOOK_SECRET ??
+        workerConfig.EVOLUTION_WEBHOOK_SECRET ??
+        "development-only-secret-change-me",
+    })
+  : new EvolutionWhatsAppProvider({
+      baseUrl: workerConfig.EVOLUTION_BASE_URL,
+      apiKey: workerConfig.EVOLUTION_API_KEY,
+      instanceName: workerConfig.EVOLUTION_PEDRO_INSTANCE_NAME,
+      webhookUrl: workerConfig.EVOLUTION_WEBHOOK_URL,
+      webhookSecret:
+        workerConfig.EVOLUTION_PEDRO_WEBHOOK_SECRET ??
+        workerConfig.EVOLUTION_WEBHOOK_SECRET ??
+        "development-only-secret-change-me",
+    });
+const whatsappForInstance = (instanceName: string) =>
+  instanceName === workerConfig.EVOLUTION_PEDRO_INSTANCE_NAME ? pedroWhatsapp : whatsapp;
 const instanceId = `${process.env.COMPUTERNAME ?? "local"}:${process.pid}:${crypto.randomUUID()}`;
 const localHeartbeatPath = path.resolve(
   `${workerConfig.MOCK_DB_PATH ?? ".runtime/mock-db.json"}.worker-heartbeat.json`,
@@ -354,7 +376,10 @@ async function runWorker() {
       if (shouldStop) {
         workerLeaseLost = true;
         stopping = true;
-        log.fatal({ err: error, instanceId, pid: process.pid, lastHeartbeatAtMs }, "worker_lock_lost_stopping");
+        log.fatal(
+          { err: error, instanceId, pid: process.pid, lastHeartbeatAtMs },
+          "worker_lock_lost_stopping",
+        );
       } else {
         log.warn(
           { err: error, instanceId, pid: process.pid, lastHeartbeatAtMs },
@@ -494,9 +519,7 @@ async function runWorker() {
               continue;
             }
             const laneEvent =
-              key && seenConversationKeys.has(key)
-                ? "conversation_lane_reused"
-                : "conversation_lane_started";
+              key && seenConversationKeys.has(key) ? "conversation_lane_reused" : "conversation_lane_started";
             if (key) seenConversationKeys.add(key);
             log.info({ jobId: job.id, conversationKey: key }, laneEvent);
             const task = (async () => {
@@ -1035,8 +1058,19 @@ async function processInboundEvent(job: QueueJob) {
   // Pedro permanece fail-closed, mas inbound ainda é persistido e auditado.
   // A janela de prospecção nunca participa desta decisão; quando habilitado,
   // a autorização da conversa será verificada pelo escopo agent-aware.
-  if (event.instanceName === workerConfig.EVOLUTION_PEDRO_INSTANCE_NAME && (!workerConfig.PEDRO_AUTOMATION_ENABLED || workerConfig.PEDRO_GLOBAL_PAUSE || !workerConfig.PEDRO_OUTREACH_ENABLED)) {
-    await repository.audit("pedro.inbound.paused", "integration", event.eventId, { instanceName: event.instanceName, automationEnabled: workerConfig.PEDRO_AUTOMATION_ENABLED, globalPause: workerConfig.PEDRO_GLOBAL_PAUSE, outreachEnabled: workerConfig.PEDRO_OUTREACH_ENABLED, persisted: true });
+  if (
+    event.instanceName === workerConfig.EVOLUTION_PEDRO_INSTANCE_NAME &&
+    (!workerConfig.PEDRO_AUTOMATION_ENABLED ||
+      workerConfig.PEDRO_GLOBAL_PAUSE ||
+      !workerConfig.PEDRO_OUTREACH_ENABLED)
+  ) {
+    await repository.audit("pedro.inbound.paused", "integration", event.eventId, {
+      instanceName: event.instanceName,
+      automationEnabled: workerConfig.PEDRO_AUTOMATION_ENABLED,
+      globalPause: workerConfig.PEDRO_GLOBAL_PAUSE,
+      outreachEnabled: workerConfig.PEDRO_OUTREACH_ENABLED,
+      persisted: true,
+    });
     return;
   }
   await markCadenceResponded(leadId, inboundAt);
@@ -1547,7 +1581,10 @@ async function processOutbound(job: QueueJob) {
       new Date(Date.parse(String(settings.campaignStartAt))),
     );
   if (!allowTestWindow && !isProactiveWindow(agentHours))
-    throw new DeferredJobError("Fora do horário de prospecção do agente.", nextAgentProactiveSlot(new Date(), agentHours));
+    throw new DeferredJobError(
+      "Fora do horário de prospecção do agente.",
+      nextAgentProactiveSlot(new Date(), agentHours),
+    );
   const phone = requiredString(job.payload.phone, "phone");
   const text = requiredString(job.payload.text, "text");
   const leadId = requiredString(job.payload.leadId, "leadId");
@@ -1625,7 +1662,12 @@ async function processOutbound(job: QueueJob) {
         .order("updated_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
-      serviceDb.from("leads").select("stage,human_active,automation_paused").eq("owner_id", owner).eq("id", leadId).maybeSingle(),
+      serviceDb
+        .from("leads")
+        .select("stage,human_active,automation_paused")
+        .eq("owner_id", owner)
+        .eq("id", leadId)
+        .maybeSingle(),
     ]);
     if (current.error) throw current.error;
     if (leadCurrent.error) throw leadCurrent.error;
@@ -1636,7 +1678,16 @@ async function processOutbound(job: QueueJob) {
       state?.human_active === true ||
       leadState?.human_active === true ||
       leadState?.automation_paused === true ||
-      ["engaged", "handoff", "human_handoff", "no_interest", "opted_out", "blocked", "converted", "won"].includes(String(state?.stage ?? leadState?.stage ?? ""))
+      [
+        "engaged",
+        "handoff",
+        "human_handoff",
+        "no_interest",
+        "opted_out",
+        "blocked",
+        "converted",
+        "won",
+      ].includes(String(state?.stage ?? leadState?.stage ?? ""))
     ) {
       await repository.cancelJob(job.id, "pre_send_recheck_inbound_or_terminal_state");
       return;
@@ -1831,7 +1882,12 @@ async function processFollowUp(job: QueueJob) {
         .order("updated_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
-      serviceDb.from("leads").select("stage,human_active,automation_paused").eq("owner_id", context.ownerId).eq("id", context.leadId).maybeSingle(),
+      serviceDb
+        .from("leads")
+        .select("stage,human_active,automation_paused")
+        .eq("owner_id", context.ownerId)
+        .eq("id", context.leadId)
+        .maybeSingle(),
     ]);
     if (current.error) throw current.error;
     if (leadCurrent.error) throw leadCurrent.error;
@@ -1842,17 +1898,33 @@ async function processFollowUp(job: QueueJob) {
       state?.human_active === true ||
       leadState?.human_active === true ||
       leadState?.automation_paused === true ||
-      ["engaged", "handoff", "human_handoff", "no_interest", "opted_out", "blocked", "converted", "won"].includes(String(state?.stage ?? leadState?.stage ?? ""))
+      [
+        "engaged",
+        "handoff",
+        "human_handoff",
+        "no_interest",
+        "opted_out",
+        "blocked",
+        "converted",
+        "won",
+      ].includes(String(state?.stage ?? leadState?.stage ?? ""))
     ) {
       await repository.cancelJob(job.id, "follow_up_invalidated_by_inbound_or_terminal_state");
       if (job.payload.followUpId)
-        await serviceDb.from("follow_ups").update({ status: "cancelled" }).eq("owner_id", context.ownerId).eq("id", String(job.payload.followUpId));
+        await serviceDb
+          .from("follow_ups")
+          .update({ status: "cancelled" })
+          .eq("owner_id", context.ownerId)
+          .eq("id", String(job.payload.followUpId));
       return;
     }
   }
   const settings = outreachSettingsSchema.parse(await repository.getSettings("outreach"));
   if (!isProactiveWindow(agentHours))
-    throw new DeferredJobError("Fora do horário de follow-up proativo do agente.", nextAgentProactiveSlot(new Date(), agentHours));
+    throw new DeferredJobError(
+      "Fora do horário de follow-up proativo do agente.",
+      nextAgentProactiveSlot(new Date(), agentHours),
+    );
   const terminal = [
     "opted_out",
     "no_interest",
@@ -4485,10 +4557,7 @@ function nextCommercialSlot(
   return new Date(from.getTime() + 24 * 60 * 60_000);
 }
 
-function nextAgentProactiveSlot(
-  from: Date,
-  agent: typeof FRANCISCO_HOURS | typeof PEDRO_HOURS,
-) {
+function nextAgentProactiveSlot(from: Date, agent: typeof FRANCISCO_HOURS | typeof PEDRO_HOURS) {
   const candidate = new Date(from.getTime() + 60_000);
   for (let index = 0; index < 7 * 24 * 2; index += 1) {
     if (isProactiveWindow(agent, candidate)) return candidate;

@@ -14,10 +14,19 @@ export function heartbeatLeaseTtlMs(heartbeatIntervalMs: number) {
 export function isTransientHeartbeatError(error: unknown) {
   if (error instanceof WorkerLeaseLostError) return false;
   const candidate = error as { code?: unknown; message?: unknown; cause?: unknown } | null;
-  const code = String(candidate?.code ?? (candidate?.cause as { code?: unknown } | undefined)?.code ?? "").toUpperCase();
+  const code = String(
+    candidate?.code ?? (candidate?.cause as { code?: unknown } | undefined)?.code ?? "",
+  ).toUpperCase();
   const message = String(candidate?.message ?? error ?? "").toLowerCase();
   return (
-    ["ECONNRESET", "ECONNREFUSED", "ETIMEDOUT", "EAI_AGAIN", "UND_ERR_SOCKET", "UND_ERR_CONNECT_TIMEOUT"].includes(code) ||
+    [
+      "ECONNRESET",
+      "ECONNREFUSED",
+      "ETIMEDOUT",
+      "EAI_AGAIN",
+      "UND_ERR_SOCKET",
+      "UND_ERR_CONNECT_TIMEOUT",
+    ].includes(code) ||
     /fetch failed|socket|network|connection reset|timed out|timeout|econnreset|econnrefused/.test(message)
   );
 }

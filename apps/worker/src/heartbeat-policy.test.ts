@@ -11,7 +11,12 @@ describe("worker heartbeat policy", () => {
     const error = Object.assign(new Error("fetch failed"), { cause: { code: "ECONNRESET" } });
     expect(isTransientHeartbeatError(error)).toBe(true);
     expect(
-      shouldStopAfterHeartbeatFailure({ error, lastSuccessAtMs: 100_000, nowMs: 110_000, heartbeatIntervalMs: 10_000 }),
+      shouldStopAfterHeartbeatFailure({
+        error,
+        lastSuccessAtMs: 100_000,
+        nowMs: 110_000,
+        heartbeatIntervalMs: 10_000,
+      }),
     ).toBe(false);
   });
 
@@ -19,7 +24,12 @@ describe("worker heartbeat policy", () => {
     const error = Object.assign(new Error("fetch failed"), { cause: { code: "ECONNRESET" } });
     expect(heartbeatLeaseTtlMs(10_000)).toBe(30_000);
     expect(
-      shouldStopAfterHeartbeatFailure({ error, lastSuccessAtMs: 100_000, nowMs: 130_001, heartbeatIntervalMs: 10_000 }),
+      shouldStopAfterHeartbeatFailure({
+        error,
+        lastSuccessAtMs: 100_000,
+        nowMs: 130_001,
+        heartbeatIntervalMs: 10_000,
+      }),
     ).toBe(true);
   });
 
