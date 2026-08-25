@@ -18,6 +18,7 @@ function isMissingAgentSchema(error: SupabaseErrorLike) {
   return (
     error?.code === "42703" ||
     error?.code === "42p01" ||
+    error?.code === "PGRST205" ||
     message.includes("agent_id") ||
     message.includes('relation "agents" does not exist')
   );
