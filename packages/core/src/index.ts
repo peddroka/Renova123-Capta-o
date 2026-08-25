@@ -9,6 +9,7 @@ export * from "./agent/provider-circuit-breaker.js";
 export * from "./agent/knowledge-service.js";
 export * from "./agent/conversation-memory-service.js";
 export * from "./agent/conversation-state.js";
+export * from "./agent/francisco-discovery-strategy.js";
 export * from "./agent/conversation-orchestrator.js";
 export * from "./agent/contextual-pt-br.js";
 export * from "./agent/sales-stage-service.js";

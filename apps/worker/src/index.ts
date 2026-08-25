@@ -1231,7 +1231,7 @@ async function processInboundTurn(job: QueueJob) {
       plannedSnapshot,
       turnText,
       job.id,
-      "Você acabou de fazer essa pergunta. O lead apenas cumprimentou você. Não repita a pergunta agora. Apresente-se e explique brevemente o motivo do contato, preservando a informação que ainda falta descobrir.",
+      "Você acabou de fazer essa pergunta. O lead apenas cumprimentou você. Não repita a pergunta agora nem faça apresentação precoce: responda à saudação de forma breve e preserve a informação que ainda falta descobrir para o próximo turno.",
     );
   }
   const extractedMemory = commercialMemoryUpdates(turnText, plannedSnapshot);
