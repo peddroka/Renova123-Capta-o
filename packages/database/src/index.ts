@@ -157,9 +157,15 @@ export interface Repository {
   ): Promise<void>;
   markOutreachCapacityReserved(id: string, reservedAt: string): Promise<void>;
   reserveOutreachPacing(
-    minIntervalSeconds: number,
-    maxIntervalSeconds: number,
-  ): Promise<{ allowed: boolean; retryAt: string; intervalSeconds?: number }>;
+    minIntervalMinutes: number,
+    maxIntervalMinutes: number,
+  ): Promise<{
+    allowed: boolean;
+    retryAt: string;
+    intervalMinutes?: number;
+    lastProactiveSendAt?: string | null;
+  }>;
+  markOutreachPacingSent(sentAt: string): Promise<void>;
   reserveOutreachQuota(
     dailyLimit: number,
     hourlyLimit: number,
@@ -211,6 +217,8 @@ class MemoryRepository implements Repository {
         endTime: "23:00",
         minIntervalSeconds: 5,
         maxIntervalSeconds: 5,
+        minIntervalMinutes: 12,
+        maxIntervalMinutes: 24,
         timezone: "America/Sao_Paulo",
         maxConsecutiveFailures: 5,
         autoPause: true,
@@ -1090,12 +1098,31 @@ class MemoryRepository implements Repository {
       if (job) job.payload = { ...job.payload, capacityReservedAt: reservedAt };
     });
   }
-  async reserveOutreachPacing(minIntervalSeconds: number, _maxIntervalSeconds: number) {
-    return {
-      allowed: true,
-      retryAt: new Date(Date.now() + minIntervalSeconds * 1000).toISOString(),
-      intervalSeconds: minIntervalSeconds,
-    };
+  async reserveOutreachPacing(minIntervalMinutes: number, maxIntervalMinutes: number) {
+    return this.mutate(() => {
+      const current = this.settings.get("outreach") ?? {};
+      const now = Date.now();
+      const persistedNext = Date.parse(String(current.nextProactiveSendAt ?? ""));
+      const lastProactiveSendAt =
+        typeof current.lastProactiveSendAt === "string" ? current.lastProactiveSendAt : null;
+      if (Number.isFinite(persistedNext) && persistedNext > now)
+        return { allowed: false, retryAt: new Date(persistedNext).toISOString(), lastProactiveSendAt };
+      const intervalMinutes =
+        minIntervalMinutes + Math.floor(Math.random() * (maxIntervalMinutes - minIntervalMinutes + 1));
+      const retryAt = new Date(now + intervalMinutes * 60_000).toISOString();
+      this.settings.set("outreach", {
+        ...current,
+        nextProactiveSendAt: retryAt,
+        proactiveIntervalMinutes: intervalMinutes,
+      });
+      return { allowed: true, retryAt, intervalMinutes, lastProactiveSendAt };
+    });
+  }
+  async markOutreachPacingSent(sentAt: string) {
+    this.mutate(() => {
+      const current = this.settings.get("outreach") ?? {};
+      this.settings.set("outreach", { ...current, lastProactiveSendAt: sentAt });
+    });
   }
   async reserveOutreachQuota(dailyLimit: number, hourlyLimit: number, allowControlledTestBypass = false) {
     return allowControlledTestBypass
@@ -1823,14 +1850,26 @@ class SupabaseRepository implements Repository {
     if (error) throw error;
     this.claimedQueues.delete(id);
   }
-  async reserveOutreachPacing(minIntervalSeconds: number, maxIntervalSeconds: number) {
-    const { data, error } = await this.db.rpc("reserve_outreach_pacing", {
+  async reserveOutreachPacing(minIntervalMinutes: number, maxIntervalMinutes: number) {
+    const { data, error } = await this.db.rpc("reserve_outreach_pacing_minutes", {
       p_owner: await this.ownerId(),
-      p_min_interval_seconds: minIntervalSeconds,
-      p_max_interval_seconds: maxIntervalSeconds,
+      p_min_interval_minutes: minIntervalMinutes,
+      p_max_interval_minutes: maxIntervalMinutes,
     });
     if (error) throw error;
-    return data as { allowed: boolean; retryAt: string; intervalSeconds?: number };
+    return data as {
+      allowed: boolean;
+      retryAt: string;
+      intervalMinutes?: number;
+      lastProactiveSendAt?: string | null;
+    };
+  }
+  async markOutreachPacingSent(sentAt: string) {
+    const { error } = await this.db.rpc("mark_outreach_pacing_sent", {
+      p_owner: await this.ownerId(),
+      p_sent_at: sentAt,
+    });
+    if (error) throw error;
   }
   async reserveOutreachQuota(dailyLimit: number, hourlyLimit: number, allowControlledTestBypass = false) {
     if (allowControlledTestBypass) return { allowed: true, reason: null, retryAt: new Date().toISOString() };

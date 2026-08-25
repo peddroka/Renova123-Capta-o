@@ -28,3 +28,4 @@ export * from "./agent/agent-execution-service.js";
 export * from "./agent/agent-config.js";
 export * from "./agent/agent-hours.js";
 export * from "./agent/pedro-conversation.js";
+export * from "./proactive-pacing.js";

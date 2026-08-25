@@ -19,6 +19,7 @@ import {
   maskSecret,
   normalizeBrazilianPhone,
   parsePhoneList,
+  proactiveBlockReason,
 } from "@renova123/core";
 import { createRepository, type EditableResourceKey, type Repository } from "@renova123/database";
 import {
@@ -492,6 +493,17 @@ export async function buildApp(
     let queue = { pending: 0, failed: 0 };
     let messages = { lastInboundAt: null as string | null, lastOutboundAt: null as string | null };
     let dailyUsageToday = 0;
+    let proactiveTelemetry: {
+      lastProactiveSendAt: string | null;
+      nextProactiveSendAt: string | null;
+      intervalCurrentMinutes: number | null;
+      eligibleLeads: number;
+    } = {
+      lastProactiveSendAt: null,
+      nextProactiveSendAt: null,
+      intervalCurrentMinutes: null,
+      eligibleLeads: 0,
+    };
     if (serviceDb) {
       const heartbeat = await serviceDb
         .from("worker_heartbeats")
@@ -542,6 +554,28 @@ export async function buildApp(
         day: "2-digit",
       }).format(new Date());
       dailyUsageToday = await readFranciscoDailyUsage(serviceDb, owner, localDate);
+      const [usageState, eligible] = await Promise.all([
+        serviceDb
+          .from("daily_usage")
+          .select("next_outreach_at,last_proactive_send_at,proactive_interval_minutes")
+          .eq("owner_id", owner)
+          .eq("usage_date", localDate)
+          .maybeSingle(),
+        serviceDb
+          .from("outreach_queue")
+          .select("id", { count: "exact", head: true })
+          .eq("owner_id", owner)
+          .in("status", ["pending", "scheduled", "retry"])
+          .lte("available_at", new Date().toISOString()),
+      ]);
+      if (usageState.error && !isMissingAgentSchema(usageState.error)) throw usageState.error;
+      if (eligible.error && eligible.error.code !== "42P01") throw eligible.error;
+      proactiveTelemetry = {
+        lastProactiveSendAt: usageState.data?.last_proactive_send_at ?? null,
+        nextProactiveSendAt: usageState.data?.next_outreach_at ?? null,
+        intervalCurrentMinutes: usageState.data?.proactive_interval_minutes ?? null,
+        eligibleLeads: eligible.count ?? 0,
+      };
       scheduler = worker;
     } else if (config.MOCK_MODE) {
       const configuredHeartbeat = `${process.env.MOCK_DB_PATH ?? ".runtime/mock-db.json"}.worker-heartbeat.json`;
@@ -581,23 +615,18 @@ export async function buildApp(
     );
     const proactiveWindowOpen = isProactiveWindow(FRANCISCO_HOURS);
     const workerHealthy = ["online", "running", "mock"].includes(worker.status);
-    const proactiveState = !workerHealthy
-      ? "worker_offline"
-      : whatsappState.state !== "open" && whatsappState.state !== "mock"
-        ? "whatsapp_not_open"
-        : config.SIMULATION_MODE || !config.REAL_SENDING_ENABLED
-          ? "real_sending_blocked"
-          : !config.OUTREACH_ENABLED || outreach.enabled !== true
-            ? "outreach_disabled"
-            : general.globalPause === true
-              ? "global_pause"
-              : general.automationEnabled === false
-                ? "automation_disabled"
-                : !proactiveWindowOpen
-                  ? "outside_proactive_window"
-                  : dailyUsageToday >= dailyLimit
-                    ? "daily_quota_exhausted"
-                    : "active";
+    const proactiveBlock = proactiveBlockReason({
+      workerHealthy,
+      whatsappOpen: whatsappState.state === "open" || whatsappState.state === "mock",
+      globalPause: general.globalPause === true,
+      automationEnabled: general.automationEnabled !== false,
+      outreachEnabled: config.OUTREACH_ENABLED && outreach.enabled === true,
+      withinWindow: proactiveWindowOpen,
+      dailyUsage: dailyUsageToday,
+      dailyLimit,
+      nextProactiveSendAt: proactiveTelemetry.nextProactiveSendAt,
+      eligibleLeads: proactiveTelemetry.eligibleLeads,
+    });
     return {
       status: "ok",
       time: new Date().toISOString(),
@@ -613,7 +642,12 @@ export async function buildApp(
         remaining: Math.max(0, dailyLimit - dailyUsageToday),
       },
       proactive: {
-        state: proactiveState,
+        state: proactiveBlock,
+        lastProactiveSendAt: proactiveTelemetry.lastProactiveSendAt,
+        nextProactiveSendAt: proactiveTelemetry.nextProactiveSendAt,
+        intervalCurrentMinutes: proactiveTelemetry.intervalCurrentMinutes,
+        blockReason: proactiveBlock,
+        eligibleLeads: proactiveTelemetry.eligibleLeads,
         windowOpen: proactiveWindowOpen,
         window: `${FRANCISCO_HOURS.outreachStart}-${FRANCISCO_HOURS.outreachEnd}`,
         timezone: FRANCISCO_HOURS.timezone,

@@ -161,16 +161,18 @@ describe("repositório mock persistente", () => {
     expect((await repository.page("queue", { page: 1, pageSize: 10 })).rows[0]?.status).toBe("cancelled");
   });
 
-  it("reserva pacing mock sem permitir intervalo nulo", async () => {
+  it("reserva pacing humano mock persistente sem permitir intervalo nulo", async () => {
     const repository = createRepository({
       mock: true,
       supabaseUrl: undefined,
       serviceRoleKey: undefined,
       mockFilePath: null,
     });
-    const pacing = await repository.reserveOutreachPacing(45, 90);
+    const pacing = await repository.reserveOutreachPacing(12, 24);
     expect(pacing.allowed).toBe(true);
-    expect(pacing.intervalSeconds).toBe(45);
+    expect(pacing.intervalMinutes).toBeGreaterThanOrEqual(12);
+    expect(pacing.intervalMinutes).toBeLessThanOrEqual(24);
+    expect((await repository.reserveOutreachPacing(12, 24)).allowed).toBe(false);
   });
 
   it("separa a reserva de quota do pacing", async () => {

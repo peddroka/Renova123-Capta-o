@@ -26,6 +26,7 @@ import {
   nextCadenceAttempt,
   planConversation,
   ProviderCircuitBreaker,
+  proactiveIntervalMinutes,
   regionFromBrazilianPhone,
   shouldMarkStalled,
   type AgentCallMetrics,
@@ -888,6 +889,9 @@ async function processInboundEvent(job: QueueJob) {
         },
         { onConflict: "owner_id,provider,instance_name" },
       );
+    if (!simulation && integrationStatus === "disconnected") {
+      await pauseProactiveAfterDisconnect("WhatsApp desconectado via evento de conexão.");
+    }
     if (!simulation && integrationStatus === "disconnected")
       await repository.enqueue(
         "maintenance",
@@ -1692,6 +1696,9 @@ async function processOutbound(job: QueueJob) {
       return;
     }
   }
+  if (!allowTestWindow) {
+    await reserveProactivePacing(settings);
+  }
   if (!job.payload.capacityReservedAt) {
     const capacity = await repository.reserveOutreachQuota(
       Number(settings.newLeadsDailyLimit ?? settings.dailyProactiveLimit),
@@ -1711,16 +1718,9 @@ async function processOutbound(job: QueueJob) {
       );
     }
   }
-  if (!allowTestWindow) {
-    const pacing = await repository.reserveOutreachPacing(45, 90);
-    if (!pacing.allowed)
-      throw new DeferredJobError(
-        "Pacing global ativo; aguardando próximo envio permitido.",
-        new Date(pacing.retryAt),
-      );
-  }
   await sendTextSequence(leadId, phone, text, `outbound:${job.id}`);
   const sentAt = new Date().toISOString();
+  if (!allowTestWindow) await recordProactiveSend(sentAt);
   const templateStrategy = String(job.payload.templateStrategy ?? job.payload.strategy ?? "initial");
   await repository.audit(
     fallbackReady ? "outreach.sent_by_fallback" : "outreach.sent_by_online",
@@ -1980,7 +1980,9 @@ async function processFollowUp(job: QueueJob) {
   const decision = execution.decision;
   await persistAgentExecution(context, execution, "completed", job.id);
   if (!decision.replyText || decision.shouldOptOut || decision.shouldHandoff) return;
+  await reserveProactivePacing(settings);
   await sendTextOnce(context.leadId, phone, decision.replyText, `followup:${job.id}`, context.ownerId);
+  await recordProactiveSend(new Date().toISOString());
   if (serviceDb && job.payload.followUpId)
     await serviceDb
       .from("follow_ups")
@@ -4094,8 +4096,10 @@ async function sendTextOnce(
       "Envio bloqueado por opt-out, supressão, pausa de automação ou atendimento humano.",
     );
   const status = await whatsapp.getConnectionStatus();
-  if (!simulation && status.state !== "open")
+  if (!simulation && status.state !== "open") {
+    await pauseProactiveAfterDisconnect(`WhatsApp ${status.state}; outbound proativo pausado antes do envio.`);
     throw new DeferredJobError("WhatsApp desconectado; envio adiado.", new Date(Date.now() + 60_000));
+  }
   const conversation = await serviceDb
     .from("conversations")
     .upsert({ owner_id: ownerId, lead_id: leadId, status: "active" }, { onConflict: "lead_id" })
@@ -4224,6 +4228,38 @@ async function sendTextSafely(
 ): Promise<WhatsAppSendResult> {
   await assertOperationalTestDestination(phone, idempotencyKey);
   return simulation ? simulatedSendResult(idempotencyKey) : whatsapp.sendText(phone, text, idempotencyKey);
+}
+
+async function reserveProactivePacing(settings: Record<string, unknown>) {
+  const { min, max } = proactiveIntervalMinutes(settings);
+  const pacing = await repository.reserveOutreachPacing(min, max);
+  if (!pacing.allowed)
+    throw new DeferredJobError(
+      "Pacing humano ativo; aguardando próximo envio permitido.",
+      new Date(pacing.retryAt),
+    );
+  return pacing;
+}
+
+async function recordProactiveSend(sentAt: string) {
+  try {
+    await repository.markOutreachPacingSent(sentAt);
+  } catch (error) {
+    log.error({ err: error, sentAt }, "proactive_pacing_telemetry_persist_failed");
+  }
+}
+
+async function pauseProactiveAfterDisconnect(reason: string) {
+  const general = await repository.getSettings("general");
+  if (general.globalPause === true && general.automationEnabled === false) return;
+  await repository.saveSettings("general", {
+    ...general,
+    globalPause: true,
+    automationEnabled: false,
+    globalPauseReason: reason,
+    scheduledResumeAt: null,
+  });
+  await repository.audit("campaign.global_pause.whatsapp_disconnected", "system", null, { reason });
 }
 async function sendMediaSafely(
   method: "sendImage" | "sendVideo" | "sendAudio" | "sendDocument",

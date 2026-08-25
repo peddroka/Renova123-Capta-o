@@ -188,6 +188,8 @@ export const outreachSettingsSchema = z
     endTime: z.string().regex(/^\d{2}:\d{2}$/),
     minIntervalSeconds: z.number().int().min(5),
     maxIntervalSeconds: z.number().int().min(5),
+    minIntervalMinutes: z.number().int().min(1).max(180).default(12),
+    maxIntervalMinutes: z.number().int().min(1).max(180).default(24),
     timezone: z.string().min(1),
     campaignStartAt: z.string().datetime({ offset: true }).optional(),
     enabled: z.boolean().optional(),
@@ -217,6 +219,12 @@ export const outreachSettingsSchema = z
         code: "custom",
         path: ["maxIntervalSeconds"],
         message: "O intervalo máximo deve ser maior ou igual ao mínimo.",
+      });
+    if (value.minIntervalMinutes > value.maxIntervalMinutes)
+      context.addIssue({
+        code: "custom",
+        path: ["maxIntervalMinutes"],
+        message: "O intervalo máximo em minutos deve ser maior ou igual ao mínimo.",
       });
   });
 
