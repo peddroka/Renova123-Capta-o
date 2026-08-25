@@ -131,6 +131,16 @@ describe("API", () => {
     const response = await app.inject({ method: "GET", url: "/health" });
     expect(response.statusCode).toBe(200);
     expect(response.json().status).toBe("ok");
+    expect(response.json().usage).toMatchObject({
+      dailyLimit: expect.any(Number),
+      today: expect.any(Number),
+      remaining: expect.any(Number),
+    });
+    expect(response.json().proactive).toMatchObject({
+      state: expect.any(String),
+      windowOpen: expect.any(Boolean),
+      timezone: "America/Sao_Paulo",
+    });
   });
   it("responde health live sem tocar em dependências profundas", async () => {
     const app = await buildApp();
@@ -486,18 +496,53 @@ describe("API", () => {
   });
 
   it("mantém pairing, diagnóstico e teste manual do Pedro em escopo próprio", async () => {
-    const repository = createRepository({ mock: true, supabaseUrl: undefined, serviceRoleKey: undefined, mockFilePath: null });
+    const repository = createRepository({
+      mock: true,
+      supabaseUrl: undefined,
+      serviceRoleKey: undefined,
+      mockFilePath: null,
+    });
     const app = await buildApp({ repository });
     apps.push(app);
     const pairing = await app.inject({ method: "GET", url: "/agents/pedro/whatsapp/pairing", headers: auth });
     expect(pairing.statusCode).toBe(200);
-    expect(pairing.json()).toMatchObject({ agent: "pedro", instanceName: "renova123-pedro", state: "not_created", simulation: true });
-    const diagnostics = await app.inject({ method: "GET", url: "/agents/pedro/whatsapp/diagnostics", headers: auth });
+    expect(pairing.json()).toMatchObject({
+      agent: "pedro",
+      instanceName: "renova123-pedro",
+      state: "not_created",
+      simulation: true,
+    });
+    const diagnostics = await app.inject({
+      method: "GET",
+      url: "/agents/pedro/whatsapp/diagnostics",
+      headers: auth,
+    });
     expect(diagnostics.statusCode).toBe(200);
-    expect(diagnostics.json()).toMatchObject({ agent: "pedro", instanceName: "renova123-pedro", globalPause: true, automationEnabled: false, outreachEnabled: false, realSendingEnabled: false });
-    const manual = await app.inject({ method: "POST", url: "/agents/pedro/whatsapp/test", headers: auth, payload: { phone: "5511999999999", text: "teste", idempotencyKey: "33333333-3333-4333-8333-333333333333" } });
+    expect(diagnostics.json()).toMatchObject({
+      agent: "pedro",
+      instanceName: "renova123-pedro",
+      globalPause: true,
+      automationEnabled: false,
+      outreachEnabled: false,
+      realSendingEnabled: false,
+    });
+    const manual = await app.inject({
+      method: "POST",
+      url: "/agents/pedro/whatsapp/test",
+      headers: auth,
+      payload: {
+        phone: "5511999999999",
+        text: "teste",
+        idempotencyKey: "33333333-3333-4333-8333-333333333333",
+      },
+    });
     expect(manual.statusCode).toBe(200);
-    expect(manual.json()).toMatchObject({ status: "simulated", agent: "pedro", instanceName: "renova123-pedro", realMessageSent: false });
+    expect(manual.json()).toMatchObject({
+      status: "simulated",
+      agent: "pedro",
+      instanceName: "renova123-pedro",
+      realMessageSent: false,
+    });
   });
 
   it("aplica allowlist ao teste de WhatsApp durante pausa operacional", async () => {
@@ -559,6 +604,44 @@ describe("API", () => {
     });
     expect(simulation.statusCode).toBe(200);
     expect(simulation.json()).toEqual({ simulationMode: false });
+  });
+
+  it("serve qualificados pela mesma página semântica com paginação", async () => {
+    const repository = createRepository({
+      mock: true,
+      supabaseUrl: undefined,
+      serviceRoleKey: undefined,
+      mockFilePath: null,
+    });
+    for (let index = 0; index < 6; index += 1)
+      await repository.createResource("leads", {
+        phone: `551191111${String(index).padStart(4, "0")}`,
+        stage: "human_handoff",
+        source: "teste",
+      });
+    await repository.createResource("leads", {
+      phone: "5511999999999",
+      stage: "new",
+      source: "teste",
+    });
+    const app = await buildApp({ repository });
+    apps.push(app);
+    const firstPage = await app.inject({
+      method: "GET",
+      url: "/pages/qualified?page=1&pageSize=5",
+      headers: auth,
+    });
+    const secondPage = await app.inject({
+      method: "GET",
+      url: "/pages/qualified?page=2&pageSize=5",
+      headers: auth,
+    });
+    expect(firstPage.statusCode).toBe(200);
+    expect(secondPage.statusCode).toBe(200);
+    expect(firstPage.json()).toMatchObject({ total: 6, page: 1, pageSize: 5 });
+    expect(firstPage.json().rows).toHaveLength(5);
+    expect(secondPage.json()).toMatchObject({ total: 6, page: 2, pageSize: 5 });
+    expect(secondPage.json().rows).toHaveLength(1);
   });
 
   it("cancela e recoloca item da fila por endpoint tipado", async () => {

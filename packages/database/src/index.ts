@@ -11,6 +11,18 @@ export type PageResult = {
   pageSize: number;
 };
 
+type SupabaseErrorLike = { code?: string; message?: string } | null | undefined;
+
+function isMissingAgentSchema(error: SupabaseErrorLike) {
+  const message = String(error?.message ?? "").toLowerCase();
+  return (
+    error?.code === "42703" ||
+    error?.code === "42p01" ||
+    message.includes("agent_id") ||
+    message.includes('relation "agents" does not exist')
+  );
+}
+
 /** Retries only read-only Supabase requests after a transient socket reset. */
 export async function supabaseFetchWithRetry(
   input: RequestInfo | URL,
@@ -143,8 +155,15 @@ export interface Repository {
     payload: Record<string, unknown>,
   ): Promise<void>;
   markOutreachCapacityReserved(id: string, reservedAt: string): Promise<void>;
-  reserveOutreachPacing(minIntervalSeconds: number, maxIntervalSeconds: number): Promise<{ allowed: boolean; retryAt: string; intervalSeconds?: number }>;
-  reserveOutreachQuota(dailyLimit: number, hourlyLimit: number, allowControlledTestBypass?: boolean): Promise<{ allowed: boolean; reason: string | null; retryAt: string }>;
+  reserveOutreachPacing(
+    minIntervalSeconds: number,
+    maxIntervalSeconds: number,
+  ): Promise<{ allowed: boolean; retryAt: string; intervalSeconds?: number }>;
+  reserveOutreachQuota(
+    dailyLimit: number,
+    hourlyLimit: number,
+    allowControlledTestBypass?: boolean,
+  ): Promise<{ allowed: boolean; reason: string | null; retryAt: string }>;
   cancelJob(id: string, reason: string): Promise<void>;
   outreachCapacity(
     leadId: string,
@@ -413,7 +432,12 @@ class MemoryRepository implements Repository {
     const outreach = this.settings.get("outreach") ?? {};
     return {
       totalLeads: this.mockLeads.length,
-      contactedToday: this.jobs.filter((job) => ["outreach", "follow_up"].includes(job.type) && job.status === "completed" && job.completedAt?.toISOString().startsWith(today)).length,
+      contactedToday: this.jobs.filter(
+        (job) =>
+          ["outreach", "follow_up"].includes(job.type) &&
+          job.status === "completed" &&
+          job.completedAt?.toISOString().startsWith(today),
+      ).length,
       activeConversations: this.mockLeads.filter((lead) => ["engaged", "interested"].includes(lead.stage))
         .length,
       interested: this.mockLeads.filter((lead) => lead.stage === "interested").length,
@@ -475,7 +499,9 @@ class MemoryRepository implements Repository {
       return paginate(rows, input.page, input.pageSize);
     }
     if (key === "qualified") {
-      const rows = this.mockLeads.filter((lead) => Boolean((lead as any).qualifiedAt) || lead.stage === "human_handoff");
+      const rows = this.mockLeads.filter(
+        (lead) => Boolean((lead as any).qualifiedAt) || lead.stage === "human_handoff",
+      );
       return paginate(rows as unknown as Array<Record<string, unknown>>, input.page, input.pageSize);
     }
     if (["leads", "interested", "lost", "unanswered"].includes(key)) {
@@ -737,7 +763,12 @@ class MemoryRepository implements Repository {
         };
         conversations.unshift(conversation);
       }
-      return { leadId: String(resolvedLead.id), conversationId: String(conversation.id), createdLead, createdConversation };
+      return {
+        leadId: String(resolvedLead.id),
+        conversationId: String(conversation.id),
+        createdLead,
+        createdConversation,
+      };
     });
   }
   async resetLeadSession(phone: string) {
@@ -1059,7 +1090,11 @@ class MemoryRepository implements Repository {
     });
   }
   async reserveOutreachPacing(minIntervalSeconds: number, _maxIntervalSeconds: number) {
-    return { allowed: true, retryAt: new Date(Date.now() + minIntervalSeconds * 1000).toISOString(), intervalSeconds: minIntervalSeconds };
+    return {
+      allowed: true,
+      retryAt: new Date(Date.now() + minIntervalSeconds * 1000).toISOString(),
+      intervalSeconds: minIntervalSeconds,
+    };
   }
   async reserveOutreachQuota(dailyLimit: number, hourlyLimit: number, allowControlledTestBypass = false) {
     return allowControlledTestBypass
@@ -1069,7 +1104,12 @@ class MemoryRepository implements Repository {
   async cancelJob(id: string, reason: string) {
     this.mutate(() => {
       const job = this.jobs.find((item) => item.id === id);
-      if (job) { job.status = "cancelled"; job.lastError = reason; job.lockedAt = undefined; job.lockedBy = undefined; }
+      if (job) {
+        job.status = "cancelled";
+        job.lastError = reason;
+        job.lockedAt = undefined;
+        job.lockedBy = undefined;
+      }
     });
   }
   async outreachCapacity(
@@ -1201,21 +1241,34 @@ class SupabaseRepository implements Repository {
   ): Promise<PageResult> {
     if (key === "queue") return this.queuePage(input);
     if (key === "qualified") {
-      let query = this.db
-        .from("leads")
-        .select("id,phone,name,company,source,stage,qualified_at,updated_at", { count: "exact" })
-        .eq("owner_id", await this.ownerId())
-        .or("qualified_at.not.is.null,stage.eq.human_handoff");
-      if (input.search)
-        query = query.or(
-          `phone.ilike.%${safeSearch(input.search)}%,name.ilike.%${safeSearch(input.search)}%,company.ilike.%${safeSearch(input.search)}%`,
-        );
+      const ownerId = await this.ownerId();
+      const agentId = await this.franciscoAgentId();
       const from = (input.page - 1) * input.pageSize;
-      const { data, count, error } = await query
-        .order("qualified_at", { ascending: false, nullsFirst: false })
-        .range(from, from + input.pageSize - 1);
+      const load = async (agentScoped: boolean) => {
+        let query = this.db
+          .from("leads")
+          .select("id,phone,name,company,source,stage,qualified_at,updated_at", { count: "exact" })
+          .eq("owner_id", ownerId)
+          .or("qualified_at.not.is.null,stage.eq.human_handoff");
+        if (agentScoped) query = query.eq("agent_id", agentId!);
+        if (input.search)
+          query = query.or(
+            `phone.ilike.%${safeSearch(input.search)}%,name.ilike.%${safeSearch(input.search)}%,company.ilike.%${safeSearch(input.search)}%`,
+          );
+        return query
+          .order("qualified_at", { ascending: false, nullsFirst: false })
+          .range(from, from + input.pageSize - 1);
+      };
+      let result = await load(Boolean(agentId));
+      if (result.error && agentId && isMissingAgentSchema(result.error)) result = await load(false);
+      const { data, count, error } = result;
       if (error) throw error;
-      return { rows: (data ?? []).map(toCamelRecord), total: count ?? 0, page: input.page, pageSize: input.pageSize };
+      return {
+        rows: (data ?? []).map(toCamelRecord),
+        total: count ?? 0,
+        page: input.page,
+        pageSize: input.pageSize,
+      };
     }
     const config = pageTable[key];
     if (!config) {
@@ -1428,11 +1481,19 @@ class SupabaseRepository implements Repository {
     if (!leadResult.data) {
       const inserted = await this.db
         .from("leads")
-        .insert({ owner_id: owner, phone, name: "Teste manual WhatsApp", stage: "engaged", source: "manual_test" })
+        .insert({
+          owner_id: owner,
+          phone,
+          name: "Teste manual WhatsApp",
+          stage: "engaged",
+          source: "manual_test",
+        })
         .select("id")
         .maybeSingle();
       if (inserted.error && inserted.error.code !== "23505") throw inserted.error;
-      leadResult = inserted.data ? inserted : await this.db.from("leads").select("id").eq("owner_id", owner).eq("phone", phone).maybeSingle();
+      leadResult = inserted.data
+        ? inserted
+        : await this.db.from("leads").select("id").eq("owner_id", owner).eq("phone", phone).maybeSingle();
       if (leadResult.error) throw leadResult.error;
       createdLead = Boolean(inserted.data);
     }
@@ -1449,11 +1510,24 @@ class SupabaseRepository implements Repository {
     if (!conversationResult.data) {
       const inserted = await this.db
         .from("conversations")
-        .insert({ owner_id: owner, lead_id: leadId, status: "active", stage: "engaged", summary: "Teste manual da integração WhatsApp" })
+        .insert({
+          owner_id: owner,
+          lead_id: leadId,
+          status: "active",
+          stage: "engaged",
+          summary: "Teste manual da integração WhatsApp",
+        })
         .select("id,lead_id")
         .maybeSingle();
       if (inserted.error && inserted.error.code !== "23505") throw inserted.error;
-      conversationResult = inserted.data ? inserted : await this.db.from("conversations").select("id,lead_id").eq("owner_id", owner).eq("lead_id", leadId).maybeSingle();
+      conversationResult = inserted.data
+        ? inserted
+        : await this.db
+            .from("conversations")
+            .select("id,lead_id")
+            .eq("owner_id", owner)
+            .eq("lead_id", leadId)
+            .maybeSingle();
       if (conversationResult.error) throw conversationResult.error;
       createdConversation = Boolean(inserted.data);
     }
@@ -1633,7 +1707,9 @@ class SupabaseRepository implements Repository {
   ) {
     const jobs: QueueJob[] = [];
     const workerId = `${process.env.COMPUTERNAME ?? "local"}:${process.pid}`;
-    for (const queue of (options.includeOutbound === false ? [] : ["ai_response_queue"] as const)) {
+    // ai_response_queue is conversation work, not proactive outreach. It must
+    // remain claimable while prospecting is paused/outside its operating window.
+    for (const queue of ["ai_response_queue"] as const) {
       if (jobs.length >= limit) break;
       const { data, error } = await this.db.rpc("claim_queue_items", {
         p_queue: queue,
@@ -1713,8 +1789,12 @@ class SupabaseRepository implements Repository {
     if (result.error) throw result.error;
     const row = Array.isArray(result.data) ? result.data[0] : result.data;
     return {
-      found: Number(typeof result.data === "number" ? result.data : row?.stale_jobs_found ?? row?.found ?? 0),
-      recovered: Number(row?.stale_jobs_recovered ?? row?.recovered ?? (typeof result.data === "number" ? result.data : 0)),
+      found: Number(
+        typeof result.data === "number" ? result.data : (row?.stale_jobs_found ?? row?.found ?? 0),
+      ),
+      recovered: Number(
+        row?.stale_jobs_recovered ?? row?.recovered ?? (typeof result.data === "number" ? result.data : 0),
+      ),
     };
   }
   async renewJobLease(id: string, workerId: string) {
@@ -2072,6 +2152,17 @@ class SupabaseRepository implements Repository {
       });
     this.cachedOwnerId = data.id as string;
     return this.cachedOwnerId;
+  }
+
+  private async franciscoAgentId() {
+    const result = await this.db
+      .from("agents")
+      .select("agent_id")
+      .eq("owner_id", await this.ownerId())
+      .eq("slug", "francisco")
+      .maybeSingle();
+    if (result.error && !isMissingAgentSchema(result.error)) throw result.error;
+    return result.data?.agent_id as string | undefined;
   }
 }
 

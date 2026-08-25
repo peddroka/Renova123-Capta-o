@@ -17,10 +17,10 @@ const pnpmArgs = (args) => (process.platform === "win32" ? [pnpmCli, ...args] : 
 const argsFor = {
   web: pnpmArgs(["--silent", "--filter", "@renova123/web", "dev"]),
   api: pnpmArgs(["--silent", "--filter", "@renova123/api", "dev"]),
-  worker: [
-    process.platform === "win32" ? join(root, "node_modules", "tsx", "dist", "cli.mjs") : "tsx",
-    "apps/worker/src/index.ts",
-  ],
+  // Always run the worker through its supervisor. The previous launcher started
+  // index.ts directly, so a graceful worker exit (for example after a lost
+  // Supabase heartbeat) could leave the manager/API alive with no worker.
+  worker: pnpmArgs(["--silent", "--filter", "@renova123/worker", "supervisor"]),
   whisper: pnpmArgs(["--silent", "wolf:transcription"]),
 };
 
@@ -206,8 +206,14 @@ async function start(profile) {
     });
     children[key] = child.pid;
     saveState(state);
-    child.once("exit", (code) => {
-      if (!stopping.value && code) void stop(code);
+    child.once("exit", (code, signal) => {
+      if (stopping.value) return;
+      console.error(
+        `Serviço gerenciado ${key} encerrou inesperadamente (code=${code ?? "null"}, signal=${signal ?? "none"}).`,
+      );
+      // Exit non-zero even when the child ended with code 0. This lets systemd
+      // restart the whole managed profile instead of leaving a half-alive API.
+      void stop(code && code !== 0 ? code : 1);
     });
   }
   const started = Date.now();
