@@ -59,8 +59,8 @@ export function AppLayout() {
     {mobileOpen ? <button className="sidebar-backdrop" aria-label="Fechar menu" onClick={() => setMobileOpen(false)} /> : null}
     <Sidebar open={mobileOpen} onClose={() => setMobileOpen(false)} className="sidebar">
       <button className="mobile-close" aria-label="Fechar menu" onClick={() => setMobileOpen(false)}><X /></button>
-      <div className="brand brand--compact"><img src="/brand/renova123-compact-icon.png" alt="" /></div>
-      <div className="brand brand--full"><img src="/brand/renova123-logo-white.png" alt="Renova123" /></div>
+      <div className="brand brand--compact"><img src="/brand/renova123-mark.svg" alt="" /></div>
+      <div className="brand brand--full"><img src="/brand/renova123-mark.svg" alt="Renova123" /><strong>Renova123</strong></div>
       <nav className="sidebar-nav">
         {[...new Set(navigation.map((item) => item.group))].map((group) => <div className="nav-group" key={group}>
           <p>{group}</p>

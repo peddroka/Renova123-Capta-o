@@ -1,14 +1,10 @@
 import crypto from "node:crypto";
-import { execFile, spawn, type ChildProcess } from "node:child_process";
-import { promisify } from "node:util";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import net from "node:net";
 import Fastify, { type FastifyReply, type FastifyRequest } from "fastify";
 import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
 import multipart from "@fastify/multipart";
-import websocket from "@fastify/websocket";
 import rateLimit from "@fastify/rate-limit";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import {
@@ -32,14 +28,6 @@ import {
 import { importBatchSchema, leadStages, outreachSettingsSchema, type PageKey } from "@renova123/shared";
 import { z } from "zod";
 import { config } from "./config.js";
-import { THE_WOLF_SYSTEM_PROMPT } from "./the-wolf-prompt.js";
-import { WolfRealtimeSession, type WolfSpeaker } from "./wolf-realtime.js";
-
-const execFileAsync = promisify(execFile);
-const wolfExtensionToken = crypto
-  .createHmac("sha256", config.ENCRYPTION_KEY)
-  .update("the-wolf-extension-v1")
-  .digest("hex");
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -56,6 +44,77 @@ const paginationSchema = z.object({
 });
 
 type SupabaseErrorLike = { code?: string; message?: string } | null | undefined;
+type ManualCallOutcome =
+  | "no_answer"
+  | "busy"
+  | "voicemail"
+  | "wrong_number"
+  | "no_interest"
+  | "interested"
+  | "qualified"
+  | "callback"
+  | "other";
+
+type ManualCallTask = {
+  id: string;
+  owner_id: string;
+  sequence_no: number;
+  phone: string;
+  name?: string | null;
+  company?: string | null;
+  source?: string | null;
+  status: "pending" | "in_progress" | "callback" | "completed" | "skipped";
+  outcome?: ManualCallOutcome | null;
+  notes: string;
+  attempt_count: number;
+  last_started_at?: string | null;
+  called_at?: string | null;
+  callback_at?: string | null;
+  completed_at?: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+const manualCallOutcomeSchema = z.enum([
+  "no_answer", "busy", "voicemail", "wrong_number", "no_interest",
+  "interested", "qualified", "callback", "other",
+]);
+
+function callDayBounds(timezone: string, at = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(at);
+  const get = (type: string) => parts.find((item) => item.type === type)?.value ?? "";
+  const local = `${get("year")}-${get("month")}-${get("day")}`;
+  // America/Sao_Paulo is the operational default; these boundaries are used only
+  // for dashboard aggregation, while PostgreSQL performs the canonical timezone cast.
+  return { localDate: local };
+}
+
+function parseManualCallImport(text: string) {
+  const rows: Array<{ phone: string; name?: string; company?: string; source?: string }> = [];
+  const invalid: string[] = [];
+  const seen = new Set<string>();
+  for (const rawLine of text.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    const parts = line.split(/[;,\t]/).map((part) => part.trim()).filter(Boolean);
+    const candidate = parts.find((part) => /\d{8,}/.test(part)) ?? line;
+    const normalized = normalizeBrazilianPhone(candidate);
+    if (!normalized.valid || !normalized.normalized) { invalid.push(line); continue; }
+    if (seen.has(normalized.normalized)) continue;
+    seen.add(normalized.normalized);
+    const nonPhone = parts.filter((part) => part !== candidate);
+    rows.push({
+      phone: normalized.normalized,
+      ...(nonPhone[0] ? { name: nonPhone[0] } : {}),
+      ...(nonPhone[1] ? { company: nonPhone[1] } : {}),
+      source: "manual_call_desk",
+    });
+  }
+  return { rows, invalid };
+}
+
 
 function isMissingAgentSchema(error: SupabaseErrorLike) {
   const message = String(error?.message ?? "").toLowerCase();
@@ -99,53 +158,6 @@ async function readFranciscoDailyUsage(client: SupabaseClient, ownerId: string, 
     .eq("usage_date", localDate);
   if (legacy.error) throw legacy.error;
   return (legacy.data ?? []).reduce((sum, row) => sum + Number(row.outreach_count ?? 0), 0);
-}
-
-function buildWolfLiveContext(transcript: Array<Record<string, unknown>>) {
-  const text = transcript.map((turn) => String(turn.text ?? "")).join(" ");
-  const clientText = transcript
-    .filter((turn) => turn.speaker === "client")
-    .map((turn) => String(turn.text ?? ""))
-    .join(" ");
-  const operatorText = transcript
-    .filter((turn) => turn.speaker === "operator")
-    .map((turn) => String(turn.text ?? ""))
-    .join(" ");
-  const system = text
-    .match(/sistema\s+(?:chamado\s+|é\s+|e\s+)?([A-Za-zÀ-ÿ0-9][\wÀ-ÿ0-9 ]{1,40})/i)?.[1]
-    ?.trim();
-  const pain = clientText
-    .match(/(equipe[^.?!]{0,100}(?:acompanhar|acompanhamento|follow[- ]?up)[^.?!]*)/i)?.[1]
-    ?.trim();
-  const frequency = clientText.match(
-    /(quase todo dia|todos os dias|diariamente|às vezes|sempre|nunca)/i,
-  )?.[1];
-  const objections = clientText
-    .match(/(não quero[^.?!]{0,120}|preciso conversar[^.?!]{0,120})/i)?.[1]
-    ?.trim();
-  const questionsAsked = [...operatorText.matchAll(/[^.?!]*\?/g)]
-    .map((match) => match[0].trim())
-    .filter(Boolean)
-    .slice(-10);
-  return {
-    leadFacts: [],
-    liveSummary: [
-      system ? `Sistema atual: ${system}` : "",
-      pain ? `Dor: ${pain}` : "",
-      frequency ? `Frequência: ${frequency}` : "",
-    ]
-      .filter(Boolean)
-      .join(" "),
-    recentTurns: transcript.slice(-12),
-    painPoints: pain ? [pain] : [],
-    objections: objections ? [objections] : [],
-    competitors: system ? [system] : [],
-    commitments: [],
-    questionsAsked,
-    openQuestions: [],
-    salesStage: objections ? "objection" : pain ? "discovery" : "opening",
-    currentClientTurn: transcript.at(-1)?.speaker === "client" ? transcript.at(-1)?.text : "",
-  };
 }
 
 export async function buildApp(
@@ -273,14 +285,10 @@ export async function buildApp(
       config.APP_URL.replace("localhost", "127.0.0.1"),
     ]),
   ];
-  if (process.env.WOLF_EXTENSION_ID)
-    allowedOrigins.push(`chrome-extension://${process.env.WOLF_EXTENSION_ID}`);
   await app.register(cors, {
     origin: (origin, callback) => {
       const allowed =
-        !origin ||
-        allowedOrigins.includes(origin) ||
-        (origin.startsWith("chrome-extension://") && !process.env.WOLF_EXTENSION_ID);
+        !origin || allowedOrigins.includes(origin);
       callback(null, allowed);
     },
     credentials: true,
@@ -293,195 +301,11 @@ export async function buildApp(
       request.method === "OPTIONS" || request.url === "/health" || request.url === "/health/live",
   });
   await app.register(multipart, { limits: { fileSize: 25 * 1024 * 1024, files: 1 } });
-  await app.register(websocket);
   app.decorateRequest("userId", null);
-
-  const wolfSessions = new Map<string, WolfRealtimeSession>();
-  const wolfSockets = new Map<string, Set<{ readyState: number; send: (value: string) => void }>>();
-  const wolfGeneration = new Map<string, number>();
-  const wolfPartials = new Map<string, string>();
-  let wolfGatewayConnected = false;
-  let wolfGatewayFrames = 0;
-  let wolfGatewayBytes = 0;
-  let wolfLastAudioAt = 0;
-  let wolfGatewayLastRms = 0;
-  let wolfGatewayLastPeak = 0;
-  let wolfGatewayDevice = "";
-  let wolfClientPreflightSocket: {
-    readyState: number;
-    send: (value: string) => void;
-    close: () => void;
-  } | null = null;
-  let wolfClientPreflightSession: WolfRealtimeSession | null = null;
-  let wolfHelperProcess: ChildProcess | null = null;
-  let wolfOllamaProcess: ChildProcess | null = null;
-  let wolfOllamaOwned = false;
-  let wolfQwenWarm = false;
-  let wolfHelperDeviceId = process.env.WOLF_AUDIO_DEVICE_ID ?? "";
-  const ensureWolfHelper = () => {
-    if (
-      config.NODE_ENV === "test" ||
-      process.platform !== "win32" ||
-      wolfGatewayConnected ||
-      wolfHelperProcess
-    )
-      return;
-    const projectRoot = existsSync(path.resolve(process.cwd(), "tools"))
-      ? process.cwd()
-      : path.resolve(process.cwd(), "../..");
-    const dll = path.resolve(
-      projectRoot,
-      "tools",
-      "wolf-audio-helper",
-      "bin",
-      "Release",
-      "net8.0-windows",
-      "WolfAudioHelper.dll",
-    );
-    if (!existsSync(dll)) return;
-    const helperArgs = [
-      dll,
-      "--compatibility",
-      "--host",
-      "127.0.0.1",
-      "--port",
-      String(process.env.WOLF_AUDIO_PORT ?? 3344),
-    ];
-    if (wolfHelperDeviceId) helperArgs.push("--device-id", wolfHelperDeviceId);
-    wolfHelperProcess = spawn("dotnet", helperArgs, { cwd: projectRoot, stdio: "ignore", windowsHide: true });
-    wolfHelperProcess.once("exit", () => {
-      wolfHelperProcess = null;
-      setTimeout(ensureWolfHelper, 1000);
-    });
-  };
-  const appendWolfTurn = async (callId: string, speaker: WolfSpeaker, text: string, at: string) => {
-    const page = await repository.page("wolfCalls", { page: 1, pageSize: 100 });
-    const call = page.rows.find((row) => String(row.id) === callId);
-    if (!call || call.status !== "listening") return;
-    const sequence = Array.isArray(call.transcript) ? call.transcript.length : 0;
-    const createdTurn = await repository.createResource("wolfTurns", {
-      callId,
-      speaker,
-      text,
-      sequence,
-      startedAt: at,
-      endedAt: at,
-      partial: false,
-    });
-    const transcript = Array.isArray(call.transcript) ? call.transcript : [];
-    transcript.push({ speaker, text, timestamp: at, sequence });
-    await repository.updateResource("wolfCalls", callId, { transcript });
-    const liveContext = buildWolfLiveContext(transcript);
-    await repository.updateResource("wolfCalls", callId, { liveContext });
-    return createdTurn;
-  };
-  const wolfAudioServer = net.createServer((connection) => {
-    wolfGatewayConnected = true;
-    connection.on("error", (error) => {
-      app.log.warn({ err: error }, "wolf_gateway_connection_closed");
-    });
-    let callId = "";
-    let statusReceived = false;
-    let buffer = Buffer.alloc(0);
-    let session: WolfRealtimeSession | undefined;
-    connection.on("data", (chunk) => {
-      buffer = Buffer.concat([buffer, chunk]);
-      while (buffer.length) {
-        if (!statusReceived) {
-          const newline = buffer.indexOf(10);
-          if (newline < 0) return;
-          try {
-            const status = JSON.parse(buffer.subarray(0, newline).toString()) as {
-              type?: string;
-              callId?: string;
-              device?: string;
-              source?: string;
-            };
-            callId = status.callId ?? "";
-            wolfGatewayDevice = status.device ?? wolfGatewayDevice;
-            statusReceived = status.type === "status";
-            const connect = () => {
-              if (callId && (config.WOLF_TRANSCRIPTION_PROVIDER === "local" || config.OPENAI_API_KEY)) {
-                session = new WolfRealtimeSession(
-                  config.WOLF_TRANSCRIPTION_MODEL,
-                  "client",
-                  (event) => {
-                    if (event.kind === "final") void appendWolfTurn(callId, "client", event.text, event.at);
-                  },
-                  () => undefined,
-                  config.WOLF_TRANSCRIPTION_PROVIDER === "local"
-                    ? config.WOLF_LOCAL_TRANSCRIPTION_URL
-                    : undefined,
-                  `${callId}:client`,
-                );
-                session.open(config.OPENAI_API_KEY);
-              }
-            };
-            if (status.type === "status" && !callId) {
-              void repository.page("wolfCalls", { page: 1, pageSize: 20 }).then((page) => {
-                const active = page.rows.find((row) => row.status === "listening");
-                if (active) callId = String(active.id);
-                connect();
-              });
-            } else if (status.type === "status") connect();
-          } catch {
-            /* wait for the next valid status line */
-          }
-          buffer = buffer.subarray(newline + 1);
-          continue;
-        }
-        if (buffer.length < 4) return;
-        const length = buffer.readInt32LE(0);
-        if (length < 1 || length > 2_000_000) {
-          connection.destroy();
-          return;
-        }
-        if (buffer.length < length + 4) return;
-        wolfGatewayFrames += 1;
-        wolfGatewayBytes += length;
-        wolfLastAudioAt = Date.now();
-        let sum = 0;
-        let peak = 0;
-        for (let offset = 4; offset + 1 < length + 4; offset += 2) {
-          const sample = buffer.readInt16LE(offset) / 32768;
-          sum += sample * sample;
-          peak = Math.max(peak, Math.abs(sample));
-        }
-        wolfGatewayLastRms = Math.sqrt(sum / Math.max(1, length / 2));
-        wolfGatewayLastPeak = peak;
-        if (
-          wolfClientPreflightSocket?.readyState === 1 &&
-          (wolfGatewayFrames === 1 || wolfGatewayFrames % 25 === 0)
-        )
-          wolfClientPreflightSocket.send(
-            JSON.stringify({
-              type: "gateway_diagnostic",
-              frames: wolfGatewayFrames,
-              bytes: wolfGatewayBytes,
-              audioBytes: length,
-            }),
-          );
-        (session ?? wolfClientPreflightSession)?.append(buffer.subarray(4, length + 4));
-        buffer = buffer.subarray(length + 4);
-      }
-    });
-    connection.on("close", () => {
-      wolfGatewayConnected = false;
-      session?.close();
-      wolfClientPreflightSession?.close();
-      wolfClientPreflightSession = null;
-      setTimeout(ensureWolfHelper, 1000);
-    });
-  });
-  if (config.NODE_ENV !== "test" && !process.env.VERCEL)
-    await new Promise<void>((resolve) =>
-      wolfAudioServer.listen(Number(process.env.WOLF_AUDIO_PORT ?? 3344), "127.0.0.1", () => resolve()),
-    );
-  setTimeout(ensureWolfHelper, 750);
-  app.addHook("onClose", async () => {
-    for (const session of wolfSessions.values()) session.close();
-    wolfAudioServer.close();
-  });
+  const mockManualCalls: ManualCallTask[] = [];
+  const mockManualCallEvents: Array<{ task_id: string; outcome: ManualCallOutcome; notes: string; called_at: string }> = [];
+  let mockManualCallSequence = 0;
+  let mockManualCallGoal = 100;
 
   app.get("/health", { config: { rateLimit: false } }, async () => {
     let worker: { status: string; lastHeartbeatAt?: string } = {
@@ -709,1072 +533,6 @@ export async function buildApp(
     user: { id: request.userId },
   }));
 
-  app.get("/wolf/audio/capabilities", { preHandler: requireAuth(authClient) }, async () => ({
-    operatingSystem: process.platform,
-    provider: config.WOLF_TRANSCRIPTION_PROVIDER,
-    helper: {
-      available: process.platform === "win32",
-      isolation: "unavailable",
-      compatibilityLoopback: process.platform === "win32",
-      state: wolfGatewayConnected ? "receiving" : "disconnected",
-      gatewayConnected: wolfGatewayConnected,
-      audioFrames: wolfGatewayFrames,
-      audioBytes: wolfGatewayBytes,
-      audioReceiving: wolfLastAudioAt > Date.now() - 2_000,
-      device: wolfGatewayDevice || "não informado",
-      lastRms: wolfGatewayLastRms,
-      lastPeak: wolfGatewayLastPeak,
-      lastFrameAgeMs: wolfLastAudioAt ? Date.now() - wolfLastAudioAt : null,
-    },
-    transcription: {
-      model:
-        config.WOLF_TRANSCRIPTION_PROVIDER === "local"
-          ? config.WOLF_LOCAL_TRANSCRIPTION_MODEL
-          : config.WOLF_TRANSCRIPTION_MODEL,
-      provider: config.WOLF_TRANSCRIPTION_PROVIDER,
-      delay: config.WOLF_TRANSCRIPTION_DELAY,
-      language: "pt",
-    },
-    devices: { microphone: "browser_permission_required", output: "helper_required" },
-  }));
-  app.get("/wolf/session/active", async () => {
-    const sessions = await repository.page("wolfCalls", { page: 1, pageSize: 10000 });
-    const session = sessions.rows
-      .filter((row) => ["preparing", "listening", "paused"].includes(String(row.status)))
-      .sort(
-        (a, b) =>
-          Date.parse(String(b.updatedAt ?? b.createdAt ?? 0)) -
-          Date.parse(String(a.updatedAt ?? a.createdAt ?? 0)),
-      )[0];
-    if (!session) return { extensionToken: wolfExtensionToken, session: null };
-    const context = session.liveContext as {
-      testSession?: boolean;
-      standalone?: boolean;
-      phone?: string;
-      displayName?: string;
-      businessName?: string;
-      matchedLeadId?: string | null;
-    } | null;
-    if (context?.testSession || context?.standalone) {
-      const phone = String(context.phone ?? "");
-      return {
-        extensionToken: wolfExtensionToken,
-        session: {
-          sessionId: session.id,
-          state: session.status,
-          leadId: context.matchedLeadId ?? "",
-          standalone: context.standalone === true,
-          testSession: context.testSession === true,
-          updatedAt: session.updatedAt ?? session.createdAt ?? null,
-        },
-        lead: {
-          id: "",
-          name: context.displayName ?? "Contato do WhatsApp",
-          company: context.businessName ?? "Sessão autônoma",
-          phone,
-        },
-      };
-    }
-    if (!session.leadId) return { extensionToken: wolfExtensionToken, session: null };
-    const leads = await repository.leads({ page: 1, pageSize: 10000 });
-    const lead = leads.rows.find((row) => String(row.id) === String(session.leadId));
-    if (!lead) return { extensionToken: wolfExtensionToken, session: null };
-    return {
-      extensionToken: wolfExtensionToken,
-      session: {
-        sessionId: session.id,
-        state: session.status,
-        leadId: session.leadId,
-        updatedAt: session.updatedAt ?? session.createdAt ?? null,
-      },
-      lead,
-    };
-  });
-  app.get("/wolf/audio/devices", { preHandler: requireAuth(authClient) }, async (_request, reply) => {
-    if (process.platform !== "win32") return { devices: [], reason: "WASAPI disponível somente no Windows." };
-    const projectRoot = existsSync(path.resolve(process.cwd(), "tools"))
-      ? process.cwd()
-      : path.resolve(process.cwd(), "../..");
-    const dll = path.resolve(
-      projectRoot,
-      "tools",
-      "wolf-audio-helper",
-      "bin",
-      "Release",
-      "net8.0-windows",
-      "WolfAudioHelper.dll",
-    );
-    if (!existsSync(dll)) return reply.code(503).send({ message: "WolfAudioHelper não compilado." });
-    try {
-      const result = await execFileAsync("dotnet", [dll, "--list"], { timeout: 5_000, windowsHide: true });
-      return JSON.parse(result.stdout.trim()) as { devices?: unknown[]; defaultMultimedia?: unknown };
-    } catch (error) {
-      return reply
-        .code(503)
-        .send({ message: error instanceof Error ? error.message : "Não foi possível listar saídas WASAPI." });
-    }
-  });
-  app.post("/wolf/audio/device", { preHandler: requireAuth(authClient) }, async (request, reply) => {
-    const body = z.object({ deviceId: z.string().min(1).max(500) }).parse(request.body);
-    wolfHelperDeviceId = body.deviceId;
-    process.env.WOLF_AUDIO_DEVICE_ID = body.deviceId;
-    if (wolfHelperProcess) {
-      wolfHelperProcess.kill();
-      wolfHelperProcess = null;
-    }
-    setTimeout(ensureWolfHelper, 250);
-    return reply.code(202).send({ ok: true, deviceId: body.deviceId, state: "restarting" });
-  });
-  app.post("/wolf/preflight/audio", { preHandler: requireAuth(authClient) }, async (request) => {
-    const body = z
-      .object({
-        streamId: z.string().min(1).max(100),
-        speaker: z.enum(["operator", "client"]),
-        audio: z.string().min(1).max(2_000_000),
-      })
-      .parse(request.body);
-    const response = await fetch(`${config.WOLF_LOCAL_TRANSCRIPTION_URL}/audio`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        stream_id: `preflight:${body.streamId}`,
-        speaker: body.speaker,
-        audio: body.audio,
-      }),
-      signal: AbortSignal.timeout(15_000),
-    });
-    const result = (await response.json()) as Record<string, unknown>;
-    if (!response.ok)
-      throw Object.assign(new Error(`Transcrição local HTTP ${response.status}`), {
-        statusCode: response.status,
-      });
-    return result;
-  });
-  app.get("/wolf/preflight/audio", { websocket: true }, (socket, request) => {
-    const query = z
-      .object({ speaker: z.enum(["operator", "client"]).default("operator"), token: z.string().optional() })
-      .parse(request.query);
-    if (!config.MOCK_MODE && !query.token) {
-      socket.close(1008, "authentication required");
-      return;
-    }
-    const streamId = `preflight:${crypto.randomUUID()}`;
-    const session = new WolfRealtimeSession(
-      config.WOLF_TRANSCRIPTION_MODEL,
-      query.speaker,
-      (event) => {
-        if (socket.readyState === 1) socket.send(JSON.stringify({ type: "transcript", ...event }));
-      },
-      (error) => {
-        if (socket.readyState === 1) socket.send(JSON.stringify({ type: "error", message: error.message }));
-      },
-      config.WOLF_TRANSCRIPTION_PROVIDER === "local" ? config.WOLF_LOCAL_TRANSCRIPTION_URL : undefined,
-      streamId,
-      (diagnostic) => {
-        if (socket.readyState === 1) socket.send(JSON.stringify({ type: "diagnostic", ...diagnostic }));
-      },
-    );
-    if (config.WOLF_TRANSCRIPTION_PROVIDER === "local" || config.OPENAI_API_KEY)
-      session.open(config.OPENAI_API_KEY);
-    else {
-      socket.send(JSON.stringify({ type: "error", message: "Provider de transcrição não configurado." }));
-      socket.close(1011);
-      return;
-    }
-    socket.on("message", (raw: Buffer, isBinary: boolean) => {
-      if (isBinary) session.append(Buffer.from(raw));
-      else {
-        try {
-          const message = JSON.parse(String(raw)) as { type?: string; audio?: string };
-          if (message.type === "audio" && message.audio) session.append(Buffer.from(message.audio, "base64"));
-        } catch {
-          /* frame inválido, não derrubar a sessão */
-        }
-      }
-    });
-    socket.on("close", () => session.close());
-  });
-  app.get("/wolf/preflight/client-audio", { websocket: true }, (socket, request) => {
-    const query = z.object({ token: z.string().optional() }).parse(request.query);
-    if (!config.MOCK_MODE && !query.token) {
-      socket.close(1008, "authentication required");
-      return;
-    }
-    wolfClientPreflightSocket?.close();
-    wolfClientPreflightSession?.close();
-    wolfClientPreflightSocket = socket;
-    wolfClientPreflightSession = new WolfRealtimeSession(
-      config.WOLF_TRANSCRIPTION_MODEL,
-      "client",
-      (event) => {
-        if (socket.readyState === 1) socket.send(JSON.stringify({ type: "transcript", ...event }));
-      },
-      (error) => {
-        if (socket.readyState === 1) socket.send(JSON.stringify({ type: "error", message: error.message }));
-      },
-      config.WOLF_TRANSCRIPTION_PROVIDER === "local" ? config.WOLF_LOCAL_TRANSCRIPTION_URL : undefined,
-      `preflight-client:${crypto.randomUUID()}`,
-      (diagnostic) => {
-        if (socket.readyState === 1) socket.send(JSON.stringify({ type: "diagnostic", ...diagnostic }));
-      },
-    );
-    if (config.WOLF_TRANSCRIPTION_PROVIDER === "local" || config.OPENAI_API_KEY)
-      wolfClientPreflightSession.open(config.OPENAI_API_KEY);
-    socket.send(JSON.stringify({ type: "preflight_ready", speaker: "client" }));
-    socket.on("close", () => {
-      if (wolfClientPreflightSocket === socket) {
-        wolfClientPreflightSocket = null;
-        wolfClientPreflightSession?.close();
-        wolfClientPreflightSession = null;
-      }
-    });
-  });
-  const ollamaTags = async () => {
-    const response = await fetch(`${config.WOLF_OLLAMA_BASE_URL}/api/tags`, {
-      signal: AbortSignal.timeout(2_000),
-    });
-    if (!response.ok) return [] as string[];
-    const data = (await response.json()) as { models?: Array<{ name?: string }> };
-    return (data.models ?? []).map((model) => String(model.name ?? ""));
-  };
-  const ollamaIsOnline = async () => {
-    try {
-      const response = await fetch(`${config.WOLF_OLLAMA_BASE_URL}/api/tags`, {
-        signal: AbortSignal.timeout(2_000),
-      });
-      return response.ok;
-    } catch {
-      return false;
-    }
-  };
-  const warmQwen = async () => {
-    try {
-      const response = await fetch(`${config.WOLF_OLLAMA_BASE_URL}/api/chat`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          model: config.WOLF_OLLAMA_MODEL,
-          stream: false,
-          think: false,
-          format: "json",
-          keep_alive: "10m",
-          options: { num_predict: 1 },
-          messages: [{ role: "user", content: "Responda apenas {}" }],
-        }),
-        signal: AbortSignal.timeout(60_000),
-      });
-      wolfQwenWarm = response.ok;
-      return response.ok;
-    } catch {
-      wolfQwenWarm = false;
-      return false;
-    }
-  };
-  const unloadQwen = async () => {
-    try {
-      await fetch(`${config.WOLF_OLLAMA_BASE_URL}/api/generate`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ model: config.WOLF_OLLAMA_MODEL, prompt: "", stream: false, keep_alive: 0 }),
-        signal: AbortSignal.timeout(10_000),
-      });
-    } catch {
-      /* already offline */
-    }
-    wolfQwenWarm = false;
-  };
-  const getWolfAiStatus = async () => {
-    const online = await ollamaIsOnline();
-    if (!online)
-      return {
-        state: "off",
-        label: "DESLIGADA",
-        online: false,
-        model: config.WOLF_OLLAMA_MODEL,
-        installed: false,
-        warm: false,
-        ownedProcess: wolfOllamaOwned,
-      };
-    const models = await ollamaTags();
-    const installed = models.some((model) => model.split(":")[0] === config.WOLF_OLLAMA_MODEL.split(":")[0]);
-    if (!installed)
-      return {
-        state: "model_missing",
-        label: "MODELO AUSENTE",
-        online: true,
-        model: config.WOLF_OLLAMA_MODEL,
-        installed: false,
-        warm: false,
-        ownedProcess: wolfOllamaOwned,
-      };
-    return {
-      state: wolfQwenWarm ? "ready" : "unloaded",
-      label: wolfQwenWarm ? "PRONTA" : "DESLIGADA",
-      online: true,
-      model: config.WOLF_OLLAMA_MODEL,
-      installed: true,
-      warm: wolfQwenWarm,
-      ownedProcess: wolfOllamaOwned,
-    };
-  };
-  app.get("/wolf/readiness", { preHandler: requireWolfAuth(authClient) }, async () => {
-    const checks: Record<string, boolean> = {
-      api: true,
-      database: config.MOCK_MODE || Boolean(serviceDb),
-      ollama: false,
-      qwen: false,
-      qwenWarm: wolfQwenWarm,
-      whisper: false,
-      vad: false,
-      audioGateway: config.NODE_ENV === "test" || Boolean(wolfAudioServer.listening),
-      helperConnected: config.NODE_ENV === "test" || wolfGatewayConnected,
-      windowsAudio: config.NODE_ENV === "test" || wolfLastAudioAt > Date.now() - 2_000,
-    };
-    const reasons: string[] = [];
-    try {
-      const response = await fetch(`${config.WOLF_OLLAMA_BASE_URL}/api/tags`, {
-        signal: AbortSignal.timeout(2_000),
-      });
-      const data = (await response.json()) as { models?: Array<{ name?: string }> };
-      checks.ollama = response.ok;
-      checks.qwen = Boolean(
-        data.models?.some(
-          (model) => String(model.name ?? "").split(":")[0] === config.WOLF_OLLAMA_MODEL.split(":")[0],
-        ),
-      );
-      if (checks.qwen) {
-        try {
-          const loaded = await fetch(`${config.WOLF_OLLAMA_BASE_URL}/api/ps`, {
-            signal: AbortSignal.timeout(2_000),
-          });
-          const ps = (await loaded.json()) as { models?: Array<{ name?: string }> };
-          checks.qwenWarm =
-            wolfQwenWarm ||
-            Boolean(
-              ps.models?.some(
-                (model) => String(model.name ?? "").split(":")[0] === config.WOLF_OLLAMA_MODEL.split(":")[0],
-              ),
-            );
-        } catch {
-          /* server may be online while model is unloaded */
-        }
-      }
-    } catch {
-      /* reported below */
-    }
-    if (config.WOLF_TRANSCRIPTION_PROVIDER === "local") {
-      try {
-        const response = await fetch(`${config.WOLF_LOCAL_TRANSCRIPTION_URL}/health`, {
-          signal: AbortSignal.timeout(2_000),
-        });
-        const data = (await response.json()) as { ok?: boolean; vad?: string };
-        checks.whisper = response.ok && data.ok === true;
-        checks.vad = checks.whisper && Boolean(data.vad);
-      } catch {
-        /* reported below */
-      }
-    } else {
-      checks.whisper = Boolean(config.OPENAI_API_KEY);
-      checks.vad = checks.whisper;
-    }
-    for (const [name, ok] of Object.entries(checks).filter(([name]) => name !== "windowsAudio"))
-      if (!ok)
-        reasons.push(
-          name === "qwen"
-            ? `Modelo ${config.WOLF_OLLAMA_MODEL} não encontrado no Ollama.`
-            : `${name} indisponível.`,
-        );
-    return {
-      ready: Object.entries(checks)
-        .filter(([name]) => name !== "windowsAudio")
-        .every(([, ok]) => ok),
-      helperConnected: wolfGatewayConnected,
-      checks,
-      reasons,
-      openaiRequired: false,
-      mode: config.WOLF_AI_PROVIDER,
-    };
-  });
-  app.get("/wolf/ai/status", { preHandler: requireWolfAuth(authClient) }, async () => getWolfAiStatus());
-  app.post("/wolf/ai/start", { preHandler: requireWolfAuth(authClient) }, async (_request, reply) => {
-    const startedAt = Date.now();
-    let serverReady = await ollamaIsOnline();
-    if (!serverReady) {
-      const executable = process.platform === "win32" ? "ollama.exe" : "ollama";
-      wolfOllamaProcess = spawn(executable, ["serve"], { windowsHide: true, stdio: "ignore" });
-      wolfOllamaOwned = true;
-      for (let attempt = 0; attempt < 30 && !serverReady; attempt++) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        serverReady = await ollamaIsOnline();
-      }
-    }
-    if (!serverReady)
-      return reply.code(503).send({
-        message: "Ollama não iniciou. Verifique se está instalado e acessível.",
-        state: "error",
-        startedMs: Date.now() - startedAt,
-      });
-    const tags = await ollamaTags();
-    if (!tags.some((model) => model.split(":")[0] === config.WOLF_OLLAMA_MODEL.split(":")[0]))
-      return reply.code(409).send({
-        message: `Modelo ${config.WOLF_OLLAMA_MODEL} não instalado.`,
-        state: "model_missing",
-        startedMs: Date.now() - startedAt,
-      });
-    const warm = await warmQwen();
-    if (!warm)
-      return reply.code(503).send({
-        message: "Ollama respondeu, mas o Qwen não aqueceu.",
-        state: "error",
-        startedMs: Date.now() - startedAt,
-      });
-    return { ...(await getWolfAiStatus()), startedMs: Date.now() - startedAt };
-  });
-  app.post("/wolf/ai/stop", { preHandler: requireWolfAuth(authClient) }, async () => {
-    await unloadQwen();
-    if (wolfOllamaOwned) {
-      wolfOllamaProcess?.kill();
-      wolfOllamaProcess = null;
-      wolfOllamaOwned = false;
-    }
-    return getWolfAiStatus();
-  });
-  app.get("/wolf/calls/:id/audio", { websocket: true }, (socket, request) => {
-    const params = z.object({ id: z.string().uuid() }).parse(request.params);
-    const query = z
-      .object({ channel: z.enum(["operator", "client"]), token: z.string().optional() })
-      .parse(request.query);
-    if (!config.MOCK_MODE && !query.token) {
-      socket.close(1008, "authentication required");
-      return;
-    }
-    const key = `${params.id}:${query.channel}`;
-    const existing = wolfSessions.get(key);
-    existing?.close();
-    const session = new WolfRealtimeSession(
-      config.WOLF_TRANSCRIPTION_MODEL,
-      query.channel,
-      (event) => {
-        if (event.kind === "partial") wolfPartials.set(key, event.text);
-        else {
-          wolfPartials.delete(key);
-          void appendWolfTurn(params.id, event.speaker, event.text, event.at);
-        }
-        if (socket.readyState === 1) socket.send(JSON.stringify({ type: "transcript", ...event }));
-      },
-      (error) => {
-        if (socket.readyState === 1) socket.send(JSON.stringify({ type: "error", message: error.message }));
-      },
-      config.WOLF_TRANSCRIPTION_PROVIDER === "local" ? config.WOLF_LOCAL_TRANSCRIPTION_URL : undefined,
-      `${params.id}:${query.channel}`,
-      (diagnostic) => {
-        if (socket.readyState === 1) socket.send(JSON.stringify({ type: "diagnostic", ...diagnostic }));
-      },
-    );
-    wolfSessions.set(key, session);
-    const peers =
-      wolfSockets.get(params.id) ?? new Set<{ readyState: number; send: (value: string) => void }>();
-    peers.add(socket);
-    wolfSockets.set(params.id, peers);
-    if (config.WOLF_TRANSCRIPTION_PROVIDER === "local" || config.OPENAI_API_KEY)
-      session.open(config.OPENAI_API_KEY);
-    else if (socket.readyState === 1)
-      socket.send(JSON.stringify({ type: "error", message: "Provider de transcrição não configurado." }));
-    socket.on("message", (raw: Buffer, isBinary: boolean) => {
-      if (isBinary) session.append(Buffer.from(raw));
-      else {
-        try {
-          const message = JSON.parse(String(raw)) as { type?: string; audio?: string };
-          if (message.type === "audio" && message.audio) session.append(Buffer.from(message.audio, "base64"));
-        } catch {
-          /* ignore malformed client frames */
-        }
-      }
-    });
-    socket.on("close", () => {
-      session.close();
-      wolfSessions.delete(key);
-      wolfPartials.delete(key);
-      peers.delete(socket);
-      if (!peers.size) wolfSockets.delete(params.id);
-    });
-  });
-  app.get("/wolf/leads", { preHandler: requireAuth(authClient) }, async (request) =>
-    repository.leads(paginationSchema.parse(request.query)),
-  );
-  app.get("/wolf/worklist", { preHandler: requireAuth(authClient) }, async (request) => {
-    const query = paginationSchema.parse(request.query);
-    const [allLeads, states, batches] = await Promise.all([
-      repository.leads({ ...query, page: 1, pageSize: 10000 }),
-      repository.page("wolfLeadStates", { page: 1, pageSize: 10000 }),
-      repository.page("batches", { page: 1, pageSize: 10000 }),
-    ]);
-    const byLead = new Map(states.rows.map((row) => [String(row.leadId), row]));
-    const byBatch = new Map(batches.rows.map((row) => [String(row.id), row]));
-    const now = Date.now();
-    const terminal = new Set([
-      "interested",
-      "qualified",
-      "converted",
-      "not_interested",
-      "closed",
-      "has_system",
-      "no_interest",
-    ]);
-    const filter = String(query.status ?? "");
-    const linkedLeads = allLeads.rows.filter((lead) => {
-      const state = byLead.get(String(lead.id));
-      if (!state) return false;
-      if (filter === "active_queue")
-        return (
-          !terminal.has(String(state.status)) &&
-          !(state.nextCallAt && Date.parse(String(state.nextCallAt)) > now)
-        );
-      if (filter === "callback") return Boolean(state.nextCallAt);
-      if (filter === "no_interest") return ["no_interest", "not_interested"].includes(String(state.status));
-      if (filter === "has_system") return String(state.status) === "has_system";
-      return filter ? String(state.status) === filter : true;
-    });
-    const rows = linkedLeads
-      .map((lead) => {
-        const batch = lead.batchId ? byBatch.get(String(lead.batchId)) : undefined;
-        return {
-          ...lead,
-          batchName: batch?.name ?? null,
-          batchSource: batch?.source ?? lead.source ?? null,
-          wolfState: byLead.get(String(lead.id)),
-        };
-      })
-      .sort((a, b) => {
-        const ac = a.wolfState?.nextCallAt ? Date.parse(String(a.wolfState.nextCallAt)) : 0;
-        const bc = b.wolfState?.nextCallAt ? Date.parse(String(b.wolfState.nextCallAt)) : 0;
-        const aDue = ac > 0 && ac <= now;
-        const bDue = bc > 0 && bc <= now;
-        if (aDue !== bDue) return aDue ? -1 : 1;
-        if (aDue && ac !== bc) return ac - bc;
-        const attempts = Number(a.wolfState?.totalAttempts ?? 0) - Number(b.wolfState?.totalAttempts ?? 0);
-        if (attempts) return attempts;
-        return (
-          Date.parse(String(a.wolfState?.lastCallAt ?? a.wolfState?.createdAt ?? 0)) -
-          Date.parse(String(b.wolfState?.lastCallAt ?? b.wolfState?.createdAt ?? 0))
-        );
-      });
-    const from = (query.page - 1) * query.pageSize;
-    const paged = rows.slice(from, from + query.pageSize);
-    const counts = rows.reduce<Record<string, number>>((acc, row) => {
-      const status = String(row.wolfState?.status ?? "not_called");
-      acc[status] = (acc[status] ?? 0) + 1;
-      return acc;
-    }, {});
-    return { rows: paged, total: rows.length, page: query.page, pageSize: query.pageSize, counts };
-  });
-  app.get("/wolf/followups", { preHandler: requireAuth(authClient) }, async (request) =>
-    repository.page("followups", { ...paginationSchema.parse(request.query), pageSize: 100 }),
-  );
-  app.get("/wolf/leads/:leadId/history", { preHandler: requireWolfAuth(authClient) }, async (request) => {
-    const { leadId } = z.object({ leadId: z.string().uuid() }).parse(request.params);
-    const events = await repository.page("wolfCallEvents", { page: 1, pageSize: 10000 });
-    return {
-      rows: events.rows
-        .filter((event) => String(event.leadId) === leadId)
-        .sort((a, b) => Date.parse(String(b.occurredAt ?? 0)) - Date.parse(String(a.occurredAt ?? 0))),
-    };
-  });
-  app.get("/wolf/leads/:leadId/context", { preHandler: requireWolfAuth(authClient) }, async (request) => {
-    const { leadId } = z.object({ leadId: z.string().uuid() }).parse(request.params);
-    const [leads, states] = await Promise.all([
-      repository.leads({ page: 1, pageSize: 10000 }),
-      repository.page("wolfLeadStates", { page: 1, pageSize: 10000 }),
-    ]);
-    const lead = leads.rows.find((row) => String(row.id) === leadId);
-    if (!lead) throw Object.assign(new Error("Lead do atendimento não encontrado."), { statusCode: 404 });
-    return { ...lead, wolfState: states.rows.find((row) => String(row.leadId) === leadId) ?? null };
-  });
-  app.get("/wolf/analytics", { preHandler: requireAuth(authClient) }, async () => {
-    const events = await repository.page("wolfCallEvents", { page: 1, pageSize: 100 });
-    const buckets = new Map<
-      string,
-      { attempts: number; answered: number; interested: number; converted: number }
-    >();
-    for (const event of events.rows) {
-      const at = new Date(String(event.occurredAt ?? event.createdAt));
-      const day = new Intl.DateTimeFormat("en-US", {
-        weekday: "short",
-        timeZone: "America/Sao_Paulo",
-      }).format(at);
-      const hour = new Intl.DateTimeFormat("en-US", {
-        hour: "2-digit",
-        hour12: false,
-        timeZone: "America/Sao_Paulo",
-      }).format(at);
-      const key = `${day}|${hour}`;
-      const bucket = buckets.get(key) ?? { attempts: 0, answered: 0, interested: 0, converted: 0 };
-      if (event.eventType === "CALL_FINISHED") bucket.attempts++;
-      if (["ANSWERED", "INTERESTED", "CONVERTED"].includes(String(event.eventType))) bucket.answered++;
-      if (event.eventType === "INTERESTED") bucket.interested++;
-      if (event.eventType === "CONVERTED") bucket.converted++;
-      buckets.set(key, bucket);
-    }
-    return {
-      timezone: "America/Sao_Paulo",
-      buckets: [...buckets.entries()].map(([key, value]) => ({
-        key,
-        ...value,
-        answerRate: value.attempts ? value.answered / value.attempts : 0,
-        conversionRateOfAnswered: value.answered ? value.converted / value.answered : 0,
-      })),
-    };
-  });
-  app.post("/wolf/leads/:leadId/result", { preHandler: requireAuth(authClient) }, async (request) => {
-    const params = z.object({ leadId: z.string().uuid() }).parse(request.params);
-    const body = z
-      .object({
-        status: z.enum([
-          "called",
-          "no_answer",
-          "answered",
-          "busy",
-          "callback",
-          "has_system",
-          "interested",
-          "converted",
-          "no_interest",
-          "not_interested",
-          "invalid",
-          "closed",
-        ]),
-        nextCallAt: z.string().datetime().nullable().optional(),
-        callId: z.string().uuid().nullable().optional(),
-        conversionType: z.string().max(100).nullable().optional(),
-      })
-      .parse(request.body);
-    const states = await repository.page("wolfLeadStates", { page: 1, pageSize: 10000 });
-    const current = states.rows.find((row) => String(row.leadId) === params.leadId);
-    if (!current)
-      throw Object.assign(new Error("Estado operacional do lead não encontrado."), { statusCode: 404 });
-    const now = new Date().toISOString();
-    const answered = [
-      "answered",
-      "has_system",
-      "interested",
-      "converted",
-      "no_interest",
-      "not_interested",
-    ].includes(body.status);
-    const values = {
-      status: body.status,
-      lastCallAt: now,
-      firstCallAt: current.firstCallAt ?? now,
-      totalAttempts: Number(current.totalAttempts ?? 0) + 1,
-      answeredAttempts: Number(current.answeredAttempts ?? 0) + (answered ? 1 : 0),
-      nextCallAt: body.nextCallAt ?? null,
-      convertedAt: body.status === "converted" ? now : (current.convertedAt ?? null),
-      conversionType: body.conversionType ?? current.conversionType ?? null,
-    };
-    const state = await repository.updateResource("wolfLeadStates", String(current.id), values);
-    await repository.createResource("wolfCallEvents", {
-      leadId: params.leadId,
-      callId: body.callId ?? null,
-      eventType:
-        body.status === "converted"
-          ? "CONVERTED"
-          : body.status === "has_system"
-            ? "HAS_SYSTEM"
-            : body.status === "no_interest"
-              ? "NO_INTEREST"
-              : body.status === "interested"
-                ? "INTERESTED"
-                : body.status === "no_answer"
-                  ? "NO_ANSWER"
-                  : answered
-                    ? "ANSWERED"
-                    : "CALL_FINISHED",
-      occurredAt: now,
-      metadata: { nextCallAt: body.nextCallAt ?? null },
-    });
-    return state;
-  });
-  app.get("/wolf/calls", { preHandler: requireWolfAuth(authClient) }, async (request) =>
-    repository.page("wolfCalls", paginationSchema.parse(request.query)),
-  );
-  app.post("/wolf/test-sessions", { preHandler: requireAuth(authClient) }, async (request) => {
-    const body = z.object({ phone: z.string().trim().min(8).max(40) }).parse(request.body);
-    return repository.createResource("wolfCalls", {
-      leadId: null,
-      operatorId: request.userId,
-      direction: "outbound",
-      status: "preparing",
-      startedAt: null,
-      transcript: [],
-      liveContext: { testSession: true, phone: body.phone, facts: [], objections: [], pains: [] },
-    });
-  });
-  app.post("/wolf/standalone/sessions", { preHandler: requireWolfAuth(authClient) }, async (request) => {
-    const body = z
-      .object({
-        displayName: z.string().trim().min(1).max(200),
-        phone: z.string().trim().max(40).nullable().optional(),
-        businessName: z.string().trim().max(200).nullable().optional(),
-        chatType: z.string().trim().max(80).nullable().optional(),
-      })
-      .parse(request.body);
-    const normalizedPhone = body.phone?.replace(/\D/g, "") || null;
-    const leads = normalizedPhone
-      ? await repository.leads({ page: 1, pageSize: 10000, search: normalizedPhone })
-      : { rows: [] };
-    const matched = leads.rows.find((row) => String(row.phone ?? "").replace(/\D/g, "") === normalizedPhone);
-    return repository.createResource("wolfCalls", {
-      leadId: matched?.id ?? null,
-      operatorId: request.userId === "wolf-extension" ? null : request.userId,
-      direction: "outbound",
-      status: "preparing",
-      startedAt: null,
-      transcript: [],
-      liveContext: {
-        standalone: true,
-        source: "whatsapp_web",
-        displayName: body.displayName,
-        phone: body.phone ?? null,
-        businessName: body.businessName ?? null,
-        chatType: body.chatType ?? null,
-        matchedLeadId: matched?.id ?? null,
-        facts: [],
-        objections: [],
-        pains: [],
-      },
-    });
-  });
-  app.post("/wolf/calls", { preHandler: requireWolfAuth(authClient) }, async (request) => {
-    const body = z
-      .object({
-        mode: z.enum(["crm", "standalone", "test"]).optional(),
-        type: z.enum(["crm", "standalone", "test"]).optional(),
-        source: z.string().trim().max(80).optional(),
-        chatType: z.string().trim().max(80).nullable().optional(),
-        leadId: z.string().uuid().nullable().optional(),
-        direction: z.enum(["inbound", "outbound"]),
-        status: z.enum(["preparing", "listening"]).optional(),
-        testSession: z.boolean().optional(),
-        standalone: z.boolean().optional(),
-        phone: z.string().trim().max(40).nullable().optional(),
-        displayName: z.string().trim().max(200).nullable().optional(),
-        businessName: z.string().trim().max(200).nullable().optional(),
-      })
-      .parse(request.body);
-    const standalone = body.standalone === true || body.mode === "standalone" || body.type === "standalone";
-    const testSession = body.testSession === true || body.mode === "test" || body.type === "test";
-    request.log.info(
-      {
-        wolfCallPayload: {
-          mode: body.mode ?? (standalone ? "standalone" : testSession ? "test" : "crm"),
-          type: body.type ?? null,
-          leadId: body.leadId ?? null,
-          displayName: body.displayName ?? null,
-          phone: body.phone ?? null,
-          businessName: body.businessName ?? null,
-          chatType: body.chatType ?? null,
-          source: body.source ?? null,
-          testMode: testSession,
-        },
-      },
-      "wolf_call_create",
-    );
-    if (standalone && !body.displayName?.trim()) {
-      throw Object.assign(new Error("Standalone exige displayName."), {
-        statusCode: 400,
-        code: "INVALID_CALL_PAYLOAD",
-        fields: { displayName: "obrigatório em standalone" },
-      });
-    }
-    let matchedLeadId = body.leadId ?? null;
-    if (standalone && !matchedLeadId && body.phone) {
-      const normalizedPhone = body.phone.replace(/\D/g, "");
-      const leads = await repository.leads({ page: 1, pageSize: 10000, search: normalizedPhone });
-      const matched = leads.rows.find(
-        (row) => String(row.phone ?? "").replace(/\D/g, "") === normalizedPhone,
-      );
-      matchedLeadId = matched ? String(matched.id) : null;
-    }
-    const existing = (await repository.page("wolfCalls", { page: 1, pageSize: 10000 })).rows.find((row) => {
-      if (row.status !== "preparing") return false;
-      if (testSession || standalone) {
-        const context = row.liveContext as {
-          testSession?: boolean;
-          standalone?: boolean;
-          phone?: string | null;
-          displayName?: string | null;
-        } | null;
-        return (
-          context?.[standalone ? "standalone" : "testSession"] === true &&
-          context.phone === body.phone &&
-          (!standalone || body.phone || context.displayName === body.displayName)
-        );
-      }
-      return Boolean(body.leadId) && String(row.leadId) === body.leadId;
-    });
-    if (existing) {
-      if (body.status === "listening") {
-        return repository.updateResource("wolfCalls", String(existing.id), {
-          status: "listening",
-          startedAt: new Date().toISOString(),
-        });
-      }
-      return existing;
-    }
-    return repository.createResource("wolfCalls", {
-      leadId: standalone ? matchedLeadId : (body.leadId ?? null),
-      operatorId: request.userId === "wolf-extension" ? null : request.userId,
-      direction: body.direction,
-      status: body.status ?? "listening",
-      startedAt: body.status === "preparing" ? null : new Date().toISOString(),
-      transcript: [],
-      liveContext: standalone
-        ? {
-            standalone: true,
-            source: body.source ?? "whatsapp_web",
-            phone: body.phone ?? null,
-            displayName: body.displayName ?? null,
-            businessName: body.businessName ?? null,
-            chatType: body.chatType ?? null,
-            matchedLeadId,
-            facts: [],
-            objections: [],
-            pains: [],
-          }
-        : testSession
-          ? { testSession: true, phone: body.phone ?? "", facts: [], objections: [], pains: [] }
-          : { facts: [], objections: [], pains: [] },
-    });
-  });
-  app.post("/wolf/calls/:id/turns", { preHandler: requireAuth(authClient) }, async (request) => {
-    const params = z.object({ id: z.string().uuid() }).parse(request.params);
-    const body = z
-      .object({
-        speaker: z.enum(["operator", "client"]),
-        text: z.string().trim().min(1).max(4000),
-        sequence: z.number().int().min(0),
-      })
-      .parse(request.body);
-    return appendWolfTurn(params.id, body.speaker, body.text, new Date().toISOString());
-    /* const turn = await repository.createResource("wolfTurns", {
-      callId: params.id,
-      speaker: body.speaker,
-      text: body.text,
-      sequence: body.sequence,
-      startedAt: new Date().toISOString(),
-      endedAt: new Date().toISOString(),
-      partial: false,
-    });
-    const page = await repository.page("wolfCalls", { page: 1, pageSize: 100 });
-    const call = page.rows.find((row) => String(row.id) === params.id);
-    if (!call) throw Object.assign(new Error("Sessão não encontrada."), { statusCode: 404 });
-    const transcript = Array.isArray(call.transcript) ? call.transcript : [];
-    transcript.push({
-      speaker: body.speaker,
-      text: body.text,
-      timestamp: new Date().toISOString(),
-      sequence: body.sequence,
-    });
-    await repository.updateResource("wolfCalls", params.id, { transcript });
-    return turn; */
-  });
-  app.post("/wolf/calls/:id/suggest", { preHandler: requireWolfAuth(authClient) }, async (request, reply) => {
-    const params = z.object({ id: z.string().uuid() }).parse(request.params);
-    const body = z
-      .object({
-        alternative: z.boolean().optional(),
-        stream: z.boolean().optional(),
-        currentClientTurn: z.string().max(4000).optional(),
-      })
-      .parse(request.body);
-    if (config.WOLF_AI_PROVIDER === "ollama") {
-      const localPage = await repository.page("wolfCalls", { page: 1, pageSize: 100 });
-      const localCall = localPage.rows.find((row) => String(row.id) === params.id);
-      if (!localCall) throw Object.assign(new Error("Sessão não encontrada."), { statusCode: 404 });
-      const localTranscript = Array.isArray(localCall.transcript) ? localCall.transcript : [];
-      const abort = new AbortController();
-      request.raw.once("aborted", () => abort.abort());
-      request.raw.once("close", () => {
-        if (!request.raw.complete) abort.abort();
-      });
-      const compactTranscript = localTranscript.slice(-8);
-      const currentClientTurn = body.currentClientTurn?.trim();
-      const lastClient = [...localTranscript].reverse().find((turn) => turn.speaker === "client");
-      const lastOperator = [...localTranscript].reverse().find((turn) => turn.speaker === "operator");
-      const currentText = currentClientTurn || String(lastClient?.text || "");
-      const stage = /horario|agenda|demonstr/i.test(currentText)
-        ? "agendamento"
-        : /preco|custa|sistema|ocupad|tempo/i.test(currentText)
-          ? "objeção"
-          : localTranscript.length <= 3
-            ? "abertura"
-            : "descoberta";
-      const salesContext = {
-        goal: "agendar demonstração do Renova123",
-        stage,
-        trustedContactName: String(localCall.displayName || ""),
-        asrDetectedName: null,
-        operatorLast: String(lastOperator?.text || ""),
-        clientStable: String(lastClient?.text || ""),
-        clientCurrentPartial: currentClientTurn || "",
-        importantFacts: [],
-        objections: /ja uso|já uso|ocupad|custa|preco|preço/i.test(currentText) ? [currentText] : [],
-        demoIntent: /mostrar|demonstra|pode me mostrar|agendar/i.test(currentText) ? "strong" : "none",
-      };
-      const localResponse = await fetch(`${config.WOLF_OLLAMA_BASE_URL}/api/chat`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          model: config.WOLF_OLLAMA_MODEL,
-          stream: body.stream === true,
-          think: false,
-          options: { temperature: 0.2, num_predict: 60 },
-          messages: [
-            { role: "system", content: THE_WOLF_SYSTEM_PROMPT },
-            {
-              role: "user",
-              content: JSON.stringify({
-                leadId: localCall.leadId,
-                salesContext,
-                transcript: compactTranscript,
-                currentClientTurn,
-                alternative: body.alternative === true,
-              }),
-            },
-          ],
-        }),
-        signal: abort.signal,
-      });
-      if (body.stream === true) {
-        reply.hijack();
-        reply.raw.writeHead(localResponse.status, {
-          "content-type": "text/event-stream; charset=utf-8",
-          "cache-control": "no-cache",
-          connection: "keep-alive",
-        });
-        if (!localResponse.ok || !localResponse.body) {
-          reply.raw.write(
-            `data: ${JSON.stringify({ error: `Ollama respondeu HTTP ${localResponse.status}.` })}\n\n`,
-          );
-          reply.raw.end();
-          return;
-        }
-        const reader = localResponse.body.getReader();
-        const decoder = new TextDecoder();
-        let pending = "";
-        try {
-          while (true) {
-            const chunk = await reader.read();
-            if (chunk.done) break;
-            pending += decoder.decode(chunk.value, { stream: true });
-            const lines = pending.split("\n");
-            pending = lines.pop() || "";
-            for (const line of lines) {
-              if (!line.trim()) continue;
-              try {
-                const packet = JSON.parse(line) as { message?: { content?: string }; done?: boolean };
-                const delta = packet.message?.content || "";
-                if (delta) reply.raw.write(`data: ${JSON.stringify({ delta })}\n\n`);
-              } catch {
-                /* ignore incomplete Ollama packet */
-              }
-            }
-          }
-          reply.raw.write("data: [DONE]\n\n");
-        } catch (error) {
-          if (!(error instanceof Error && error.name === "AbortError"))
-            reply.raw.write(
-              `data: ${JSON.stringify({ error: error instanceof Error ? error.message : String(error) })}\n\n`,
-            );
-        }
-        reply.raw.end();
-        return;
-      }
-      const localData = (await localResponse.json()) as { message?: { content?: string }; error?: string };
-      if (!localResponse.ok)
-        throw Object.assign(new Error(localData.error ?? `Ollama respondeu HTTP ${localResponse.status}.`), {
-          statusCode: localResponse.status,
-        });
-      return {
-        faleAgora: (localData.message?.content ?? "").replace(/^```(?:json|text)?\s*|\s*```$/gi, "").trim(),
-      };
-    }
-    const page = await repository.page("wolfCalls", { page: 1, pageSize: 100 });
-    const call = page.rows.find((row) => String(row.id) === params.id);
-    if (!call) throw Object.assign(new Error("Sessão não encontrada."), { statusCode: 404 });
-    const transcript = Array.isArray(call.transcript) ? call.transcript : [];
-    const key = config.OPENAI_API_KEY;
-    if (!key)
-      throw Object.assign(new Error("OPENAI_API_KEY não configurada para o copiloto."), { statusCode: 503 });
-    const response = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
-      body: JSON.stringify({
-        model: config.WOLF_AI_MODEL,
-        reasoning: { effort: config.WOLF_REASONING_EFFORT },
-        input: [
-          { role: "system", content: THE_WOLF_SYSTEM_PROMPT },
-          {
-            role: "user",
-            content: JSON.stringify({
-              leadId: call.leadId,
-              transcript: transcript.slice(-20),
-              alternative: body.alternative === true,
-            }),
-          },
-        ],
-        max_output_tokens: 220,
-        store: false,
-      }),
-    });
-    const data = (await response.json()) as { output_text?: string; error?: { message?: string } };
-    if (!response.ok)
-      throw Object.assign(new Error(data.error?.message ?? `OpenAI respondeu HTTP ${response.status}.`), {
-        statusCode: response.status,
-      });
-    return { faleAgora: (data.output_text ?? "").replace(/^```(?:json|text)?\s*|\s*```$/gi, "").trim() };
-  });
-  app.post("/wolf/calls/:id/finish", { preHandler: requireWolfAuth(authClient) }, async (request) => {
-    const params = z.object({ id: z.string().uuid() }).parse(request.params);
-    const endedAt = new Date().toISOString();
-    const page = await repository.page("wolfCalls", { page: 1, pageSize: 100 });
-    const call = page.rows.find((row) => String(row.id) === params.id);
-    if (!call) throw Object.assign(new Error("Sessão não encontrada."), { statusCode: 404 });
-    const started = call.startedAt ? Date.parse(String(call.startedAt)) : Date.now();
-    const context = call.liveContext as { standalone?: boolean; testSession?: boolean } | null;
-    return repository.updateResource("wolfCalls", params.id, {
-      status: context?.standalone || context?.testSession ? "ended" : "review",
-      endedAt,
-      durationSeconds: Math.max(0, Math.round((Date.parse(endedAt) - started) / 1000)),
-      result: "revisar",
-    });
-  });
-  app.patch("/wolf/calls/:id/status", { preHandler: requireWolfAuth(authClient) }, async (request) => {
-    const params = z.object({ id: z.string().uuid() }).parse(request.params);
-    const body = z.object({ status: z.enum(["listening", "paused"]) }).parse(request.body);
-    return repository.updateResource("wolfCalls", params.id, { status: body.status });
-  });
-  app.patch("/wolf/calls/:id/review", { preHandler: requireAuth(authClient) }, async (request) => {
-    const params = z.object({ id: z.string().uuid() }).parse(request.params);
-    const body = z
-      .object({
-        summary: z.string().max(8000),
-        result: z.string().max(100),
-        nextAction: z.string().max(2000).nullable().optional(),
-        followUpDate: z.string().datetime().nullable().optional(),
-        liveContext: z.record(z.unknown()).optional(),
-      })
-      .parse(request.body);
-    return repository.updateResource("wolfCalls", params.id, { ...body, status: "completed" });
-  });
-  app.post("/wolf/calls/:id/discard", { preHandler: requireAuth(authClient) }, async (request) => {
-    const params = z.object({ id: z.string().uuid() }).parse(request.params);
-    return repository.updateResource("wolfCalls", params.id, {
-      status: "discarded",
-      result: null,
-      summary: null,
-    });
-  });
   app.post("/auth/logout", { preHandler: requireAuth(authClient) }, async (_request, reply) =>
     reply.code(204).send(),
   );
@@ -2580,6 +1338,169 @@ export async function buildApp(
       skipped: result.skipped,
     });
     return result;
+  });
+
+
+  app.get("/calls/desk", { preHandler: requireAuth(authClient) }, async (request) => {
+    const ownerId = request.userId!;
+    const timezone = "America/Sao_Paulo";
+    const today = callDayBounds(timezone).localDate;
+    if (!serviceDb) {
+      const events = mockManualCallEvents.filter((event) => callDayBounds(timezone, new Date(event.called_at)).localDate === today);
+      const next = [...mockManualCalls]
+        .filter((row) => row.owner_id === ownerId && ["in_progress", "pending", "callback"].includes(row.status))
+        .filter((row) => row.status !== "callback" || !row.callback_at || Date.parse(row.callback_at) <= Date.now())
+        .sort((a, b) => (a.status === "in_progress" ? -1 : b.status === "in_progress" ? 1 : a.sequence_no - b.sequence_no))[0] ?? null;
+      const history = [...mockManualCalls]
+        .filter((row) => row.owner_id === ownerId && row.called_at)
+        .sort((a, b) => Date.parse(b.called_at ?? "") - Date.parse(a.called_at ?? ""))
+        .slice(0, 10);
+      const goal = mockManualCallGoal;
+      const callsToday = events.length;
+      return {
+        timezone, goal, callsToday, remainingGoal: Math.max(0, goal - callsToday),
+        progressPct: Math.min(100, Math.round((callsToday / goal) * 100)),
+        interestedToday: events.filter((event) => ["interested", "qualified"].includes(event.outcome)).length,
+        qualifiedToday: events.filter((event) => event.outcome === "qualified").length,
+        pending: mockManualCalls.filter((row) => row.owner_id === ownerId && ["pending", "in_progress", "callback"].includes(row.status)).length,
+        next, history, chart: [],
+      };
+    }
+    const [settingsResult, queueResult, eventsResult] = await Promise.all([
+      serviceDb.from("manual_call_settings").select("daily_goal,timezone").eq("owner_id", ownerId).maybeSingle(),
+      serviceDb.from("manual_call_queue").select("*").eq("owner_id", ownerId).order("sequence_no", { ascending: true }).limit(5000),
+      serviceDb.from("manual_call_events").select("id,task_id,outcome,notes,called_at").eq("owner_id", ownerId).gte("called_at", new Date(Date.now() - 8 * 86_400_000).toISOString()).order("called_at", { ascending: false }).limit(5000),
+    ]);
+    if (settingsResult.error && settingsResult.error.code !== "PGRST116") throw settingsResult.error;
+    if (queueResult.error) throw queueResult.error;
+    if (eventsResult.error) throw eventsResult.error;
+    const settings = settingsResult.data as { daily_goal?: number; timezone?: string } | null;
+    const effectiveTimezone = settings?.timezone || timezone;
+    const localToday = callDayBounds(effectiveTimezone).localDate;
+    const queue = (queueResult.data ?? []) as ManualCallTask[];
+    const events = (eventsResult.data ?? []) as Array<{ id: string; task_id: string; outcome: ManualCallOutcome; notes?: string; called_at: string }>;
+    const todayEvents = events.filter((event) => callDayBounds(effectiveTimezone, new Date(event.called_at)).localDate === localToday);
+    const due = queue.filter((row) => ["pending", "in_progress", "callback"].includes(row.status));
+    const next = [...due]
+      .filter((row) => row.status !== "callback" || !row.callback_at || Date.parse(row.callback_at) <= Date.now())
+      .sort((a, b) => (a.status === "in_progress" ? -1 : b.status === "in_progress" ? 1 : a.sequence_no - b.sequence_no))[0] ?? null;
+    const taskById = new Map(queue.map((task) => [task.id, task]));
+    const history = events.slice(0, 12).map((event) => ({ ...event, task: taskById.get(event.task_id) ?? null }));
+    const chartMap = new Map<string, number>();
+    for (const event of events) {
+      const date = callDayBounds(effectiveTimezone, new Date(event.called_at)).localDate;
+      chartMap.set(date, (chartMap.get(date) ?? 0) + 1);
+    }
+    const chart = Array.from({ length: 7 }, (_, offset) => {
+      const date = new Date(Date.now() - (6 - offset) * 86_400_000);
+      const key = callDayBounds(effectiveTimezone, date).localDate;
+      return { date: key, calls: chartMap.get(key) ?? 0 };
+    });
+    const goal = Number(settings?.daily_goal ?? 100);
+    const callsToday = todayEvents.length;
+    return {
+      timezone: effectiveTimezone,
+      goal,
+      callsToday,
+      remainingGoal: Math.max(0, goal - callsToday),
+      progressPct: Math.min(100, Math.round((callsToday / Math.max(1, goal)) * 100)),
+      interestedToday: todayEvents.filter((event) => ["interested", "qualified"].includes(event.outcome)).length,
+      qualifiedToday: todayEvents.filter((event) => event.outcome === "qualified").length,
+      pending: due.length,
+      next,
+      history,
+      chart,
+    };
+  });
+
+  app.post("/calls/import", { preHandler: requireAuth(authClient) }, async (request) => {
+    const ownerId = request.userId!;
+    const body = z.object({ text: z.string().min(1).max(500_000) }).parse(request.body);
+    const parsed = parseManualCallImport(body.text);
+    if (!serviceDb) {
+      const activePhones = new Set(mockManualCalls.filter((row) => row.owner_id === ownerId && !["completed", "skipped"].includes(row.status)).map((row) => row.phone));
+      let inserted = 0;
+      let skipped = 0;
+      for (const row of parsed.rows) {
+        if (activePhones.has(row.phone)) { skipped++; continue; }
+        activePhones.add(row.phone);
+        mockManualCalls.push({
+          id: crypto.randomUUID(), owner_id: ownerId, sequence_no: ++mockManualCallSequence, phone: row.phone,
+          name: row.name ?? null, company: row.company ?? null, source: row.source ?? "manual_call_desk",
+          status: "pending", outcome: null, notes: "", attempt_count: 0, last_started_at: null,
+          called_at: null, callback_at: null, completed_at: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+        });
+        inserted++;
+      }
+      return { inserted, skipped, invalid: parsed.invalid };
+    }
+    const result = await serviceDb.rpc("append_manual_call_queue", { p_owner: ownerId, p_rows: parsed.rows });
+    if (result.error) throw result.error;
+    const data = (result.data ?? {}) as Record<string, unknown>;
+    await repository.audit("manual_calls.imported", "manual_call_queue", ownerId, { inserted: data.inserted ?? 0, invalid: parsed.invalid.length });
+    return { ...data, invalid: parsed.invalid };
+  });
+
+  app.post("/calls/:id/start", { preHandler: requireAuth(authClient) }, async (request) => {
+    const ownerId = request.userId!;
+    const { id } = z.object({ id: z.string().uuid() }).parse(request.params);
+    const now = new Date().toISOString();
+    if (!serviceDb) {
+      const task = mockManualCalls.find((row) => row.id === id && row.owner_id === ownerId);
+      if (!task) throw Object.assign(new Error("Ligação não encontrada."), { statusCode: 404 });
+      task.status = "in_progress"; task.last_started_at = now; task.updated_at = now;
+      return task;
+    }
+    const result = await serviceDb.from("manual_call_queue").update({ status: "in_progress", last_started_at: now, updated_at: now }).eq("id", id).eq("owner_id", ownerId).select("*").maybeSingle();
+    if (result.error) throw result.error;
+    if (!result.data) throw Object.assign(new Error("Ligação não encontrada."), { statusCode: 404 });
+    return result.data;
+  });
+
+  app.post("/calls/:id/complete", { preHandler: requireAuth(authClient) }, async (request) => {
+    const ownerId = request.userId!;
+    const { id } = z.object({ id: z.string().uuid() }).parse(request.params);
+    const body = z.object({
+      outcome: manualCallOutcomeSchema,
+      notes: z.string().max(8000).default(""),
+      callbackAt: z.string().datetime().nullable().optional(),
+    }).parse(request.body);
+    const now = new Date().toISOString();
+    if (body.outcome === "callback" && !body.callbackAt)
+      throw Object.assign(new Error("Informe quando deseja retornar a ligação."), { statusCode: 400 });
+    const nextStatus = body.outcome === "callback" ? "callback" : "completed";
+    if (!serviceDb) {
+      const task = mockManualCalls.find((row) => row.id === id && row.owner_id === ownerId);
+      if (!task) throw Object.assign(new Error("Ligação não encontrada."), { statusCode: 404 });
+      task.status = nextStatus; task.outcome = body.outcome; task.notes = body.notes; task.called_at = now;
+      task.callback_at = body.outcome === "callback" ? body.callbackAt ?? null : null;
+      task.completed_at = nextStatus === "completed" ? now : null; task.attempt_count += 1; task.updated_at = now;
+      mockManualCallEvents.unshift({ task_id: id, outcome: body.outcome, notes: body.notes, called_at: now });
+      return task;
+    }
+    const completed = await serviceDb.rpc("complete_manual_call", {
+      p_owner: ownerId,
+      p_task: id,
+      p_outcome: body.outcome,
+      p_notes: body.notes,
+      p_callback_at: body.outcome === "callback" ? body.callbackAt ?? null : null,
+    });
+    if (completed.error) {
+      if (/not found/i.test(completed.error.message ?? ""))
+        throw Object.assign(new Error("Ligação não encontrada."), { statusCode: 404 });
+      throw completed.error;
+    }
+    await repository.audit("manual_call.completed", "manual_call_queue", id, { outcome: body.outcome });
+    return completed.data;
+  });
+
+  app.patch("/calls/settings", { preHandler: requireAuth(authClient) }, async (request) => {
+    const ownerId = request.userId!;
+    const body = z.object({ dailyGoal: z.coerce.number().int().min(1).max(1000) }).parse(request.body);
+    if (!serviceDb) { mockManualCallGoal = body.dailyGoal; return { dailyGoal: body.dailyGoal, timezone: "America/Sao_Paulo" }; }
+    const result = await serviceDb.from("manual_call_settings").upsert({ owner_id: ownerId, daily_goal: body.dailyGoal, timezone: "America/Sao_Paulo", updated_at: new Date().toISOString() }, { onConflict: "owner_id" }).select("daily_goal,timezone").single();
+    if (result.error) throw result.error;
+    return { dailyGoal: result.data.daily_goal, timezone: result.data.timezone };
   });
 
   app.get("/settings/:section", { preHandler: requireAuth(authClient) }, async (request) => {
@@ -3677,17 +2598,6 @@ function requireAuth(authClient: SupabaseClient | null) {
   };
 }
 
-function requireWolfAuth(authClient: SupabaseClient | null) {
-  return async (request: FastifyRequest, reply: FastifyReply) => {
-    const extensionToken = request.headers["x-wolf-extension-token"];
-    if (extensionToken === wolfExtensionToken) {
-      request.userId = "wolf-extension";
-      return;
-    }
-    return requireAuth(authClient)(request, reply);
-  };
-}
-
 function createAuthClient() {
   return !config.MOCK_MODE && config.SUPABASE_URL && config.SUPABASE_ANON_KEY
     ? createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY, { auth: { persistSession: false } })
@@ -3892,53 +2802,7 @@ const resourceSchemas = {
     content: z.string().min(10).max(2000).optional(),
     active: z.boolean().optional(),
   }),
-  wolfCalls: z.object({
-    leadId: z.string().uuid().nullable().optional(),
-    operatorId: z.string().uuid().nullable().optional(),
-    direction: z.enum(["inbound", "outbound"]).optional(),
-    status: z.string().max(40).optional(),
-    startedAt: z.string().datetime().nullable().optional(),
-    endedAt: z.string().datetime().nullable().optional(),
-    durationSeconds: z.number().int().min(0).optional(),
-    result: z.string().max(100).nullable().optional(),
-    summary: z.string().max(8000).nullable().optional(),
-    transcript: z.array(z.record(z.unknown())).optional(),
-    liveContext: z.record(z.unknown()).optional(),
-  }),
-  wolfTurns: z.object({
-    callId: z.string().uuid(),
-    speaker: z.enum(["operator", "client"]),
-    text: z.string().min(1).max(4000),
-    sequence: z.number().int().min(0),
-    startedAt: z.string().datetime().optional(),
-    endedAt: z.string().datetime().nullable().optional(),
-    partial: z.boolean().optional(),
-  }),
-  wolfInsights: z.object({
-    callId: z.string().uuid(),
-    kind: z.string().min(1).max(80),
-    value: z.string().min(1).max(2000),
-    confidence: z.number().min(0).max(1).nullable().optional(),
-  }),
-  wolfLeadStates: z.object({
-    leadId: z.string().uuid(),
-    status: z.string().max(40),
-    cohortDate: z.string().optional(),
-    firstCallAt: z.string().datetime().nullable().optional(),
-    lastCallAt: z.string().datetime().nullable().optional(),
-    nextCallAt: z.string().datetime().nullable().optional(),
-    totalAttempts: z.number().int().min(0).optional(),
-    answeredAttempts: z.number().int().min(0).optional(),
-    convertedAt: z.string().datetime().nullable().optional(),
-    conversionType: z.string().max(100).nullable().optional(),
-  }),
-  wolfCallEvents: z.object({
-    leadId: z.string().uuid(),
-    callId: z.string().uuid().nullable().optional(),
-    eventType: z.string().min(1).max(60),
-    occurredAt: z.string().datetime().optional(),
-    metadata: z.record(z.unknown()).optional(),
-  }),
+
 } satisfies Record<EditableResourceKey, z.ZodObject<any>>;
 const creatableResources = new Set<EditableResourceKey>([
   "leads",
@@ -3971,11 +2835,6 @@ function editableResourceKey(value: unknown): EditableResourceKey {
       "knowledge",
       "notifications",
       "openers",
-      "wolfCalls",
-      "wolfTurns",
-      "wolfInsights",
-      "wolfLeadStates",
-      "wolfCallEvents",
     ])
     .parse(value);
   return key;

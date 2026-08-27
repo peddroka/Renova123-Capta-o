@@ -6,7 +6,7 @@ import { execFileSync } from "node:child_process";
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const stamp = new Date().toISOString().replace(/[:.]/g, "-");
 const out = join(root, "artifacts", "support-bundles", `renova123-support-${stamp}`);
-const files = ["package.json", "pnpm-workspace.yaml", "pnpm-lock.yaml", "tsconfig.base.json", "vitest.config.ts", "scripts/dev-manager.mjs", "scripts/dev-manager-profiles.mjs", "apps/api/src", "apps/api/package.json", "apps/worker/src/config.ts", "apps/worker/src/startup-safety.ts", "apps/worker/package.json", "services/wolf-transcription/app.py"];
+const files = ["package.json", "pnpm-workspace.yaml", "pnpm-lock.yaml", "tsconfig.base.json", "vitest.config.ts", "scripts/dev-manager.mjs", "scripts/dev-manager-profiles.mjs", "apps/api/src", "apps/api/package.json", "apps/worker/src/config.ts", "apps/worker/src/startup-safety.ts", "apps/worker/package.json"];
 mkdirSync(out, { recursive: true });
 for (const relative of files) { const source = join(root, relative); if (existsSync(source)) cpSync(source, join(out, relative), { recursive: true }); }
 const logDir = join(root, "logs");

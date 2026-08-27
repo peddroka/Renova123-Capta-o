@@ -1,9 +1,23 @@
-export const DEFAULT_PROACTIVE_MIN_INTERVAL_MINUTES = 12;
-export const DEFAULT_PROACTIVE_MAX_INTERVAL_MINUTES = 24;
+export const PROACTIVE_HARD_FLOOR_MINUTES = 6;
+export const PROACTIVE_JITTER_MIN_MINUTES = 1;
+export const PROACTIVE_JITTER_MAX_MINUTES = 10;
+export const DEFAULT_PROACTIVE_MIN_INTERVAL_MINUTES = PROACTIVE_HARD_FLOOR_MINUTES + PROACTIVE_JITTER_MIN_MINUTES;
+export const DEFAULT_PROACTIVE_MAX_INTERVAL_MINUTES = PROACTIVE_HARD_FLOOR_MINUTES + PROACTIVE_JITTER_MAX_MINUTES;
 
 export type ProactivePacingSettings = {
   minIntervalMinutes?: unknown;
   maxIntervalMinutes?: unknown;
+  proactiveHardFloorMinutes?: unknown;
+  proactiveJitterMinMinutes?: unknown;
+  proactiveJitterMaxMinutes?: unknown;
+};
+
+export type ProactivePacingWindow = {
+  hardFloorMinutes: number;
+  jitterMinMinutes: number;
+  jitterMaxMinutes: number;
+  minTotalMinutes: number;
+  maxTotalMinutes: number;
 };
 
 export type ProactiveBlockReason =
@@ -18,18 +32,29 @@ export type ProactiveBlockReason =
   | "OUTREACH_DISABLED"
   | "WORKER_OFFLINE";
 
-export function proactiveIntervalMinutes(settings: ProactivePacingSettings) {
-  const min = finiteInteger(settings.minIntervalMinutes, DEFAULT_PROACTIVE_MIN_INTERVAL_MINUTES, 1, 180);
-  const max = finiteInteger(settings.maxIntervalMinutes, DEFAULT_PROACTIVE_MAX_INTERVAL_MINUTES, min, 180);
-  return { min, max };
+export function proactivePacingWindow(settings: ProactivePacingSettings): ProactivePacingWindow {
+  const hardFloorMinutes = finiteInteger(settings.proactiveHardFloorMinutes, PROACTIVE_HARD_FLOOR_MINUTES, 6, 180);
+  const jitterMinMinutes = finiteInteger(settings.proactiveJitterMinMinutes, PROACTIVE_JITTER_MIN_MINUTES, 1, 60);
+  const jitterMaxMinutes = finiteInteger(settings.proactiveJitterMaxMinutes, PROACTIVE_JITTER_MAX_MINUTES, jitterMinMinutes, 60);
+  return {
+    hardFloorMinutes,
+    jitterMinMinutes,
+    jitterMaxMinutes,
+    minTotalMinutes: hardFloorMinutes + jitterMinMinutes,
+    maxTotalMinutes: hardFloorMinutes + jitterMaxMinutes,
+  };
 }
 
-export function randomProactiveIntervalMinutes(
-  settings: ProactivePacingSettings,
-  random = Math.random,
-) {
-  const { min, max } = proactiveIntervalMinutes(settings);
-  return min + Math.floor(random() * (max - min + 1));
+/** Compatibility helper for older UI/settings code. */
+export function proactiveIntervalMinutes(settings: ProactivePacingSettings) {
+  const pacing = proactivePacingWindow(settings);
+  return { min: pacing.minTotalMinutes, max: pacing.maxTotalMinutes };
+}
+
+export function randomProactiveIntervalMinutes(settings: ProactivePacingSettings, random = Math.random) {
+  const pacing = proactivePacingWindow(settings);
+  const jitter = pacing.jitterMinMinutes + Math.floor(random() * (pacing.jitterMaxMinutes - pacing.jitterMinMinutes + 1));
+  return pacing.hardFloorMinutes + jitter;
 }
 
 export function requiresProactivePacing(jobType: string) {

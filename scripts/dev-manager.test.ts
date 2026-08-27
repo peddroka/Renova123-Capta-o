@@ -3,24 +3,22 @@ import { readFileSync } from "node:fs";
 import { profileServices } from "./dev-manager-profiles.mjs";
 
 describe("dev manager profiles", () => {
-  it("keeps worker out of wolf and dev", () => {
-    expect(profileServices("wolf")).not.toContain("worker");
+  it("mantém o worker fora do perfil dev", () => {
     expect(profileServices("dev")).not.toContain("worker");
   });
-  it("includes worker only in full", () => {
+  it("inclui worker nos perfis full e francisco", () => {
     expect(profileServices("full")).toContain("worker");
-  });
-  it("uses the operational Francisco profile without Whisper", () => {
     expect(profileServices("francisco")).toEqual(["web", "api", "worker"]);
   });
-  it("uses live health and never shell=true", () => {
+  it("não mantém runtime legado do Wolf/Whisper", () => {
+    const source = readFileSync(new URL("./dev-manager.mjs", import.meta.url), "utf8");
+    expect(source).not.toMatch(/wolf:transcription|THE WOLF|whisper/i);
+  });
+  it("usa live health, shell false e supervisor do worker", () => {
     const source = readFileSync(new URL("./dev-manager.mjs", import.meta.url), "utf8");
     expect(source).toContain("/health/live");
     expect(source).toContain("shell: false");
     expect(source).not.toContain("shell: true");
-  });
-  it("runs Francisco worker through the supervisor and fails the manager on any unexpected child exit", () => {
-    const source = readFileSync(new URL("./dev-manager.mjs", import.meta.url), "utf8");
     expect(source).toContain('@renova123/worker", "supervisor');
     expect(source).toContain("code && code !== 0 ? code : 1");
   });

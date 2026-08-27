@@ -8,11 +8,6 @@
       "root": "apps/api",
       "framework": "fastify",
       "entrypoint": "src/server.ts"
-    },
-    "wolf-transcription": {
-      "root": "services/wolf-transcription",
-      "framework": "fastapi",
-      "entrypoint": "app:app"
     }
   },
   "rewrites": [
@@ -21,13 +16,6 @@
       "destination": {
         "type": "service",
         "service": "api"
-      }
-    },
-    {
-      "source": "/transcription(/.*)?",
-      "destination": {
-        "type": "service",
-        "service": "wolf-transcription"
       }
     },
     {

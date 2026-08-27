@@ -28,7 +28,6 @@ const commonEnv = {
   LOCAL_API_PORT: String(apiPort),
   WORKER_POLL_MS: "200",
   WORKER_HEARTBEAT_MS: "5000",
-  WOLF_AUDIO_PORT: "3394",
 };
 type State = {
   leads?: Array<Record<string, unknown>>;

@@ -3,105 +3,73 @@ import { franciscoDiscoveryStrategy } from "./francisco-discovery-strategy.js";
 import type { AgentSnapshot } from "./types.js";
 
 const base: AgentSnapshot = {
-  mind: {},
-  commercial: {},
-  lead: {},
-  batch: {},
-  stage: "engaged",
-  summary: "",
-  messages: [],
-  memories: [],
-  materials: [],
-  availableSlots: [],
-  followUps: [],
-  questionsAsked: [],
-  materialsSent: [],
-  humanActive: false,
-  automationPaused: false,
-  blocked: false,
-};
+  leadId: "lead-1", phone: "5582988543864", stage: "contacted",
+  lead: {}, mind: {}, commercial: {}, memories: [], messages: [], knowledgeItems: [], materials: [], slots: [],
+} as unknown as AgentSnapshot;
 
-function after(question: string, answer: string): AgentSnapshot {
-  return {
-    ...base,
-    messages: [
-      { role: "agent", text: question },
-      { role: "lead", text: answer },
-    ],
-  };
+function after(agent: string, lead: string, earlier: AgentSnapshot["messages"] = []): AgentSnapshot {
+  return { ...base, messages: [...earlier, { role: "agent", text: agent }, { role: "lead", text: lead }] } as unknown as AgentSnapshot;
 }
 
-describe("estratégia conversacional do Francisco", () => {
-  it("1. confirma ótica e pergunta sobre simulador sem apresentação precoce", () => {
-    const result = franciscoDiscoveryStrategy(
-      after("Você cuida da operação da ótica?", "Sou eu. Como posso ajudar?"),
-      "Sou eu. Como posso ajudar?",
-    );
+describe("Francisco discovery strategy", () => {
+  it("começa pelo simulador depois que o dono confirma", () => {
+    const result = franciscoDiscoveryStrategy(after("Falo com o dono da ótica?", "Sou eu mesmo."), "Sou eu mesmo.");
     expect(result.phase).toBe("simulator");
     expect(result.preferredQuestions[0]).toMatch(/simulador de lentes/i);
-    expect(result.avoid.join(" ")).toMatch(/apresentar|pitch/i);
   });
 
-  it("2. sem simulador, pergunta por teste de visão", () => {
-    expect(
-      franciscoDiscoveryStrategy(
-        after("Você tem simulador de lentes aí na ótica?", "Não temos."),
-        "Não temos.",
-      ).phase,
-    ).toBe("vision_test");
+  it("avança para teste de visão mesmo quando a resposta anterior foi positiva", () => {
+    const result = franciscoDiscoveryStrategy(after("Vocês têm um simulador de lentes aí na ótica?", "Sim, temos."), "Sim, temos.");
+    expect(result.phase).toBe("vision_test");
+    expect(result.preferredQuestions[0]).toMatch(/teste de visão/i);
   });
 
-  it("3. sem teste de visão, pergunta por simulador de grossura", () => {
-    const result = franciscoDiscoveryStrategy(after("E teste de visão?", "Também não."), "Também não.");
+  it("avança para medição digital depois do teste de visão", () => {
+    const earlier: AgentSnapshot["messages"] = [
+      { role: "agent", text: "Vocês têm um simulador de lentes aí na ótica?" },
+      { role: "lead", text: "Não." },
+    ];
+    const result = franciscoDiscoveryStrategy(after("E teste de visão, vocês têm?", "Também não.", earlier), "Também não.");
+    expect(result.phase).toBe("digital_measurement");
+    expect(result.preferredQuestions[0]).toMatch(/medidor digital/i);
+  });
+
+  it("pergunta grossura depois de medição digital", () => {
+    const earlier: AgentSnapshot["messages"] = [
+      { role: "agent", text: "Vocês têm um simulador de lentes aí na ótica?" }, { role: "lead", text: "Não" },
+      { role: "agent", text: "E teste de visão, vocês têm?" }, { role: "lead", text: "Não" },
+    ];
+    const result = franciscoDiscoveryStrategy(after("E algum medidor digital pra ajudar nas medições, vocês usam?", "Não.", earlier), "Não.");
     expect(result.phase).toBe("thickness_simulator");
     expect(result.preferredQuestions[0]).toMatch(/grossura da lente/i);
   });
 
-  it("4. sem nenhum recurso, investiga a barreira", () => {
-    expect(
-      franciscoDiscoveryStrategy(
-        after("E algum simulador pra mostrar a grossura da lente?", "Não temos nada."),
-        "Não temos nada.",
-      ).phase,
-    ).toBe("barrier");
+  it("depois de mapear recursos investiga a barreira", () => {
+    const messages: AgentSnapshot["messages"] = [
+      { role: "agent", text: "Vocês têm um simulador de lentes aí na ótica?" }, { role: "lead", text: "Não" },
+      { role: "agent", text: "E teste de visão, vocês têm?" }, { role: "lead", text: "Não" },
+      { role: "agent", text: "E algum medidor digital pra ajudar nas medições, vocês usam?" }, { role: "lead", text: "Não" },
+      { role: "agent", text: "Vocês têm algum simulador pra mostrar pro cliente como fica a grossura da lente?" }, { role: "lead", text: "Não" },
+    ];
+    const result = franciscoDiscoveryStrategy({ ...base, messages } as unknown as AgentSnapshot, "Não");
+    expect(result.phase).toBe("barrier");
+    expect(result.preferredQuestions.join(" ")).toMatch(/falta|custo|sistema|tempo/i);
   });
 
-  it("5. se já possui o recurso, adapta sem perguntar de novo", () => {
-    const result = franciscoDiscoveryStrategy(
-      after("Você tem simulador de lentes aí na ótica?", "Sim, temos."),
-      "Sim, temos.",
-    );
-    expect(result.phase).toBe("adapt");
-    expect(result.avoid.join(" ")).toMatch(/não perguntar novamente/i);
-  });
-
-  it("6. responde identidade quando perguntam quem é", () => {
+  it("responde identidade quando perguntam quem é", () => {
     const result = franciscoDiscoveryStrategy(base, "Quem é você?");
     expect(result.phase).toBe("identity");
-    expect(result.objective).toMatch(/quem é/i);
+    expect(result.avoid.join(" ")).toMatch(/não se passar por cliente/i);
   });
 
-  it("7. interesse conduz para demonstração sem nova entrevista", () => {
+  it("interesse conduz para demonstração sem reiniciar descoberta", () => {
     const result = franciscoDiscoveryStrategy(base, "Tenho interesse, pode me mostrar?");
     expect(result.phase).toBe("demo");
-    expect(result.preferredQuestions[0]).toMatch(/mostr/i);
   });
 
-  it("8. desinteresse encerra a sequência", () => {
+  it("desinteresse encerra a sequência", () => {
     const result = franciscoDiscoveryStrategy(base, "Não tenho interesse.");
     expect(result.phase).toBe("disinterest");
     expect(result.preferredQuestions).toHaveLength(0);
-  });
-
-  it("9. resposta fora do roteiro preserva o contexto do recurso mencionado", () => {
-    const result = franciscoDiscoveryStrategy(
-      after(
-        "Você tem simulador de lentes aí na ótica?",
-        "A gente mostra no computador quando o cliente pergunta.",
-      ),
-      "A gente mostra no computador quando o cliente pergunta.",
-    );
-    expect(result.phase).toBe("adapt");
-    expect(result.objective).toMatch(/simulador/);
   });
 });

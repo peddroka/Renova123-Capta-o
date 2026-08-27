@@ -13,11 +13,11 @@ import { AppointmentsPage } from "./pages/AppointmentsPage";
 import { HealthPage } from "./pages/HealthPage";
 import { LogsPage } from "./pages/LogsPage";
 import { TakeoverPage } from "./pages/TakeoverPage";
-import { WolfPage } from "./pages/WolfPage";
 import type { PageKey } from "@renova123/shared";
 import { ProtectedRoute } from "./auth";
 import { LoginPage } from "./pages/LoginPage";
 import { FlowPage } from "./pages/FlowPage";
+import { CallsPage } from "./pages/CallsPage";
 
 const resourceRoutes: Array<[string, PageKey]> = [
   ["leads", "leads"], ["lotes", "batches"], ["fila", "queue"],
@@ -35,7 +35,7 @@ export function App() {
       <Route path="leads" element={<ResourcePage pageKey="leads" />} />
       <Route path="settings" element={<SettingsPage pageKey="settings" section="general" />} />
       <Route path="fluxo" element={<FlowPage />} />
-      <Route path="the-wolf" element={<WolfPage />} />
+      <Route path="ligacoes" element={<CallsPage />} />
       <Route path="importacoes" element={<ImportPage />} />
       <Route path="conversas" element={<ConversationsPage />} />
       <Route path="materiais" element={<MaterialsPage />} />

@@ -3,7 +3,7 @@ import { canStartOutreach } from "./schedule.js";
 
 const settings = {
   dailyLimit: 50, hourlyLimit: 8, weekdays: [0, 1, 2, 3, 4, 5, 6],
-  startTime: "08:00", endTime: "23:00", minIntervalSeconds: 5, maxIntervalSeconds: 5, minIntervalMinutes: 12, maxIntervalMinutes: 24,
+  startTime: "08:00", endTime: "23:00", minIntervalSeconds: 5, maxIntervalSeconds: 5, minIntervalMinutes: 7, maxIntervalMinutes: 16, proactiveHardFloorMinutes: 6, proactiveJitterMinMinutes: 1, proactiveJitterMaxMinutes: 10,
   timezone: "America/Sao_Paulo", maxConsecutiveFailures: 5, autoPause: true,
   followUpsEnabled: true, maxFollowUps: 3, followUpIntervalHours: 48, batchPriority: "priority" as const,
   dailyProactiveLimit: 50, cadenceDelaysDays: [0, 1, 2, 4, 8, 16] as [number, number, number, number, number, number],

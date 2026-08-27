@@ -1,7 +1,6 @@
 export const PROFILES = {
-  wolf: ["api", "whisper"],
-  dev: ["web", "api", "whisper"],
-  full: ["web", "api", "worker", "whisper"],
+  dev: ["web", "api"],
+  full: ["web", "api", "worker"],
   francisco: ["web", "api", "worker"],
 };
 

@@ -73,9 +73,8 @@ begin
     'agent_instructions','knowledge_items','knowledge_files','message_templates','lead_batch_members',
     'lead_events','conversation_memories','outreach_queue','ai_response_queue','follow_up_queue',
     'availability_blocks','daily_usage','integration_connections','integration_events','worker_heartbeats',
-    'failed_jobs','agent_executions','material_send_history','appointment_history','conversation_takeovers',
-    'notifications','outreach_cadence_state','sales_handoff_deliveries','daily_cadence_plans','audit_logs',
-    'wolf_lead_state','wolf_call_events'
+    'jobs','agent_executions','material_send_history','appointment_history','conversation_takeovers',
+    'notifications','outreach_cadence_state','sales_handoff_deliveries','daily_cadence_plans'
   ] loop
     if to_regclass('public.'||t) is not null then
       execute format('alter table public.%I add column if not exists agent_id uuid', t);
@@ -91,8 +90,10 @@ end $$;
 
 -- Phone uniqueness is scoped to an agent, allowing the same number in two
 -- independent agent campaigns without sharing lead/conversation context.
+alter table public.leads drop constraint if exists leads_owner_id_phone_key;
 drop index if exists public.leads_owner_id_phone_key;
 create unique index if not exists leads_agent_phone_unique on public.leads(owner_id, agent_id, phone);
+alter table public.suppression_list drop constraint if exists suppression_list_phone_key;
 drop index if exists public.suppression_list_phone_key;
 create unique index if not exists suppression_agent_phone_unique on public.suppression_list(owner_id, agent_id, phone);
 

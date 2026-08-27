@@ -22,7 +22,7 @@ begin
 
   insert into public.app_settings(owner_id,section,values) values
     (v_owner,'general','{"agentName":"Francisco","companyName":"Renova123","simulationMode":true,"outreachEnabled":false,"globalPause":false,"automationEnabled":false,"timezone":"America/Sao_Paulo"}'::jsonb),
-    (v_owner,'outreach','{"dailyLimit":50,"dailyProactiveLimit":50,"hourlyLimit":8,"weekdays":[0,1,2,3,4,5,6],"startTime":"08:00","endTime":"23:00","minIntervalSeconds":5,"maxIntervalSeconds":5,"timezone":"America/Sao_Paulo","followUpsEnabled":false,"maxFollowUps":1,"followUpIntervalHours":72}'::jsonb),
+    (v_owner,'outreach','{"dailyLimit":50,"dailyProactiveLimit":50,"hourlyLimit":8,"weekdays":[0,1,2,3,4,5,6],"startTime":"08:00","endTime":"23:00","minIntervalSeconds":5,"maxIntervalSeconds":5,"minIntervalMinutes":7,"maxIntervalMinutes":16,"proactiveHardFloorMinutes":6,"proactiveJitterMinMinutes":1,"proactiveJitterMaxMinutes":10,"timezone":"America/Sao_Paulo","followUpsEnabled":false,"maxFollowUps":1,"followUpIntervalHours":72}'::jsonb),
     (v_owner,'material_categories','{"items":["Apresentação","Vídeo","Imagem","Documento","Áudio"]}'::jsonb),
     (v_owner,'handoff_reasons','{"items":["Solicitou atendimento humano","Negociação comercial","Reclamação","Baixa confiança da IA","Dúvida não cadastrada"]}'::jsonb),
     (v_owner,'lead_statuses','{"items":["imported","queued","scheduled","contacting","contacted","awaiting_reply","replied","qualifying","interested","demo_requested","demo_scheduled","handoff","manual_service","no_response","converted","lost","opted_out","invalid","blocked","failed"]}'::jsonb)

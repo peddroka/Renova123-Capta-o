@@ -76,10 +76,6 @@ describe("repositório mock persistente", () => {
     const queue = await apiRepository.page("queue", { page: 1, pageSize: 10 });
     expect(queue.rows[0]?.status).toBe("completed");
     expect((await apiRepository.leads({ page: 1, pageSize: 20, search: "5511911112222" })).total).toBe(1);
-    const wolf = await apiRepository.page("wolfLeadStates", { page: 1, pageSize: 20 });
-    expect(wolf.total).toBe(1);
-    expect(wolf.rows[0]?.status).toBe("not_called");
-    expect(wolf.rows[0]?.cohortDate).toBe("2026-08-09");
   });
 
   it("libera apenas a primeira abordagem quando chega presença online", async () => {

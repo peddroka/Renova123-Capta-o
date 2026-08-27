@@ -66,12 +66,7 @@ export type EditableResourceKey =
   | "materials"
   | "knowledge"
   | "notifications"
-  | "openers"
-  | "wolfCalls"
-  | "wolfTurns"
-  | "wolfInsights"
-  | "wolfLeadStates"
-  | "wolfCallEvents";
+  | "openers";
 const legacySettingsSections = new Set(["general", "outreach", "mind", "groq", "whatsapp", "appointments"]);
 export function shouldMirrorLegacySettings(section: string) {
   return legacySettingsSections.has(section);
@@ -157,15 +152,19 @@ export interface Repository {
   ): Promise<void>;
   markOutreachCapacityReserved(id: string, reservedAt: string): Promise<void>;
   reserveOutreachPacing(
-    minIntervalMinutes: number,
-    maxIntervalMinutes: number,
+    hardFloorMinutes: number,
+    jitterMinMinutes: number,
+    jitterMaxMinutes?: number,
+    agentSlug?: "francisco" | "pedro",
   ): Promise<{
     allowed: boolean;
     retryAt: string;
     intervalMinutes?: number;
+    hardFloorMinutes?: number;
+    jitterMinutes?: number;
     lastProactiveSendAt?: string | null;
   }>;
-  markOutreachPacingSent(sentAt: string): Promise<void>;
+  markOutreachPacingSent(sentAt: string, agentSlug?: "francisco" | "pedro"): Promise<void>;
   reserveOutreachQuota(
     dailyLimit: number,
     hourlyLimit: number,
@@ -217,8 +216,11 @@ class MemoryRepository implements Repository {
         endTime: "23:00",
         minIntervalSeconds: 5,
         maxIntervalSeconds: 5,
-        minIntervalMinutes: 12,
-        maxIntervalMinutes: 24,
+        minIntervalMinutes: 7,
+        maxIntervalMinutes: 16,
+        proactiveHardFloorMinutes: 6,
+        proactiveJitterMinMinutes: 1,
+        proactiveJitterMaxMinutes: 10,
         timezone: "America/Sao_Paulo",
         maxConsecutiveFailures: 5,
         autoPause: true,
@@ -650,16 +652,6 @@ class MemoryRepository implements Repository {
           source: String(input.source ?? ""),
           lastContactAt: null,
           createdAt: new Date().toISOString(),
-        });
-        (this.resources.wolfLeadStates ??= []).unshift({
-          id: crypto.randomUUID(),
-          leadId,
-          status: "not_called",
-          cohortDate: new Date().toISOString().slice(0, 10),
-          totalAttempts: 0,
-          answeredAttempts: 0,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
         });
         const opening = openers[imported % Math.max(1, openers.length)];
         const content = String(initialStrategy || opening?.content || "")
@@ -1098,30 +1090,45 @@ class MemoryRepository implements Repository {
       if (job) job.payload = { ...job.payload, capacityReservedAt: reservedAt };
     });
   }
-  async reserveOutreachPacing(minIntervalMinutes: number, maxIntervalMinutes: number) {
+  async reserveOutreachPacing(
+    hardFloorMinutes: number,
+    jitterMinMinutes: number,
+    jitterMaxMinutes?: number,
+    agentSlug: "francisco" | "pedro" = "francisco",
+  ) {
     return this.mutate(() => {
-      const current = this.settings.get("outreach") ?? {};
+      if (jitterMaxMinutes === undefined) {
+        jitterMaxMinutes = jitterMinMinutes;
+        jitterMinMinutes = hardFloorMinutes;
+        hardFloorMinutes = 0;
+      }
+      const section = agentSlug === "francisco" ? "outreach" : `outreach:${agentSlug}`;
+      const current = this.settings.get(section) ?? {};
       const now = Date.now();
       const persistedNext = Date.parse(String(current.nextProactiveSendAt ?? ""));
       const lastProactiveSendAt =
         typeof current.lastProactiveSendAt === "string" ? current.lastProactiveSendAt : null;
       if (Number.isFinite(persistedNext) && persistedNext > now)
         return { allowed: false, retryAt: new Date(persistedNext).toISOString(), lastProactiveSendAt };
-      const intervalMinutes =
-        minIntervalMinutes + Math.floor(Math.random() * (maxIntervalMinutes - minIntervalMinutes + 1));
+      const jitterMinutes =
+        jitterMinMinutes + Math.floor(Math.random() * (jitterMaxMinutes - jitterMinMinutes + 1));
+      const intervalMinutes = hardFloorMinutes + jitterMinutes;
       const retryAt = new Date(now + intervalMinutes * 60_000).toISOString();
-      this.settings.set("outreach", {
+      this.settings.set(section, {
         ...current,
         nextProactiveSendAt: retryAt,
         proactiveIntervalMinutes: intervalMinutes,
+        proactiveHardFloorMinutes: hardFloorMinutes,
+        proactiveJitterMinutes: jitterMinutes,
       });
-      return { allowed: true, retryAt, intervalMinutes, lastProactiveSendAt };
+      return { allowed: true, retryAt, intervalMinutes, hardFloorMinutes, jitterMinutes, lastProactiveSendAt };
     });
   }
-  async markOutreachPacingSent(sentAt: string) {
+  async markOutreachPacingSent(sentAt: string, agentSlug: "francisco" | "pedro" = "francisco") {
     this.mutate(() => {
-      const current = this.settings.get("outreach") ?? {};
-      this.settings.set("outreach", { ...current, lastProactiveSendAt: sentAt });
+      const section = agentSlug === "francisco" ? "outreach" : `outreach:${agentSlug}`;
+      const current = this.settings.get(section) ?? {};
+      this.settings.set(section, { ...current, lastProactiveSendAt: sentAt });
     });
   }
   async reserveOutreachQuota(dailyLimit: number, hourlyLimit: number, allowControlledTestBypass = false) {
@@ -1395,21 +1402,6 @@ class SupabaseRepository implements Repository {
       .eq("owner_id", owner)
       .eq("batch_id", batchId);
     if (members.error) throw members.error;
-    const cohortDate = new Date().toISOString().slice(0, 10);
-    const states = (members.data ?? []).map((row) => ({
-      owner_id: owner,
-      lead_id: row.lead_id,
-      status: "not_called",
-      cohort_date: cohortDate,
-      total_attempts: 0,
-      answered_attempts: 0,
-    }));
-    if (states.length) {
-      const linked = await this.db
-        .from("wolf_lead_state")
-        .upsert(states, { onConflict: "lead_id", ignoreDuplicates: true });
-      if (linked.error) throw linked.error;
-    }
     return { batchId, imported: value.imported, skipped: value.skipped };
   }
   async saveSettings(section: string, values: Record<string, unknown>) {
@@ -1850,23 +1842,36 @@ class SupabaseRepository implements Repository {
     if (error) throw error;
     this.claimedQueues.delete(id);
   }
-  async reserveOutreachPacing(minIntervalMinutes: number, maxIntervalMinutes: number) {
-    const { data, error } = await this.db.rpc("reserve_outreach_pacing_minutes", {
-      p_owner: await this.ownerId(),
-      p_min_interval_minutes: minIntervalMinutes,
-      p_max_interval_minutes: maxIntervalMinutes,
+  async reserveOutreachPacing(
+    hardFloorMinutes: number,
+    jitterMinMinutes: number,
+    jitterMaxMinutes?: number,
+    agentSlug: "francisco" | "pedro" = "francisco",
+  ) {
+    if (jitterMaxMinutes === undefined) {
+      jitterMaxMinutes = jitterMinMinutes;
+      jitterMinMinutes = hardFloorMinutes;
+      hardFloorMinutes = 0;
+    }
+    const { data, error } = await this.db.rpc("reserve_agent_proactive_pacing", {
+      p_agent_slug: agentSlug,
+      p_hard_floor_minutes: hardFloorMinutes,
+      p_jitter_min_minutes: jitterMinMinutes,
+      p_jitter_max_minutes: jitterMaxMinutes,
     });
     if (error) throw error;
     return data as {
       allowed: boolean;
       retryAt: string;
       intervalMinutes?: number;
+      hardFloorMinutes?: number;
+      jitterMinutes?: number;
       lastProactiveSendAt?: string | null;
     };
   }
-  async markOutreachPacingSent(sentAt: string) {
-    const { error } = await this.db.rpc("mark_outreach_pacing_sent", {
-      p_owner: await this.ownerId(),
+  async markOutreachPacingSent(sentAt: string, agentSlug: "francisco" | "pedro" = "francisco") {
+    const { error } = await this.db.rpc("mark_agent_proactive_sent", {
+      p_agent_slug: agentSlug,
       p_sent_at: sentAt,
     });
     if (error) throw error;
@@ -2209,26 +2214,6 @@ class SupabaseRepository implements Repository {
 const pageTable: Partial<
   Record<PageKey, { table: string; select: string; order: string; search?: string[]; owned?: boolean }>
 > = {
-  wolfCalls: {
-    table: "wolf_calls",
-    select:
-      "id,lead_id,operator_id,direction,status,started_at,ended_at,duration_seconds,result,summary,live_context,transcript,created_at",
-    order: "created_at",
-    search: ["status", "result", "summary"],
-  },
-  wolfLeadStates: {
-    table: "wolf_lead_state",
-    select:
-      "id,lead_id,status,cohort_date,first_call_at,last_call_at,next_call_at,total_attempts,answered_attempts,converted_at,conversion_type,created_at,updated_at",
-    order: "next_call_at",
-    search: ["status"],
-  },
-  wolfCallEvents: {
-    table: "wolf_call_events",
-    select: "id,lead_id,call_id,event_type,occurred_at,metadata",
-    order: "occurred_at",
-    search: ["event_type"],
-  },
   batches: {
     table: "lead_batches",
     select: "id,name,source,status,priority,total_count,processed_count,start_date,created_at",
@@ -2318,18 +2303,7 @@ const editableTable: Record<EditableResourceKey, { table: string; select: string
   knowledge: { table: "knowledge_items", select: pageTable.knowledge!.select },
   notifications: { table: "notifications", select: pageTable.notifications!.select },
   openers: { table: "message_templates", select: pageTable.openers!.select },
-  wolfCalls: { table: "wolf_calls", select: pageTable.wolfCalls!.select },
-  wolfTurns: {
-    table: "wolf_call_turns",
-    select: "id,call_id,speaker,text,started_at,ended_at,sequence,created_at",
-  },
-  wolfInsights: { table: "wolf_call_insights", select: "id,call_id,kind,value,confidence,created_at" },
-  wolfLeadStates: {
-    table: "wolf_lead_state",
-    select:
-      "id,lead_id,status,cohort_date,first_call_at,last_call_at,next_call_at,total_attempts,answered_attempts,converted_at,conversion_type,created_at,updated_at",
-  },
-  wolfCallEvents: { table: "wolf_call_events", select: "id,lead_id,call_id,event_type,occurred_at,metadata" },
+
 };
 
 const mockRows: Partial<Record<PageKey, Array<Record<string, unknown>>>> = {};

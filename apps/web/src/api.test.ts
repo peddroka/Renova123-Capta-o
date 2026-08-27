@@ -28,7 +28,7 @@ describe("cliente autenticado da API", () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
     await api("/health");
     expect(new Headers(fetchMock.mock.calls[0]![1]?.headers).get("content-type")).toBeNull();
-    await api("/wolf/test", { method: "POST", body: JSON.stringify({ phone: "5511999999999" }) });
+    await api("/test", { method: "POST", body: JSON.stringify({ phone: "5511999999999" }) });
     expect(new Headers(fetchMock.mock.calls[1]![1]?.headers).get("content-type")).toBe("application/json");
   });
 
@@ -63,11 +63,11 @@ describe("cliente autenticado da API", () => {
         headers: { "retry-after": "30" },
       }),
     );
-    await expect(api("/wolf/preflight/audio")).rejects.toMatchObject({
+    await expect(api("/preflight/audio")).rejects.toMatchObject({
       status: 429,
       message: "Teste temporariamente bloqueado. Aguarde 30 segundos.",
     });
-    await expect(api("/wolf/preflight/audio")).rejects.toMatchObject({
+    await expect(api("/preflight/audio")).rejects.toMatchObject({
       status: 429,
       message: "Teste temporariamente bloqueado. Aguarde 30 segundos.",
     });

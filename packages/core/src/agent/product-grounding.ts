@@ -13,7 +13,7 @@ export const CONFIRMED_PRODUCT_CATALOG = {
     duration: "Normalmente cerca de 15 a 20 minutos, podendo ser mais rápida conforme o caso",
     purpose: "Entender dúvidas e avaliar o próximo passo com o potencial cliente",
   },
-  socialProof: ["Mais de 700 óticas no Brasil", "Mais de 30 óticas em Maceió"],
+  socialProof: ["Mais de 357 óticas no Brasil", "Mais de 30 óticas em Maceió"],
   budgets: [
     "Criar proposta para cliente cadastrado ou atendimento avulso",
     "Buscar por nome, WhatsApp ou CPF",
@@ -26,7 +26,7 @@ export const CONFIRMED_PRODUCT_CATALOG = {
 } as const;
 
 export const APPROVED_SOCIAL_PROOF = [
-  { scope: "country", country: "Brasil", claim: "Mais de 700 óticas no Brasil" },
+  { scope: "country", country: "Brasil", claim: "Mais de 357 óticas no Brasil" },
   { scope: "city", country: "Brasil", state: "Alagoas", city: "Maceió", claim: "Mais de 30 óticas em Maceió" },
 ] as const;
 
@@ -43,7 +43,13 @@ export function enforceProductGrounding(decision: AiDecision): AiDecision {
   const normalized = normalize(reply);
   const unsupportedBudgetAutomation = /(?:follow up|retorno|lembrete|cobranca|chama)[a-z ]{0,35}automatic/.test(normalized) && /orcamento/.test(normalized);
   const unsupportedMetric = (/\b30\s*(?:%|por cento)\b|\b30\b[^.!?]{0,20}\b(?:mais|ganho|aumento|conversao|resultado)\b/.test(normalized) && !/\b30\b[^.!?]{0,35}\bmaceio\b/.test(normalized)) || /\b5\s*minut/.test(normalized);
-  const unsupportedCapability = /simulador de lentes/.test(normalized);
+  // Perguntar ao lead se a ótica usa um simulador é parte da descoberta e não é uma
+  // alegação de produto. Bloqueie somente quando a resposta atribui explicitamente
+  // essa capacidade ao Renova123/nosso sistema.
+  const unsupportedCapability =
+    /(?:^|\b)(?:temos|oferecemos|incluimos|disponibilizamos)[^.!?]{0,45}simulador de lentes/.test(normalized) ||
+    /(?:renova ?123|renova|nosso sistema|nossa plataforma|a gente)[^.!?]{0,55}(?:tem|possui|oferece|inclui|conta com)[^.!?]{0,45}simulador de lentes/.test(normalized) ||
+    /simulador de lentes[^.!?]{0,45}(?:integrado|no renova|do renova|na plataforma|no nosso sistema)/.test(normalized);
   const wrongGeography = /(?:30|trinta)[^.!?]{0,35}alagoas/.test(normalized);
   if (!unsupportedBudgetAutomation && !unsupportedMetric && !unsupportedCapability && !wrongGeography) return decision;
   return {

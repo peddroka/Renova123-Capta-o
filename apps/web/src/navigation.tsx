@@ -17,6 +17,7 @@ import {
   ListChecks,
   MessageCircleMore,
   MessageSquareText,
+  PhoneCall,
   ScrollText,
   Settings,
   SlidersHorizontal,
@@ -25,126 +26,38 @@ import {
   Wifi,
 } from "lucide-react";
 import type { PageKey } from "@renova123/shared";
-import { WolfIcon } from "./components/WolfIcon";
 
 export type NavigationItem = { key: PageKey; path: string; label: string; icon: typeof Gauge; group: string };
 
 export const navigation: NavigationItem[] = [
-  {
-    key: "wolfCalls",
-    path: "/the-wolf",
-    label: "THE WOLF",
-    icon: WolfIcon as typeof Gauge,
-    group: "Ligações",
-  },
-  { key: "overview", path: "/dashboard", label: "Visão geral", icon: Gauge, group: "Operação" },
-  { key: "flow", path: "/fluxo", label: "Fluxo", icon: SlidersHorizontal, group: "Operação" },
-  { key: "leads", path: "/leads", label: "Leads", icon: UsersRound, group: "Operação" },
-  { key: "imports", path: "/importacoes", label: "Importações", icon: Import, group: "Operação" },
-  { key: "batches", path: "/lotes", label: "Lotes de captação", icon: FolderKanban, group: "Operação" },
-  { key: "queue", path: "/fila", label: "Fila de envios", icon: ListChecks, group: "Operação" },
-  {
-    key: "conversations",
-    path: "/conversas",
-    label: "Conversas",
-    icon: MessageCircleMore,
-    group: "Relacionamento",
-  },
-  {
-    key: "interested",
-    path: "/interessados",
-    label: "Interessados",
-    icon: HeartHandshake,
-    group: "Relacionamento",
-  },
-  { key: "qualified", path: "/qualificados", label: "Qualificados", icon: HeartHandshake, group: "Relacionamento" },
-  {
-    key: "demos",
-    path: "/demonstracoes",
-    label: "Demonstrações",
-    icon: CalendarDays,
-    group: "Relacionamento",
-  },
-  {
-    key: "unanswered",
-    path: "/nao-responderam",
-    label: "Não responderam",
-    icon: CircleOff,
-    group: "Relacionamento",
-  },
-  { key: "followups", path: "/follow-ups", label: "Follow-ups", icon: Clock3, group: "Relacionamento" },
-  {
-    key: "handoffs",
-    path: "/transferencias",
-    label: "Transferências",
-    icon: UsersRound,
-    group: "Relacionamento",
-  },
-  { key: "lost", path: "/perdidos", label: "Perdidos", icon: ArchiveX, group: "Relacionamento" },
-  { key: "optouts", path: "/opt-outs", label: "Opt-outs", icon: Ban, group: "Relacionamento" },
-  { key: "materials", path: "/materiais", label: "Materiais", icon: FileUp, group: "Francisco" },
-  {
-    key: "knowledge",
-    path: "/base-conhecimento",
-    label: "Base de conhecimento",
-    icon: BrainCircuit,
-    group: "Francisco",
-  },
-  { key: "mind", path: "/mente-da-ia", label: "Mente da IA", icon: BrainCircuit, group: "Francisco" },
-  {
-    key: "openers",
-    path: "/mensagens-iniciais",
-    label: "Mensagens iniciais",
-    icon: MessageSquareText,
-    group: "Francisco",
-  },
-  {
-    key: "schedule",
-    path: "/horarios-limites",
-    label: "Horários e limites",
-    icon: CalendarClock,
-    group: "Configuração",
-  },
-  { key: "groq", path: "/integracoes/groq", label: "GroqCloud", icon: Sparkles, group: "Configuração" },
-  { key: "whatsapp", path: "/integracoes/whatsapp", label: "WhatsApp", icon: Wifi, group: "Configuração" },
-  { key: "health", path: "/saude", label: "Saúde do sistema", icon: Activity, group: "Configuração" },
-  { key: "logs", path: "/logs", label: "Logs e auditoria", icon: ScrollText, group: "Configuração" },
-  {
-    key: "settings",
-    path: "/configuracoes",
-    label: "Configurações gerais",
-    icon: Settings,
-    group: "Configuração",
-  },
+  { key: "overview", path: "/dashboard", label: "Visão geral", icon: Gauge, group: "Principal" },
+  { key: "calls", path: "/ligacoes", label: "Ligações", icon: PhoneCall, group: "Principal" },
+  { key: "flow", path: "/fluxo", label: "Fluxo", icon: SlidersHorizontal, group: "Principal" },
+  { key: "leads", path: "/leads", label: "Leads", icon: UsersRound, group: "Principal" },
+  { key: "conversations", path: "/conversas", label: "Conversas", icon: MessageCircleMore, group: "Principal" },
+  { key: "interested", path: "/interessados", label: "Interessados", icon: HeartHandshake, group: "Comercial" },
+  { key: "qualified", path: "/qualificados", label: "Qualificados", icon: HeartHandshake, group: "Comercial" },
+  { key: "demos", path: "/demonstracoes", label: "Demonstrações", icon: CalendarDays, group: "Comercial" },
+  { key: "imports", path: "/importacoes", label: "Importações", icon: Import, group: "Sistema" },
+  { key: "whatsapp", path: "/integracoes/whatsapp", label: "WhatsApp", icon: Wifi, group: "Sistema" },
+  { key: "settings", path: "/configuracoes", label: "Configurações", icon: Settings, group: "Sistema" },
 ];
 
 export const pageMeta: Record<
   PageKey,
   { eyebrow: string; title: string; description: string; icon: typeof Bot }
 > = {
-  wolfLeadStates: {
-    eyebrow: "THE WOLF",
-    title: "Estado operacional",
-    description: "Estado dos leads de ligação.",
-    icon: WolfIcon as typeof Gauge,
-  },
-  wolfCallEvents: {
-    eyebrow: "THE WOLF",
-    title: "Eventos de ligação",
-    description: "Eventos operacionais das chamadas.",
-    icon: WolfIcon as typeof Gauge,
-  },
-  wolfCalls: {
-    eyebrow: "Central de ligações",
-    title: "THE WOLF",
-    description: "Sua mesa operacional para chamadas, retornos e resultados.",
-    icon: WolfIcon as typeof Gauge,
-  },
   overview: {
     eyebrow: "Operação em tempo real",
     title: "Visão geral",
     description: "Acompanhe a captação, as conversas e os próximos passos do Francisco.",
     icon: Gauge,
+  },
+  calls: {
+    eyebrow: "Rotina comercial",
+    title: "Ligações",
+    description: "Seu caderno diário de ligações, resultados, retornos e meta de 100 contatos.",
+    icon: PhoneCall,
   },
   flow: {
     eyebrow: "Cadência comercial",

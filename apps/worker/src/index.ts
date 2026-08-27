@@ -26,7 +26,7 @@ import {
   nextCadenceAttempt,
   planConversation,
   ProviderCircuitBreaker,
-  proactiveIntervalMinutes,
+  proactivePacingWindow,
   regionFromBrazilianPhone,
   shouldMarkStalled,
   type AgentCallMetrics,
@@ -1697,7 +1697,7 @@ async function processOutbound(job: QueueJob) {
     }
   }
   if (!allowTestWindow) {
-    await reserveProactivePacing(settings);
+    await reserveProactivePacing(settings, job.payload.agentSlug === "pedro" ? "pedro" : "francisco");
   }
   if (!job.payload.capacityReservedAt) {
     const capacity = await repository.reserveOutreachQuota(
@@ -1720,7 +1720,8 @@ async function processOutbound(job: QueueJob) {
   }
   await sendTextSequence(leadId, phone, text, `outbound:${job.id}`);
   const sentAt = new Date().toISOString();
-  if (!allowTestWindow) await recordProactiveSend(sentAt);
+  if (!allowTestWindow)
+    await recordProactiveSend(sentAt, job.payload.agentSlug === "pedro" ? "pedro" : "francisco");
   const templateStrategy = String(job.payload.templateStrategy ?? job.payload.strategy ?? "initial");
   await repository.audit(
     fallbackReady ? "outreach.sent_by_fallback" : "outreach.sent_by_online",
@@ -1980,9 +1981,10 @@ async function processFollowUp(job: QueueJob) {
   const decision = execution.decision;
   await persistAgentExecution(context, execution, "completed", job.id);
   if (!decision.replyText || decision.shouldOptOut || decision.shouldHandoff) return;
-  await reserveProactivePacing(settings);
+  const followupAgent = job.payload.agentSlug === "pedro" ? "pedro" : "francisco";
+  await reserveProactivePacing(settings, followupAgent);
   await sendTextOnce(context.leadId, phone, decision.replyText, `followup:${job.id}`, context.ownerId);
-  await recordProactiveSend(new Date().toISOString());
+  await recordProactiveSend(new Date().toISOString(), followupAgent);
   if (serviceDb && job.payload.followUpId)
     await serviceDb
       .from("follow_ups")
@@ -4230,22 +4232,37 @@ async function sendTextSafely(
   return simulation ? simulatedSendResult(idempotencyKey) : whatsapp.sendText(phone, text, idempotencyKey);
 }
 
-async function reserveProactivePacing(settings: Record<string, unknown>) {
-  const { min, max } = proactiveIntervalMinutes(settings);
-  const pacing = await repository.reserveOutreachPacing(min, max);
+async function reserveProactivePacing(
+  settings: Record<string, unknown>,
+  agentSlug: "francisco" | "pedro" = "francisco",
+) {
+  const pacingWindow = proactivePacingWindow(settings);
+  const pacing = await repository.reserveOutreachPacing(
+    pacingWindow.hardFloorMinutes,
+    pacingWindow.jitterMinMinutes,
+    pacingWindow.jitterMaxMinutes,
+    agentSlug,
+  );
   if (!pacing.allowed)
     throw new DeferredJobError(
-      "Pacing humano ativo; aguardando próximo envio permitido.",
+      "Pacing seguro ativo; nenhum novo contato automático pode sair antes do próximo slot persistido.",
       new Date(pacing.retryAt),
     );
+  await repository.audit("outreach.pacing.reserved", "system", null, {
+    agentSlug,
+    hardFloorMinutes: pacingWindow.hardFloorMinutes,
+    jitterMinutes: pacing.jitterMinutes ?? null,
+    intervalMinutes: pacing.intervalMinutes ?? null,
+    retryAt: pacing.retryAt,
+  });
   return pacing;
 }
 
-async function recordProactiveSend(sentAt: string) {
+async function recordProactiveSend(sentAt: string, agentSlug: "francisco" | "pedro" = "francisco") {
   try {
-    await repository.markOutreachPacingSent(sentAt);
+    await repository.markOutreachPacingSent(sentAt, agentSlug);
   } catch (error) {
-    log.error({ err: error, sentAt }, "proactive_pacing_telemetry_persist_failed");
+    log.error({ err: error, sentAt, agentSlug }, "proactive_pacing_telemetry_persist_failed");
   }
 }
 

@@ -10,121 +10,30 @@ afterEach(async () => {
 
 describe("API", () => {
   const auth = { authorization: "Bearer mock-admin-token" };
-  it("cria sessão standalone com telefone, sem exigir lead do CRM", async () => {
+  it("opera o caderno manual de ligações em sequência", async () => {
     const app = await buildApp();
     apps.push(app);
-    const phone = `+55 21 9${String(Date.now()).slice(-8)}`;
-    const response = await app.inject({
-      method: "POST",
-      url: "/wolf/calls",
-      headers: auth,
-      payload: {
-        mode: "standalone",
-        type: "standalone",
-        source: "whatsapp_web",
-        leadId: null,
-        direction: "outbound",
-        status: "preparing",
-        standalone: true,
-        phone,
-        displayName: "Contato WhatsApp",
-        chatType: "individual",
-      },
+    const imported = await app.inject({
+      method: "POST", url: "/calls/import", headers: auth,
+      payload: { text: "5582988543864;Pedro;Teste\n5582999999999;Maria;Ótica Dois" },
     });
-    expect([200, 201]).toContain(response.statusCode);
-    expect(response.json()).toMatchObject({
-      id: expect.any(String),
-      liveContext: { standalone: true, source: "whatsapp_web", phone },
+    expect(imported.statusCode).toBe(200);
+    expect(imported.json().inserted).toBe(2);
+    const first = await app.inject({ method: "GET", url: "/calls/desk", headers: auth });
+    expect(first.statusCode).toBe(200);
+    expect(first.json().next.sequence_no).toBe(1);
+    expect(first.json().goal).toBe(100);
+    const done = await app.inject({
+      method: "POST", url: `/calls/${first.json().next.id}/complete`, headers: auth,
+      payload: { outcome: "interested", notes: "Pediu detalhes." },
     });
+    expect(done.statusCode).toBe(200);
+    const second = await app.inject({ method: "GET", url: "/calls/desk", headers: auth });
+    expect(second.json().next.sequence_no).toBe(2);
+    expect(second.json().callsToday).toBe(1);
+    expect(second.json().interestedToday).toBe(1);
   });
 
-  it("cria standalone sem telefone e aceita contato desconhecido", async () => {
-    const app = await buildApp();
-    apps.push(app);
-    const response = await app.inject({
-      method: "POST",
-      url: "/wolf/calls",
-      headers: auth,
-      payload: {
-        mode: "standalone",
-        type: "standalone",
-        leadId: null,
-        direction: "outbound",
-        status: "preparing",
-        standalone: true,
-        phone: null,
-        displayName: "Ótica Lucas",
-        businessName: null,
-      },
-    });
-    expect(response.statusCode).toBe(200);
-    expect(response.json()).toMatchObject({
-      id: expect.any(String),
-      leadId: null,
-      liveContext: { standalone: true, displayName: "Ótica Lucas", phone: null },
-    });
-  });
-
-  it("faz match CRM opcional no standalone sem transformar a sessão em CRM", async () => {
-    const repository = createRepository({
-      mock: true,
-      supabaseUrl: undefined,
-      serviceRoleKey: undefined,
-      mockFilePath: null,
-    });
-    const lead = await repository.createResource("leads", {
-      phone: "5521986322905",
-      name: "Lead pareado",
-      company: null,
-      stage: "new",
-      source: "teste",
-    });
-    const app = await buildApp({ repository });
-    apps.push(app);
-    const response = await app.inject({
-      method: "POST",
-      url: "/wolf/calls",
-      headers: auth,
-      payload: {
-        mode: "standalone",
-        leadId: lead.id,
-        direction: "outbound",
-        status: "preparing",
-        standalone: true,
-        phone: "+55 21 98632-2905",
-        displayName: "Contato pareado",
-      },
-    });
-    expect(response.statusCode).toBe(200);
-    expect(response.json()).toMatchObject({
-      leadId: lead.id,
-      liveContext: { standalone: true, matchedLeadId: lead.id },
-    });
-  });
-
-  it("retorna campos específicos para payload de chamada inválido", async () => {
-    const app = await buildApp();
-    apps.push(app);
-    const response = await app.inject({
-      method: "POST",
-      url: "/wolf/calls",
-      headers: auth,
-      payload: {
-        mode: "standalone",
-        type: "standalone",
-        leadId: null,
-        direction: "outbound",
-        status: "preparing",
-        standalone: true,
-        phone: null,
-      },
-    });
-    expect(response.statusCode).toBe(400);
-    expect(response.json()).toMatchObject({
-      error: "INVALID_CALL_PAYLOAD",
-      fields: { displayName: expect.any(String) },
-    });
-  });
   it("responde health sem autenticação", async () => {
     const app = await buildApp();
     apps.push(app);

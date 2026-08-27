@@ -188,8 +188,11 @@ export const outreachSettingsSchema = z
     endTime: z.string().regex(/^\d{2}:\d{2}$/),
     minIntervalSeconds: z.number().int().min(5),
     maxIntervalSeconds: z.number().int().min(5),
-    minIntervalMinutes: z.number().int().min(1).max(180).default(12),
-    maxIntervalMinutes: z.number().int().min(1).max(180).default(24),
+    minIntervalMinutes: z.number().int().min(1).max(180).default(7),
+    maxIntervalMinutes: z.number().int().min(1).max(180).default(16),
+    proactiveHardFloorMinutes: z.number().int().min(6).max(180).default(6),
+    proactiveJitterMinMinutes: z.number().int().min(1).max(60).default(1),
+    proactiveJitterMaxMinutes: z.number().int().min(1).max(60).default(10),
     timezone: z.string().min(1),
     campaignStartAt: z.string().datetime({ offset: true }).optional(),
     enabled: z.boolean().optional(),
@@ -226,15 +229,19 @@ export const outreachSettingsSchema = z
         path: ["maxIntervalMinutes"],
         message: "O intervalo máximo em minutos deve ser maior ou igual ao mínimo.",
       });
+    if (value.proactiveJitterMinMinutes > value.proactiveJitterMaxMinutes)
+      context.addIssue({
+        code: "custom",
+        path: ["proactiveJitterMaxMinutes"],
+        message: "O jitter máximo deve ser maior ou igual ao jitter mínimo.",
+      });
   });
 
 export type OutreachSettings = z.infer<typeof outreachSettingsSchema>;
 
 export type PageKey =
-  | "wolfCalls"
-  | "wolfLeadStates"
-  | "wolfCallEvents"
   | "overview"
+  | "calls"
   | "flow"
   | "leads"
   | "imports"

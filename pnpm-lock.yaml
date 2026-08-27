@@ -134,8 +134,6 @@ importers:
         specifier: ^7.1.1
         version: 7.3.6(@types/node@24.13.3)(tsx@4.23.5)
 
-  apps/wolf-extension: {}
-
   apps/worker:
     dependencies:
       '@renova123/core':

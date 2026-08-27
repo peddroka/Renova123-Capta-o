@@ -6,6 +6,7 @@ import type { AgentSnapshot } from "./types.js";
 export type FranciscoDiscoveryPhase =
   | "simulator"
   | "vision_test"
+  | "digital_measurement"
   | "thickness_simulator"
   | "barrier"
   | "adapt"
@@ -21,10 +22,15 @@ export type FranciscoDiscoveryStrategy = {
   avoid: string[];
 };
 
-const SIMULATOR_QUESTION = "Você tem simulador de lentes aí na ótica?";
-const VISION_TEST_QUESTION = "E teste de visão?";
-const THICKNESS_QUESTION =
-  "Vocês têm pelo menos algum simulador pra mostrar pro cliente como fica a grossura da lente?";
+const QUESTIONS = {
+  simulator: "Vocês têm um simulador de lentes aí na ótica?",
+  vision_test: "E teste de visão, vocês têm?",
+  digital_measurement: "E algum medidor digital pra ajudar nas medições, vocês usam?",
+  thickness_simulator: "Vocês têm algum simulador pra mostrar pro cliente como fica a grossura da lente?",
+} as const;
+
+type ResourceTopic = keyof typeof QUESTIONS;
+const ORDER: ResourceTopic[] = ["simulator", "vision_test", "digital_measurement", "thickness_simulator"];
 
 export function franciscoDiscoveryStrategy(
   snapshot: AgentSnapshot,
@@ -32,121 +38,102 @@ export function franciscoDiscoveryStrategy(
 ): FranciscoDiscoveryStrategy {
   const state = deriveConversationState(snapshot, currentLeadTurn);
   const current = fold(currentLeadTurn);
-  const previousAgent =
-    [...snapshot.messages].reverse().find((message) => message.role === "agent" || message.role === "human")
-      ?.text ?? "";
-  const previousQuestion = extractLastQuestion(previousAgent);
-  const transcript = fold(
-    [
-      ...snapshot.messages.filter((message) => message.role === "lead"),
-      { role: "lead" as const, text: currentLeadTurn },
-    ]
-      .map((message) => message.text)
-      .join(" "),
-  );
 
   if (isOptOutText(currentLeadTurn)) return simple("opt_out", "encerrar e respeitar o opt-out");
-  if (isExplicitNoInterestText(currentLeadTurn)) return simple("disinterest", "encerrar sem insistir");
+  if (isExplicitNoInterestText(currentLeadTurn) && !/^(?:não|nao|tchau)$/i.test(current.trim())) return simple("disinterest", "encerrar sem insistir");
   if (asksAgentIdentity(currentLeadTurn)) {
     return {
       phase: "identity",
-      objective: "responder quem é, de onde fala e o motivo do contato em poucas palavras",
+      objective: "responder com transparência quem é, de onde fala e o motivo real do contato, de forma curta",
       preferredQuestions: [],
-      avoid: ["não devolver a pergunta", "não inventar cargo, vínculo ou detalhe da ótica"],
+      avoid: ["não se passar por cliente", "não devolver a pergunta", "não inventar cargo ou detalhe da ótica"],
     };
   }
   if (isStrongCommercialIntent(currentLeadTurn) || state.demoInterest) {
     return {
       phase: "demo",
-      objective: "reconhecer o interesse e conduzir para demonstração ou ligação, sem nova entrevista",
+      objective: "reconhecer o interesse e conduzir para demonstração ou ligação, sem voltar à entrevista",
       preferredQuestions: ["Quer que eu te mostre como isso funciona na prática?"],
-      avoid: [
-        "não citar preço espontaneamente",
-        "não despejar funcionalidades",
-        "não forçar perguntas de descoberta",
-      ],
+      avoid: ["não citar preço espontaneamente", "não despejar funcionalidades", "não reiniciar a descoberta"],
     };
   }
 
-  const previousTopic = resourceQuestion(previousQuestion);
-  const currentResource = resourceSignal(current);
-  if (previousTopic === "simulator") {
-    if (currentResource === "negative")
-      return question("vision_test", "descobrir se a ótica tem teste de visão", VISION_TEST_QUESTION);
-    if (currentResource === "positive" || mentionsResource(current)) return adapt("simulador de lentes");
-    if (current.trim()) return adapt("resposta do lead sobre o simulador");
-  }
-  if (previousTopic === "vision_test") {
-    if (currentResource === "negative")
-      return question(
-        "thickness_simulator",
-        "descobrir se existe uma alternativa visual para a grossura da lente",
-        THICKNESS_QUESTION,
-      );
-    if (currentResource === "positive" || mentionsResource(current)) return adapt("teste de visão");
-    if (current.trim()) return adapt("resposta do lead sobre teste de visão");
-  }
-  if (previousTopic === "thickness_simulator") {
-    if (currentResource === "negative")
-      return {
-        phase: "barrier",
-        objective: "descobrir a barreira real sem presumir uma dor",
-        preferredQuestions: [
-          "Por que vocês ainda não colocaram isso aí?",
-          "O que falta hoje pra vocês terem isso?",
-          "É mais questão de custo, sistema, tempo...?",
-        ],
-        avoid: ["não fazer pitch ainda", "não afirmar que a ótica precisa da solução"],
-      };
-    if (currentResource === "positive" || mentionsResource(current))
-      return adapt("simulador para mostrar a grossura da lente");
-    if (current.trim()) return adapt("resposta do lead sobre a grossura da lente");
+  const asked = askedResources(snapshot);
+  const previousTopic = resourceQuestion(lastAgentMessage(snapshot));
+  const signal = resourceSignal(current);
+  const nextTopic = ORDER.find((topic) => !asked.has(topic));
+
+  // Depois de uma resposta sobre um recurso, reconheça o que a pessoa disse e
+  // avance para o próximo item ainda não perguntado. Tanto "sim" quanto "não"
+  // são informação útil; nunca repita a mesma pergunta.
+  if (previousTopic && (signal || current.trim())) {
+    if (nextTopic) return resource(nextTopic, signal === "positive" ? "reconhecer que já possui o recurso e avançar" : "avançar a descoberta sem presumir dor");
+    return barrier(signal);
   }
 
   if (state.leadRoleKnown || roleConfirmationTurn(snapshot, current)) {
-    return question(
-      "simulator",
-      "começar a descoberta sobre recursos da ótica sem apresentação precoce",
-      SIMULATOR_QUESTION,
-    );
+    return resource(nextTopic ?? "simulator", "mapear rapidamente a tecnologia disponível na ótica sem apresentação precoce");
   }
-  if (mentionsResource(transcript)) return adapt("recurso mencionado espontaneamente pelo lead");
+
+  if (nextTopic && asked.size > 0) return resource(nextTopic, "continuar a descoberta sem repetir perguntas");
+
   return {
     phase: "simulator",
-    objective:
-      "confirmar o recurso com uma pergunta curta quando a abertura já confirmou a ótica ou o responsável",
-    preferredQuestions: [SIMULATOR_QUESTION],
-    avoid: ["não se apresentar novamente", "não fazer pitch antes de descobrir contexto"],
+    objective: "depois de confirmar que fala com o dono da ótica, começar a descoberta com uma pergunta curta",
+    preferredQuestions: [QUESTIONS.simulator],
+    avoid: [
+      "não se apresentar antes da hora",
+      "não fingir ser cliente",
+      "não fazer pitch antes de descobrir contexto",
+      "não afirmar que o Renova123 possui simulador de lentes sem capacidade confirmada no catálogo",
+    ],
   };
 }
 
-function question(
-  phase: FranciscoDiscoveryPhase,
-  objective: string,
-  preferredQuestion: string,
-): FranciscoDiscoveryStrategy {
+function resource(topic: ResourceTopic, objective: string): FranciscoDiscoveryStrategy {
+  const labels: Record<ResourceTopic, string> = {
+    simulator: "simulador de lentes",
+    vision_test: "teste de visão",
+    digital_measurement: "medição digital",
+    thickness_simulator: "simulação da grossura da lente",
+  };
   return {
-    phase,
-    objective,
-    preferredQuestions: [preferredQuestion],
+    phase: topic,
+    objective: `${objective}: descobrir ${labels[topic]}`,
+    preferredQuestions: [QUESTIONS[topic]],
     avoid: [
       "não repetir perguntas já respondidas",
-      "não apresentar a Renova123 antes de haver motivo ou pergunta de identidade",
+      "não transformar uma pergunta de descoberta em afirmação sobre funcionalidades do Renova123",
+      "não apresentar a Renova123 antes de haver motivo, pergunta de identidade ou ponte comercial natural",
     ],
   };
 }
 
-function adapt(resource: string): FranciscoDiscoveryStrategy {
+function barrier(signal: "positive" | "negative" | null): FranciscoDiscoveryStrategy {
   return {
-    phase: "adapt",
-    objective: `acolher o que o lead informou sobre ${resource}, usar esse contexto e escolher a próxima pergunta sem repetir`,
-    preferredQuestions: [],
-    avoid: [
-      "não perguntar novamente se já tem o recurso",
-      "não fingir que não ouviu",
-      "não presumir uma dificuldade",
-    ],
+    phase: "barrier",
+    objective: signal === "positive"
+      ? "entender o que ainda poderia melhorar mesmo com tecnologia já presente, sem desmerecer o que a ótica usa"
+      : "descobrir por que a ótica ainda não adotou esses recursos, sem presumir a resposta",
+    preferredQuestions: signal === "positive"
+      ? ["Boa. E hoje tem alguma parte dessa experiência que vocês ainda queriam melhorar?"]
+      : ["Mas o que falta hoje pra vocês terem esse tipo de tecnologia aí?", "É mais questão de custo, sistema, tempo...?"],
+    avoid: ["não pressionar", "não afirmar ROI ou resultado sem evidência", "não inventar dor"],
   };
+}
+
+function askedResources(snapshot: AgentSnapshot) {
+  const set = new Set<ResourceTopic>();
+  for (const message of snapshot.messages) {
+    if (message.role !== "agent" && message.role !== "human") continue;
+    const topic = resourceQuestion(message.text);
+    if (topic) set.add(topic);
+  }
+  return set;
+}
+
+function lastAgentMessage(snapshot: AgentSnapshot) {
+  return [...snapshot.messages].reverse().find((message) => message.role === "agent" || message.role === "human")?.text ?? "";
 }
 
 function simple(phase: "disinterest" | "opt_out", objective: string): FranciscoDiscoveryStrategy {
@@ -154,52 +141,28 @@ function simple(phase: "disinterest" | "opt_out", objective: string): FranciscoD
 }
 
 function roleConfirmationTurn(snapshot: AgentSnapshot, current: string) {
-  const previousAgent =
-    [...snapshot.messages].reverse().find((message) => message.role === "agent" || message.role === "human")
-      ?.text ?? "";
+  const previousAgent = lastAgentMessage(snapshot);
   return (
-    /(?:dono|respons[aá]vel|quem cuida|gest[aã]o|opera[cç][aã]o).*(?:[?]|ótica|otica)/i.test(previousAgent) &&
-    /^(?:sim|sou eu|sou eu mesmo|eu cuido|eu que cuido|como posso ajudar|pode falar|fala|manda)/.test(current)
+    /(?:dono|propriet[aá]rio).*(?:[?]|ótica|otica)/i.test(previousAgent) &&
+    /^(?:sim|sou eu|sou eu mesmo|eu|como posso ajudar|pode falar|fala|manda)/.test(current)
   );
 }
 
-function resourceQuestion(value: string): "simulator" | "vision_test" | "thickness_simulator" | null {
+function resourceQuestion(value: string): ResourceTopic | null {
   const normalized = fold(value);
   if (/simulador/.test(normalized) && /grossura|espessura/.test(normalized)) return "thickness_simulator";
+  if (/medidor|medicao digital|medir/.test(normalized)) return "digital_measurement";
   if (/teste de visao|test(e|ar) a visao/.test(normalized)) return "vision_test";
-  if (/simulador/.test(normalized)) return "simulator";
+  if (/simulador/.test(normalized) && /lente/.test(normalized)) return "simulator";
   return null;
 }
 
 function resourceSignal(value: string): "positive" | "negative" | null {
-  if (
-    /^(?:nao|nunca|ainda nao)\b/.test(value) ||
-    /(?:^| )(?:nao|nunca|ainda nao|tambem nao)(?:\s+(?:tem|temos|possuo|possui|uso|usamos))?\b/.test(value)
-  )
-    return "negative";
+  if (/^(?:nao|nunca|ainda nao)\b/.test(value) || /(?:^| )(?:nao|nunca|ainda nao|tambem nao)(?:\s+(?:tem|temos|possuo|possui|uso|usamos))?\b/.test(value)) return "negative";
   if (/^(?:sim|ss|temos|tenho|tem|possuo|possui|uso|usamos|ja temos|ja uso)\b/.test(value)) return "positive";
   return null;
 }
 
-function mentionsResource(value: string) {
-  return /simulador|teste de visao|teste da visao|grossura|espessura da lente/.test(value);
-}
-
-function extractLastQuestion(value: string) {
-  return (
-    value
-      .match(/[^?]*\?/g)
-      ?.at(-1)
-      ?.trim() ?? ""
-  );
-}
-
 function fold(value: string) {
-  return value
-    .toLocaleLowerCase("pt-BR")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9?\s]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  return value.toLocaleLowerCase("pt-BR").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9?\s]/g, " ").replace(/\s+/g, " ").trim();
 }

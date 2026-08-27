@@ -12,7 +12,6 @@ import {
   ListChecks,
   MessageCircle,
   PhoneCall,
-  Settings2,
   UsersRound,
   Wifi,
   type LucideIcon,
@@ -47,6 +46,7 @@ type Appointment = {
   assignee?: string;
 };
 type Lead = { id: string; name?: string | null; company?: string | null; phone?: string; source?: string };
+type CallDeskSummary = { goal: number; callsToday: number; remainingGoal: number; progressPct: number; pending: number; interestedToday: number; qualifiedToday: number; chart: Array<{ date: string; calls: number }> };
 type DashboardData = {
   stats: DashboardStats;
   outreachAnalytics: OutreachAnalytics;
@@ -57,6 +57,7 @@ type DashboardData = {
   qualifiedLeads: Lead[];
   qualifiedCount: number;
   outreach: Record<string, unknown>;
+  calls: CallDeskSummary;
 };
 
 type Metric = {
@@ -69,7 +70,7 @@ type Metric = {
 };
 
 async function loadDashboard(): Promise<DashboardData> {
-  const [stats, outreachAnalytics, health, logs, appointments, hotLeads, qualifiedLeads, outreach] = await Promise.all([
+  const [stats, outreachAnalytics, health, logs, appointments, hotLeads, qualifiedLeads, outreach, calls] = await Promise.all([
     api<DashboardStats>("/dashboard"),
     api<OutreachAnalytics>("/analytics/outreach-hours"),
     api<Health>("/health"),
@@ -78,6 +79,7 @@ async function loadDashboard(): Promise<DashboardData> {
     api<PageResult<Lead>>("/pages/interested?page=1&pageSize=5"),
     api<PageResult<Lead>>("/pages/qualified?page=1&pageSize=5"),
     api<Record<string, unknown>>("/settings/outreach"),
+    api<CallDeskSummary>("/calls/desk"),
   ]);
   return {
     stats,
@@ -89,6 +91,7 @@ async function loadDashboard(): Promise<DashboardData> {
     qualifiedLeads: qualifiedLeads.rows,
     qualifiedCount: qualifiedLeads.total,
     outreach,
+    calls,
   };
 }
 
@@ -471,43 +474,19 @@ export function DashboardPage() {
           </div>
         </DataCard>
         <DataCard
-          eyebrow="Configuração"
-          title="Comece por aqui"
-          description="Prepare a operação antes de conectar e testar o WhatsApp."
+          eyebrow="Meta de ligações"
+          title={`${data?.calls.callsToday ?? 0} de ${data?.calls.goal ?? 100} hoje`}
+          description={`${data?.calls.remainingGoal ?? 100} ligações restantes · ${data?.calls.pending ?? 0} números na fila.`}
+          action={<Link className="inline-link" to="/ligacoes">Abrir caderno</Link>}
         >
-          <div className="setup-links">
-            <Link to="/mente-da-ia">
-              <Settings2 />
-              <span>
-                <strong>1. Configure a Mente da IA</strong>
-                <small>Empresa, produto, regras e limites comerciais.</small>
-              </span>
-              <ArrowRight />
-            </Link>
-            <Link to="/mensagens-iniciais">
-              <MessageCircle />
-              <span>
-                <strong>2. Cadastre mensagens iniciais</strong>
-                <small>Crie aberturas aprovadas para o primeiro contato.</small>
-              </span>
-              <ArrowRight />
-            </Link>
-            <Link to="/horarios-limites">
-              <Gauge />
-              <span>
-                <strong>3. Revise horários e limites</strong>
-                <small>Defina a cadência segura da operação.</small>
-              </span>
-              <ArrowRight />
-            </Link>
-            <Link to="/integracoes/whatsapp">
-              <Wifi />
-              <span>
-                <strong>4. Conecte o WhatsApp</strong>
-                <small>Crie a instância e leia o QR Code.</small>
-              </span>
-              <ArrowRight />
-            </Link>
+          <div className="dashboard-call-goal">
+            <div className="dashboard-call-goal__bar"><i style={{ width: `${data?.calls.progressPct ?? 0}%` }} /></div>
+            <div className="dashboard-call-goal__stats">
+              <span><strong>{data?.calls.progressPct ?? 0}%</strong> da meta</span>
+              <span><strong>{data?.calls.interestedToday ?? 0}</strong> interessados</span>
+              <span><strong>{data?.calls.qualifiedToday ?? 0}</strong> qualificados</span>
+            </div>
+            <Link className="secondary-button dashboard-call-goal__action" to="/ligacoes"><PhoneCall /> Começar ligações <ArrowRight /></Link>
           </div>
         </DataCard>
 
